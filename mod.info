@@ -1,0 +1,9 @@
+name=Todo List
+poster=poster.png
+id=TodoList
+description=Project Zomboid Todo List Mod
+url=http://myurl.com
+
+modversion=0.0.1
+versionMin=41.65
+tags=Build 41,Interface

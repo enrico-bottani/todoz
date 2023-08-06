@@ -1,0 +1,4 @@
+IGUI_EN = {
+    IGUI_TDLZ_context_onclick = "Open Todo List"
+    IGUI_TDLZ_window_title = "Todo List"
+}

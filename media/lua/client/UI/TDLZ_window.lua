@@ -16,7 +16,14 @@ TDLZ_UI.toggle = function()
         TDLZ_UI.instance = nil;
     end
 end
+TDLZ_UI.close = function()
+    if TDLZ_UI.instance == nil then
+       return
+    end
 
+    TDLZ_UI.instance:actualClose();
+    TDLZ_UI.instance = nil;
+end
 TDLZ_UI.getNotebookID = function()
     if TDLZ_UI.instance == nil then
         print("TDLZ - window not initialized - create new window");

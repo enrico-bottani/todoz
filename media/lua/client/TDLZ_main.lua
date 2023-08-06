@@ -7,10 +7,14 @@ local original_ISUIOnClick = ISUIWriteJournal.onClick;
 function ISUIWriteJournal:onClick(button)
     original_ISUIOnClick(self, button)
 
-	if button.internal == "OK" then
-		-- update todolist
-        
-	end
+    if button.internal == "OK" then
+        -- update todolist
+        local editedNotebook = button.parent.notebook;
+
+        print("bookid: " .. editedNotebook:getID());
+        -- get notebook title
+        print("clicked ok. notebook title: [" .. button.parent.title:getText() .. "]")
+    end
 end
 function mysplit(inputstr, sep)
     if sep == nil then
@@ -22,8 +26,6 @@ function mysplit(inputstr, sep)
     end
     return t
 end
-
-
 
 TDLZ_menu.onCraftHelper = function(items, player, itemMode)
 
@@ -88,7 +90,7 @@ end
 
 TDLZ_menu.doCraftHelperMenu = function(player, context, items)
     local itemsUsedInRecipes = getNotebooks(items);
-    
+
     -- print(itemsUsedInRecipes[1]:getName())
     if type(itemsUsedInRecipes) == 'table' and #itemsUsedInRecipes > 0 then
         local opt = context:addOption(getText('IGUI_TDLZ_context_onclick'), itemsUsedInRecipes, TDLZ_menu.onCraftHelper,
@@ -114,15 +116,6 @@ TDLZ_menu.OnRefreshInventoryWindowContainers = function(invSelf, state)
     end
 
 end
-ISUIWriteJournal:onClick(button){
-    print("Called")
-}
-local function OnDeviceText(player)
-	-- Your code here
-    print("On device text")
-end
--- In assenzaa di un trigger + specifico...
-Events.EveryOneMinute.Add(OnDeviceText)
 
 Events.OnFillInventoryObjectContextMenu.Add(TDLZ_menu.doCraftHelperMenu)
 Events.OnRefreshInventoryWindowContainers.Add(TDLZ_menu.OnRefreshInventoryWindowContainers)

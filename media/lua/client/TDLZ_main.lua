@@ -8,12 +8,17 @@ function ISUIWriteJournal:onClick(button)
     original_ISUIOnClick(self, button)
 
     if button.internal == "OK" then
+        print("OK clicked")
         -- update todolist
         local editedNotebook = button.parent.notebook;
-
-        print("bookid: " .. editedNotebook:getID());
-        -- get notebook title
-        print("clicked ok. notebook title: [" .. button.parent.title:getText() .. "]")
+        local notebookTitleNew = button.parent.title:getText();
+        local notebookID = editedNotebook:getID();
+        local openedTodoUIID = TDLZ_UI.getNotebookID();
+        if openedTodoUIID == notebookID then
+            print("Refreshing Todo UI")
+            return     
+        end
+        print("Notebook not assigned as Todo. Nothing to refresh") 
     end
 end
 function mysplit(inputstr, sep)
@@ -29,11 +34,11 @@ end
 
 TDLZ_menu.onCraftHelper = function(items, player, itemMode)
 
-    print("n of items: " .. #items)
-    print("category: " .. tostring(items[1]:getCategory()))
-    print("name: " .. tostring(items[1]:getBookName()))
-    print("pages: " .. items[1]:getPageToWrite())
-    print("-------------------------------")
+    --print("n of items: " .. #items)
+    --print("category: " .. tostring(items[1]:getCategory()))
+    --print("name: " .. tostring(items[1]:getBookName()))
+    --print("pages: " .. items[1]:getPageToWrite())
+    --print("-------------------------------")
     -- local next = items[1]:getCustomPages();
     -- print("page: " .. items[1]:tostring())
     -- print("type: " .. type(items[1]))
@@ -62,8 +67,9 @@ TDLZ_menu.onCraftHelper = function(items, player, itemMode)
     
     UI:saveLayout()
     --]]
-    TDLZ_UI.toggle();
-    print("Open UI")
+    TDLZ_UI.setNotebookID(items[1]:getID())
+    --TDLZ_UI.toggle();
+    print("onCraftHelper() -> Open UI")
 end
 
 function getNotebooks(items)
@@ -78,9 +84,9 @@ function getNotebooks(items)
         end
         -- if item is used in any recipe OR there is a way to create this item - mark item as valid
         local fullType = item:getFullType()
-        print(fullType)
+        -- print(fullType)
         local isNote = fullType == 'Base.Notebook'
-        print("isNote : " .. tostring(isNote))
+        -- print("isNote : " .. tostring(isNote))
         if isNote then
             table.insert(itemsUsedInRecipes, item)
         end

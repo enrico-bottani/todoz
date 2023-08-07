@@ -128,8 +128,7 @@ end
 -- ************************************************************************--
 function TDLZ_ISTodoListZWindow:create()
     -- "Toolbar" buttons - Import/Export
-    self.copyButton = ISButton:new(15, 25, 25, 25, getText("UI_KRFM_CopyFromRadio"), self, self.onCopy);
-    self.copyButton.tooltip = getText("UI_KRFM_CopyFromRadio_Tooltip");
+    self.copyButton = ISButton:new(0, 25, 25, 25, getText("UI_KRFM_CopyFromRadio"), self, self.onCopy);
     self.copyButton:initialise();
     self.copyButton:instantiate();
     self.copyButton.borderColor = {

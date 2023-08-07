@@ -43,7 +43,6 @@ TDLZ_ISTodoListTZWindowHandler.getNotebookID = function()
     if TDLZ_ISTodoListTZWindowHandler.instance == nil then
         return -1
     end
-    print("GET ID: " .. TDLZ_ISTodoListTZWindowHandler.instance.notebookID)
     return TDLZ_ISTodoListTZWindowHandler.instance.notebookID;
 end
 function TDLZ_ISTodoListTZWindowHandler.setVisible()

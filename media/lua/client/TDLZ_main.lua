@@ -39,10 +39,10 @@ TDLZ_Menu.onOpenTodoZ = function(items, player, itemMode)
         levels = levels .. level
     end
     local splitted = TDLZ_StringUtils.split(levels, "\n")
-    
+
     TDLZ_ISTodoListTZWindowHandler.setNotebookID(items[1]:getID())
     TDLZ_ISTodoListTZWindowHandler.setVisible()
-    
+
     print("onOpenTodoZ() -> Open UI")
 end
 
@@ -58,9 +58,7 @@ function getNotebooks(items)
         end
         -- if item is used in any recipe OR there is a way to create this item - mark item as valid
         local fullType = item:getFullType()
-        -- print(fullType)
         local isNote = fullType == 'Base.Notebook'
-        -- print("isNote : " .. tostring(isNote))
         if isNote then
             table.insert(itemsUsedInRecipes, item)
         end
@@ -73,7 +71,8 @@ TDLZ_Menu.handleShowTodoListContenxtMenu = function(player, context, items)
 
     if type(notebooks) == 'table' and #notebooks > 0 then
         local notebookID = notebooks[1]:getID();
-        if TDLZ_ISTodoListTZWindowHandler.instance ~= nil and TDLZ_ISTodoListTZWindowHandler.getNotebookID() == notebookID then
+        if TDLZ_ISTodoListTZWindowHandler.instance ~= nil and TDLZ_ISTodoListTZWindowHandler.getNotebookID() ==
+            notebookID then
             -- TodoZ UI is open, don't do anything
             return
         end

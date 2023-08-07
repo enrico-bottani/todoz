@@ -2,7 +2,7 @@ require 'luautils'
 require 'Utils/TDLZ_Map'
 require 'Utils/TDLZ_StringUtils'
 require 'Utils/TDLZ_NotebooksUtils'
-require 'UI/TDLZ_Window'
+require 'UI/TDLZ_ISTodoListTZWindowHandler'
 require 'ISUI/ISUIWriteJournal'
 
 TDLZ_menu = {}
@@ -21,10 +21,10 @@ function ISUIWriteJournal:onClick(button)
         local editedNotebook = button.parent.notebook;
         local notebookTitleNew = button.parent.title:getText();
         local notebookID = editedNotebook:getID();
-        local openedTodoUIID = TDLZ_UI.getNotebookID();
+        local openedTodoUIID = TDLZ_ISTodoListTZWindowHandler.getNotebookID();
         if openedTodoUIID == notebookID then
             print("Refreshing Todo UI")
-            TDLZ_UI.refreshContent();
+            TDLZ_ISTodoListTZWindowHandler.refreshContent();
             return
         end
         print("Notebook not assigned as Todo. Nothing to refresh")
@@ -40,8 +40,8 @@ TDLZ_menu.onOpenTodoZ = function(items, player, itemMode)
     end
     local splitted = TDLZ_StringUtils.split(levels, "\n")
     
-    TDLZ_UI.setNotebookID(items[1]:getID())
-    TDLZ_UI.setVisible()
+    TDLZ_ISTodoListTZWindowHandler.setNotebookID(items[1]:getID())
+    TDLZ_ISTodoListTZWindowHandler.setVisible()
     
     print("onOpenTodoZ() -> Open UI")
 end
@@ -73,7 +73,7 @@ TDLZ_menu.handleShowTodoListContenxtMenu = function(player, context, items)
 
     if type(notebooks) == 'table' and #notebooks > 0 then
         local notebookID = notebooks[1]:getID();
-        if TDLZ_UI.instance ~= nil and TDLZ_UI.getNotebookID() == notebookID then
+        if TDLZ_ISTodoListTZWindowHandler.instance ~= nil and TDLZ_ISTodoListTZWindowHandler.getNotebookID() == notebookID then
             -- TodoZ UI is open, don't do anything
             return
         end
@@ -87,12 +87,12 @@ end
 TDLZ_menu.OnRefreshInventoryWindowContainers = function(inventorySelfInstance, state)
     if state == "begin" then
         local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
-        if not TDLZ_Map.containsKey(notebookMap, TDLZ_UI.getNotebookID()) then
-            TDLZ_UI.close();
+        if not TDLZ_Map.containsKey(notebookMap, TDLZ_ISTodoListTZWindowHandler.getNotebookID()) then
+            TDLZ_ISTodoListTZWindowHandler.close();
         end
     end
 end
 
 Events.OnFillInventoryObjectContextMenu.Add(TDLZ_menu.handleShowTodoListContenxtMenu)
 Events.OnRefreshInventoryWindowContainers.Add(TDLZ_menu.OnRefreshInventoryWindowContainers)
-Events.OnCreateUI.Add(TDLZ_UI.create)
+Events.OnCreateUI.Add(TDLZ_ISTodoListTZWindowHandler.create)

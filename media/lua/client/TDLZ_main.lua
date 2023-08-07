@@ -5,7 +5,7 @@ require 'Utils/TDLZ_NotebooksUtils'
 require 'UI/TDLZ_ISTodoListTZWindowHandler'
 require 'ISUI/ISUIWriteJournal'
 
-TDLZ_menu = {}
+TDLZ_Menu = {}
 
 -- ****************************************************************
 -- ***************   VANILLA FUNCTIONS OVERRIDE       *************
@@ -31,7 +31,7 @@ function ISUIWriteJournal:onClick(button)
     end
 end
 
-TDLZ_menu.onOpenTodoZ = function(items, player, itemMode)
+TDLZ_Menu.onOpenTodoZ = function(items, player, itemMode)
     local customPagesHashMap = items[1]:getCustomPages() -- userdata
     local b = transformIntoKahluaTable(customPagesHashMap)
     local levels = ""
@@ -68,7 +68,7 @@ function getNotebooks(items)
     return itemsUsedInRecipes;
 end
 
-TDLZ_menu.handleShowTodoListContenxtMenu = function(player, context, items)
+TDLZ_Menu.handleShowTodoListContenxtMenu = function(player, context, items)
     local notebooks = getNotebooks(items);
 
     if type(notebooks) == 'table' and #notebooks > 0 then
@@ -77,14 +77,14 @@ TDLZ_menu.handleShowTodoListContenxtMenu = function(player, context, items)
             -- TodoZ UI is open, don't do anything
             return
         end
-        local opt = context:addOption(getText('IGUI_TDLZ_context_open_onclick'), notebooks, TDLZ_menu.onOpenTodoZ,
+        local opt = context:addOption(getText('IGUI_TDLZ_context_open_onclick'), notebooks, TDLZ_Menu.onOpenTodoZ,
             player)
         opt.iconTexture = getTexture('media/textures/TDLZ_ctx_icon.png')
     end
 
 end
 
-TDLZ_menu.OnRefreshInventoryWindowContainers = function(inventorySelfInstance, state)
+TDLZ_Menu.OnRefreshInventoryWindowContainers = function(inventorySelfInstance, state)
     if state == "begin" then
         local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
         if not TDLZ_Map.containsKey(notebookMap, TDLZ_ISTodoListTZWindowHandler.getNotebookID()) then
@@ -93,6 +93,6 @@ TDLZ_menu.OnRefreshInventoryWindowContainers = function(inventorySelfInstance, s
     end
 end
 
-Events.OnFillInventoryObjectContextMenu.Add(TDLZ_menu.handleShowTodoListContenxtMenu)
-Events.OnRefreshInventoryWindowContainers.Add(TDLZ_menu.OnRefreshInventoryWindowContainers)
+Events.OnFillInventoryObjectContextMenu.Add(TDLZ_Menu.handleShowTodoListContenxtMenu)
+Events.OnRefreshInventoryWindowContainers.Add(TDLZ_Menu.OnRefreshInventoryWindowContainers)
 Events.OnCreateUI.Add(TDLZ_ISTodoListTZWindowHandler.create)

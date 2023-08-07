@@ -1,51 +1,61 @@
-TodoListZManagerUI = ISCollapsableWindow:derive("TodoListZManagerUI")
+TDLZ_ISTodoListZWindow = ISCollapsableWindow:derive("TDLZ_ISTodoListZWindow")
 
 TDLZ_UI = {}
 -- ************************************************************************--
 -- ** TodoListZManagerUI - toggle handler
 -- ************************************************************************--
-TDLZ_UI = {};
 TDLZ_UI.instance = nil;
 TDLZ_UI.toggle = function()
     if TDLZ_UI.instance == nil then
-        print("TDLZ - window not initialized - create new window");
-        TDLZ_UI.instance = TodoListZManagerUI:new();
+        print("TodoListZManagerWindow - window not initialized - create new window");
+        TDLZ_UI.instance = TDLZ_ISTodoListZWindow:new();
     else
-        print("TDLZ - window exists - handle toggling");
-        TDLZ_UI.instance:actualClose();
+        print("TodoListZManagerWindow - window exists - close");
+        TDLZ_UI.close()
         TDLZ_UI.instance = nil;
     end
 end
-TDLZ_UI.close = function()
+TDLZ_UI.open = function()
+    print("Creating new TodoListZManagerWindow")
     if TDLZ_UI.instance == nil then
-       return
+        print("TDLZ - window not initialized - create new window");
+        TDLZ_UI.instance = TDLZ_ISTodoListZWindow:new();
+    end
+end
+TDLZ_UI.close = function()
+    print("Closing TDLZ_UI")
+    if TDLZ_UI.instance == nil then
+        return
     end
 
-    TDLZ_UI.instance:actualClose();
+    TDLZ_UI.instance:close();
     TDLZ_UI.instance = nil;
 end
 TDLZ_UI.getNotebookID = function()
     if TDLZ_UI.instance == nil then
-        print("TDLZ - window not initialized - create new window");
-        TDLZ_UI.instance = TodoListZManagerUI:new();
+        return -1
     end
-    print("GET ID: ".. TDLZ_UI.instance.notebookID)
+    print("GET ID: " .. TDLZ_UI.instance.notebookID)
     return TDLZ_UI.instance.notebookID;
 end
 
 TDLZ_UI.setNotebookID = function(id)
     if TDLZ_UI.instance == nil then
         print("TDLZ - window not initialized - create new window");
-        TDLZ_UI.instance = TodoListZManagerUI:new();
+        TDLZ_UI.instance = TDLZ_ISTodoListZWindow:new();
     end
-    TDLZ_UI.instance.notebookID = id;
+    TDLZ_UI.instance.setNotebookID(id) 
+end
+
+TDLZ_UI.OnCreateUI = function()
+   -- TDLZ_UI.open();
 end
 -- ************************************************************************--
 -- ** TodoListZManagerUI:new
 -- **
 -- ************************************************************************--
-function TodoListZManagerUI:new()
-    local mD = self:loadModData();
+function TDLZ_ISTodoListZWindow:new()
+    local mD = TDLZ_ISTodoListZWindow.loadModData();
 
     local panelWidth = mD.panelSettings.width;
     local panelHeight = mD.panelSettings.height;
@@ -79,7 +89,6 @@ function TodoListZManagerUI:new()
     -- o.storedChannels = mD.storedChannels;
     o.renderedChannels = {}
     o.notebookID = mD.notebookID == nil and -1 or mD.notebookID
-    -- o.k_isFirstRun = mD.isFirstRun;
 
     o:initialise();
     o:addToUIManager();
@@ -89,7 +98,11 @@ function TodoListZManagerUI:new()
     return o;
 end
 
-function TodoListZManagerUI:renderStoredChannels()
+function TDLZ_ISTodoListZWindow:setNotebookID(notebookID)
+    
+end
+
+function TDLZ_ISTodoListZWindow:renderStoredChannels()
     -- clear rendered channels
     for _, rc in ipairs(self.renderedChannels) do
         rc.statusBtn:removeFromUIManager();
@@ -120,23 +133,23 @@ end
 -- ************************************************************************--
 -- ** TodoListZManagerUI - base
 -- ************************************************************************--
-function TodoListZManagerUI:initialise()
+function TDLZ_ISTodoListZWindow:initialise()
     ISCollapsableWindow.initialise(self);
     self:create();
 end
 
-function TodoListZManagerUI:prerender()
+function TDLZ_ISTodoListZWindow:prerender()
     ISCollapsableWindow.prerender(self);
 end
 
-function TodoListZManagerUI:render()
+function TDLZ_ISTodoListZWindow:render()
     ISCollapsableWindow.render(self);
 end
 
 -- ************************************************************************--
 -- ** TodoListZManagerUI - creating
 -- ************************************************************************--
-function TodoListZManagerUI:create()
+function TDLZ_ISTodoListZWindow:create()
     -- "Toolbar" buttons - Import/Export
     self.copyButton = ISButton:new(15, 25, 25, 25, getText("UI_KRFM_CopyFromRadio"), self, self.onCopy);
     self.copyButton.tooltip = getText("UI_KRFM_CopyFromRadio_Tooltip");
@@ -169,28 +182,25 @@ end
 -- ************************************************************************--
 -- ** TodoListZManagerUI - actions and radio data processing
 -- ************************************************************************--
-function TodoListZManagerUI:close()
-    -- Redirect titlebar close, that way we can handle the instance ourselves
-    TDLZ_UI.toggle();
-end
-
-function TodoListZManagerUI:actualClose()
-    ISCollapsableWindow.close(self);
+function TDLZ_ISTodoListZWindow:close()
+    print("Saving TDLZ_ISTodoListZWindow mod data")
     self:saveModData();
+    ISCollapsableWindow.close(self);
     self:setVisible(false);
     self:removeFromUIManager();
+    TDLZ_UI.instance = nil;
 end
 
 -- ************************************************************************--
 -- ** TodoListZManagerUI - mod data
 -- ************************************************************************--
-function TodoListZManagerUI:loadModData()
+function TDLZ_ISTodoListZWindow.loadModData()
     local player = getPlayer();
     if player then
         local modData = player:getModData()
         local reset = false;
-        if modData.todoListMod == nil or reset == true then
-            modData.todoListMod = {
+        if modData.todoListZMod == nil or reset == true then
+            modData.todoListZMod = {
                 isFirstRun = true,
                 todoListData = {
                     notebookID = -1
@@ -204,40 +214,30 @@ function TodoListZManagerUI:loadModData()
                 }
             }
         end
-        return modData.todoListMod;
+        return modData.todoListZMod;
     end
     print("ERROR: failed to load player and mod data.");
     return nil;
 end
 
-function TodoListZManagerUI:saveModData()
+function TDLZ_ISTodoListZWindow:saveModData()
     local player = getPlayer();
     local modData = player:getModData()
-    modData.todoListMod.isFirstRun = self.k_isFirstRun;
-    modData.todoListMod.storedChannels = self.storedChannels;
-    modData.todoListMod.panelSettings = {
+    modData.todoListZMod.isFirstRun = false;
+    modData.todoListZMod.storedChannels = self.storedChannels;
+    modData.todoListZMod.panelSettings = {
         x = self.x,
         y = self.y,
         width = self.width,
         height = self.height,
         pin = self.pin
     };
-    modData.todoListMod.todoListData = {
+    modData.todoListZMod.todoListData = {
         notebookID = self.notebookID
     };
     player:transmitModData();
 end
-function TodoListZManagerUI:getBookID()
+function TDLZ_ISTodoListZWindow:getBookID()
     return self.notebookID
-end
-TDLZ_menu.OnCreateUI = function()
-    TDLZ_UI.toggle();
-
-    if TDLZ_UI.instance.k_isFirstRun == false then
-        TDLZ_UI.toggle();
-        return;
-    else
-        TDLZ_UI.instance.k_isFirstRun = false;
-    end
 end
 

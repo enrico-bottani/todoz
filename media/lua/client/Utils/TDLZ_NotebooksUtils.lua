@@ -1,16 +1,13 @@
-require 'Utils/TDLZ_Set'
+require 'Utils/TDLZ_Map'
 TDLZ_NotebooksUtils = {}
-TDLZ_NotebooksUtils.getNotebooksInContainer = function(inventorySelfInstance, state)
-    local playerObj = getSpecificPlayer(inventorySelfInstance.player)
-    if state == "begin" then
-        print("INV REFRESH: " .. state)
-        local notebooksIDS = {}
-        local container = playerObj:getInventory()
-        TDLZ_NotebooksUtils.recGetNotebooksInContainer(notebooksIDS, container:getItems())
-        if not TDLZ_Set.contains(notebooksIDS, TDLZ_UI.getNotebookID()) then
-            TDLZ_UI.close();
-        end
-    end
+TDLZ_NotebooksUtils.getNotebooksInContainer = function()
+    local playerObj = getPlayer();
+    -- local playerObj = getSpecificPlayer(player)
+
+    local notebooksIDS = {}
+    local container = playerObj:getInventory()
+    TDLZ_NotebooksUtils.recGetNotebooksInContainer(notebooksIDS, container:getItems())
+    return notebooksIDS;
 end
 TDLZ_NotebooksUtils.recGetNotebooksInContainer = function(notebookIDS, it)
     if it == nil then
@@ -19,7 +16,7 @@ TDLZ_NotebooksUtils.recGetNotebooksInContainer = function(notebookIDS, it)
     for i = 0, it:size() - 1 do
         local item = it:get(i)
         if item:getCategory() == "Literature" then
-            TDLZ_Set.add(notebookIDS, item:getID())
+            TDLZ_Map.add(notebookIDS, item:getID(), item)
         else
             if item:getCategory() == "Container" then
                 TDLZ_NotebooksUtils.recGetNotebooksInContainer(notebookIDS, item:getInventory():getItems())

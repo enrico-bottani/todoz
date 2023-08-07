@@ -1,3 +1,4 @@
+require 'Utils/TDLZ_Map'
 TDLZ_ISTodoListZWindow = ISCollapsableWindow:derive("TDLZ_ISTodoListZWindow")
 
 TDLZ_UI = {}
@@ -15,7 +16,7 @@ TDLZ_UI.toggle = function()
         TDLZ_UI.instance = nil;
     end
 end
-TDLZ_UI.open = function()
+TDLZ_UI.create = function()
     print("Creating new TodoListZManagerWindow")
     if TDLZ_UI.instance == nil then
         print("TDLZ - window not initialized - create new window");
@@ -38,17 +39,28 @@ TDLZ_UI.getNotebookID = function()
     print("GET ID: " .. TDLZ_UI.instance.notebookID)
     return TDLZ_UI.instance.notebookID;
 end
-
+function TDLZ_UI.setVisible()
+    if TDLZ_UI.instance == nil then
+        print("TDLZ_UI.setVisible - Error: instance is nil")
+        return
+    end
+    TDLZ_UI.instance:setVisible(true);
+    TDLZ_UI.instance:saveModData();
+    print("TDLZ_UI.setVisible - UI hidden: " .. tostring(not TDLZ_UI.instance:getIsVisible()))
+end
 TDLZ_UI.setNotebookID = function(id)
     if TDLZ_UI.instance == nil then
         print("TDLZ - window not initialized - create new window");
         TDLZ_UI.instance = TDLZ_ISTodoListZWindow:new();
     end
-    TDLZ_UI.instance.setNotebookID(id) 
+    TDLZ_UI.instance:setNotebookID(id)
 end
-
-TDLZ_UI.OnCreateUI = function()
-   -- TDLZ_UI.open();
+TDLZ_UI.refreshContent = function()
+    if TDLZ_UI.instance == nil then
+        print("TDLZ - window not initialized - create new window");
+        TDLZ_UI.instance = TDLZ_ISTodoListZWindow:new();
+    end
+    TDLZ_UI.instance:setNotebookID(TDLZ_UI.instance.notebookID)
 end
 -- ************************************************************************--
 -- ** TodoListZManagerUI:new
@@ -62,12 +74,28 @@ function TDLZ_ISTodoListZWindow:new()
     local startingX = mD.panelSettings.x;
     local startingY = mD.panelSettings.y;
     local pin = mD.panelSettings.pin;
-
+    
+    local hidden = false;
+    if mD.panelSettings.hidden then
+        hidden = true
+    end
+    print("On create - UI hidden: " .. tostring(hidden))
     local o = {}
     o = ISCollapsableWindow:new(startingX, startingY, panelWidth, panelHeight);
     setmetatable(o, self);
     self.__index = self;
-    o.title = getText("IGUI_TDLZ_window_title");
+    if mD.todoListData == nil or mD.todoListData.notebookID == nil then
+        o.notebookID = -1
+    else
+        o.notebookID = mD.todoListData.notebookID
+    end
+    if o.notebookID == -1 then
+        TDLZ_ISTodoListZWindow._setFormattedTitle(o, o.notebookID)
+    else
+        local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
+        TDLZ_ISTodoListZWindow._setFormattedTitle(o, TDLZ_Map.get(notebookMap, o.notebookID):getName())
+    end
+
     o.pin = pin;
     o.x = startingX;
     o.y = startingY;
@@ -85,10 +113,9 @@ function TDLZ_ISTodoListZWindow:new()
     };
     o.backgroundColor.a = 0.9;
     o.moveWithMouse = true;
-
+    o:setVisible(not hidden)
     -- o.storedChannels = mD.storedChannels;
     o.renderedChannels = {}
-    o.notebookID = mD.notebookID == nil and -1 or mD.notebookID
 
     o:initialise();
     o:addToUIManager();
@@ -98,8 +125,19 @@ function TDLZ_ISTodoListZWindow:new()
     return o;
 end
 
+function TDLZ_ISTodoListZWindow._setFormattedTitle(obj, id)
+    local todoText = getText("IGUI_TDLZ_window_title");
+    obj.title = tostring(id) .. " " .. todoText;
+end
+
 function TDLZ_ISTodoListZWindow:setNotebookID(notebookID)
-    
+    self.notebookID = notebookID
+    if self.notebookID == -1 then
+        TDLZ_ISTodoListZWindow._setFormattedTitle(self, self.notebookID)
+    else
+        local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
+        TDLZ_ISTodoListZWindow._setFormattedTitle(self, TDLZ_Map.get(notebookMap, self.notebookID):getName())
+    end
 end
 
 function TDLZ_ISTodoListZWindow:renderStoredChannels()
@@ -184,9 +222,9 @@ end
 -- ************************************************************************--
 function TDLZ_ISTodoListZWindow:close()
     print("Saving TDLZ_ISTodoListZWindow mod data")
+    self:setVisible(false)
     self:saveModData();
     ISCollapsableWindow.close(self);
-    self:setVisible(false);
     self:removeFromUIManager();
     TDLZ_UI.instance = nil;
 end
@@ -210,7 +248,8 @@ function TDLZ_ISTodoListZWindow.loadModData()
                     y = 400,
                     width = 400,
                     height = 300,
-                    pin = false
+                    pin = false,
+                    hidden = false
                 }
             }
         end
@@ -230,7 +269,8 @@ function TDLZ_ISTodoListZWindow:saveModData()
         y = self.y,
         width = self.width,
         height = self.height,
-        pin = self.pin
+        pin = self.pin,
+        hidden = not self:getIsVisible()
     };
     modData.todoListZMod.todoListData = {
         notebookID = self.notebookID

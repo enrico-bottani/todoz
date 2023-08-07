@@ -1,6 +1,7 @@
 require 'luautils'
-require 'Utils/TDLZ_Set'
+require 'Utils/TDLZ_Map'
 require 'Utils/TDLZ_StringUtils'
+require 'Utils/TDLZ_NotebooksUtils'
 require 'UI/TDLZ_Window'
 require 'ISUI/ISUIWriteJournal'
 
@@ -23,7 +24,7 @@ function ISUIWriteJournal:onClick(button)
         local openedTodoUIID = TDLZ_UI.getNotebookID();
         if openedTodoUIID == notebookID then
             print("Refreshing Todo UI")
-
+            TDLZ_UI.refreshContent();
             return
         end
         print("Notebook not assigned as Todo. Nothing to refresh")
@@ -38,7 +39,10 @@ TDLZ_menu.onOpenTodoZ = function(items, player, itemMode)
         levels = levels .. level
     end
     local splitted = TDLZ_StringUtils.split(levels, "\n")
+    
     TDLZ_UI.setNotebookID(items[1]:getID())
+    TDLZ_UI.setVisible()
+    
     print("onOpenTodoZ() -> Open UI")
 end
 
@@ -80,11 +84,15 @@ TDLZ_menu.handleShowTodoListContenxtMenu = function(player, context, items)
 
 end
 
-TDLZ_menu.OnBeginRefresh = function(invSelf, playerInv)
-
-    TDLZ_UI.close()
+TDLZ_menu.OnRefreshInventoryWindowContainers = function(inventorySelfInstance, state)
+    if state == "begin" then
+        local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
+        if not TDLZ_Map.containsKey(notebookMap, TDLZ_UI.getNotebookID()) then
+            TDLZ_UI.close();
+        end
+    end
 end
 
 Events.OnFillInventoryObjectContextMenu.Add(TDLZ_menu.handleShowTodoListContenxtMenu)
-Events.OnRefreshInventoryWindowContainers.Add(TDLZ_NotebooksUtils.getNotebooksInContainer)
-Events.OnCreateUI.Add(TDLZ_UI.OnCreateUI)
+Events.OnRefreshInventoryWindowContainers.Add(TDLZ_menu.OnRefreshInventoryWindowContainers)
+Events.OnCreateUI.Add(TDLZ_UI.create)

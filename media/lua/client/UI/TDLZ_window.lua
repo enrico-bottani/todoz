@@ -6,10 +6,18 @@ TDLZ_UI = {}
 -- ** TodoListZManagerUI - toggle handler
 -- ************************************************************************--
 TDLZ_UI.instance = nil;
+local function _removeFromController()
+    TDLZ_UI.instance = null;
+end
+local function _newWindow()
+    if TDLZ_UI.instance == nil then
+        TDLZ_UI.instance = TDLZ_ISTodoListZWindow:new();
+        TDLZ_UI.instance.onClose = _removeFromController
+    end
+end
 TDLZ_UI.toggle = function()
     if TDLZ_UI.instance == nil then
-        print("TodoListZManagerWindow - window not initialized - create new window");
-        TDLZ_UI.instance = TDLZ_ISTodoListZWindow:new();
+        _newWindow();
     else
         print("TodoListZManagerWindow - window exists - close");
         TDLZ_UI.close()
@@ -19,8 +27,7 @@ end
 TDLZ_UI.create = function()
     print("Creating new TodoListZManagerWindow")
     if TDLZ_UI.instance == nil then
-        print("TDLZ - window not initialized - create new window");
-        TDLZ_UI.instance = TDLZ_ISTodoListZWindow:new();
+        _newWindow();
     end
 end
 TDLZ_UI.close = function()
@@ -50,15 +57,13 @@ function TDLZ_UI.setVisible()
 end
 TDLZ_UI.setNotebookID = function(id)
     if TDLZ_UI.instance == nil then
-        print("TDLZ - window not initialized - create new window");
-        TDLZ_UI.instance = TDLZ_ISTodoListZWindow:new();
+        _newWindow();
     end
     TDLZ_UI.instance:setNotebookID(id)
 end
 TDLZ_UI.refreshContent = function()
     if TDLZ_UI.instance == nil then
-        print("TDLZ - window not initialized - create new window");
-        TDLZ_UI.instance = TDLZ_ISTodoListZWindow:new();
+        _newWindow();
     end
     TDLZ_UI.instance:setNotebookID(TDLZ_UI.instance.notebookID)
 end
@@ -74,7 +79,7 @@ function TDLZ_ISTodoListZWindow:new()
     local startingX = mD.panelSettings.x;
     local startingY = mD.panelSettings.y;
     local pin = mD.panelSettings.pin;
-    
+
     local hidden = false;
     if mD.panelSettings.hidden then
         hidden = true
@@ -226,7 +231,9 @@ function TDLZ_ISTodoListZWindow:close()
     self:saveModData();
     ISCollapsableWindow.close(self);
     self:removeFromUIManager();
-    TDLZ_UI.instance = nil;
+    if self.onClose then
+        self:onClose()
+    end
 end
 
 -- ************************************************************************--

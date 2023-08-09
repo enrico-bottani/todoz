@@ -87,7 +87,6 @@ function TDLZ_ISTodoListZWindow:addOption(text, selected, setFunction)
 end
 
 function TDLZ_ISTodoListZWindow:refreshUIElements()
-    self.setFunction = {}
     if self.notebookID == -1 then
         TDLZ_ISTodoListZWindow._setFormattedTitle(self, self.notebookID)
     else
@@ -103,28 +102,37 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
 
         -- Set Checkboxes
         -- ---------------
-        if self.tickBox~=nil then
+        if self.tickBox ~= nil then
             self.tickBox:clearOptions()
         end
-        self.tickBox = ISTickBox:new(10, 50, 100, 20, "Admin Powers", self, self.onTicked)
-        self.tickBox.choicesColor = {r=1, g=1, b=1, a=1}
+        self.tickBox = ISTickBox:new(10, 50, 10, 10, "Admin Powers", self, self.onTicked)
+        self.tickBox.choicesColor = {
+            r = 1,
+            g = 1,
+            b = 1,
+            a = 1
+        }
         self.tickBox.leftMargin = 2
         self.tickBox:setFont(UIFont.Small)
         self:addChild(self.tickBox);
-
+        
+     
         -- Save pages
         self.newPage = {}
+
+        -- Create tibox
+        self.setFunction = {}
         for i = 0, currentNotebook:getCustomPages():size() - 1 do
             local currentIndex = i + 1
             self.newPage[currentIndex] = currentNotebook:seePage(currentIndex);
             local lines = TDLZ_StringUtils.split(self.newPage[currentIndex], "\n")
-            self.filterUI = {}
             for lineNumber, lineString in ipairs(lines) do
                 self:addOption(lineString, false, function(self, selected)
-                    print("Checkbox clicked " .. selected)
+                    print("Checkbox ".. lineString .. "clicked " .. tostring(selected))
                 end);
             end
         end
+        self.tickBox:setWidthToFit()
     end
     -- save changes
     self:saveModData();
@@ -135,7 +143,7 @@ end
 -- ************************************************************************--
 function TDLZ_ISTodoListZWindow:initialise()
     ISCollapsableWindow.initialise(self);
-    self:create();
+    self:refreshUIElements();
 end
 
 function TDLZ_ISTodoListZWindow:prerender()
@@ -146,18 +154,16 @@ function TDLZ_ISTodoListZWindow:render()
     ISCollapsableWindow.render(self);
 end
 
--- ************************************************************************--
--- ** TodoListZManagerUI - creating
--- ************************************************************************--
-function TDLZ_ISTodoListZWindow:create()
-    -- Render UI
-    self:refreshUIElements();
-end
 
 -- ************************************************************************--
 -- ** TodoListZManagerUI - actions and radio data processing
 -- ************************************************************************--
 function TDLZ_ISTodoListZWindow:close()
+    -- TEMP
+    for i = 1, #self.tickBox.options do
+        self.setFunction[i](self, self.tickBox:isSelected(i))
+    end
+    -- /TEMP
     print("Saving TDLZ_ISTodoListZWindow mod data")
     self:setVisible(false)
     self:saveModData();

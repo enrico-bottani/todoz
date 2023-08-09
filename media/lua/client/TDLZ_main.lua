@@ -65,8 +65,11 @@ TDLZ_Menu.handleShowTodoListContenxtMenu = function(player, context, items)
         local notebookID = notebooks[1]:getID();
         if TDLZ_ISTodoListTZWindowHandler.instance ~= nil and TDLZ_ISTodoListTZWindowHandler.getNotebookID() ==
             notebookID then
-            -- TodoZ UI is open, don't do anything
-            return
+            if TDLZ_ISTodoListTZWindowHandler.instance:getIsVisible() then
+                -- TodoZ UI is open and visible, don't do anything.
+                    print("TDLZ_ISTodoListTZWindowHandler.instance is visible")
+                    return
+            end
         end
         local opt = context:addOption(getText('IGUI_TDLZ_context_open_onclick'), notebooks, TDLZ_Menu.onOpenTodoZ,
             player)
@@ -103,7 +106,6 @@ end
 -- Check actual options at game loading.
 Events.OnGameStart.Add(function()
     print("checkbox1 = ", SETTINGS.options.box1)
-  end)
+end)
 Events.OnFillInventoryObjectContextMenu.Add(TDLZ_Menu.handleShowTodoListContenxtMenu)
 Events.OnRefreshInventoryWindowContainers.Add(TDLZ_Menu.onRefreshInventoryWindowContainers)
-Events.OnCreateUI.Add(TDLZ_ISTodoListTZWindowHandler.create)

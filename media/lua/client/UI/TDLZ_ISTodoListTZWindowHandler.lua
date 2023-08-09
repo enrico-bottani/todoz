@@ -66,3 +66,5 @@ TDLZ_ISTodoListTZWindowHandler.refreshContent = function()
     end
     TDLZ_ISTodoListTZWindowHandler.instance:setNotebookID(TDLZ_ISTodoListTZWindowHandler.instance.notebookID)
 end
+
+Events.OnCreateUI.Add(TDLZ_ISTodoListTZWindowHandler.create)

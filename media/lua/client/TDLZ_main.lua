@@ -32,14 +32,6 @@ function ISUIWriteJournal:onClick(button)
 end
 
 TDLZ_Menu.onOpenTodoZ = function(items, player, itemMode)
-    local customPagesHashMap = items[1]:getCustomPages() -- userdata
-    local b = transformIntoKahluaTable(customPagesHashMap)
-    local levels = ""
-    for perk, level in pairs(b) do
-        levels = levels .. level
-    end
-    local splitted = TDLZ_StringUtils.split(levels, "\n")
-
     TDLZ_ISTodoListTZWindowHandler.setNotebookID(items[1]:getID())
     TDLZ_ISTodoListTZWindowHandler.setVisible()
 

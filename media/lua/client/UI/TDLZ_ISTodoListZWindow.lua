@@ -1,5 +1,5 @@
 require 'Utils/TDLZ_Map'
-
+require 'Utils/TDLZ_StringUtils'
 TDLZ_ISTodoListZWindow = ISCollapsableWindow:derive("TDLZ_ISTodoListZWindow")
 -- ************************************************************************--
 -- ** TodoListZManagerUI:new
@@ -70,39 +70,62 @@ function TDLZ_ISTodoListZWindow._setFormattedTitle(obj, id)
 end
 
 function TDLZ_ISTodoListZWindow:setNotebookID(notebookID)
-    self.notebookID = notebookID
+    -- is a different notebook id?
+    if self.notebookID == notebookID then
+        -- if same do nothing
+        return
+    end
+    self.notebookID = notebookID;
+    self:refreshUIElements()
+end
+function ISCheatPanelUI:onTicked(index, selected)
+end
+function TDLZ_ISTodoListZWindow:addOption(text, selected, setFunction)
+    local n = self.tickBox:addOption(text)
+    self.tickBox:setSelected(n, selected)
+    self.setFunction[n] = setFunction
+end
+
+function TDLZ_ISTodoListZWindow:refreshUIElements()
+    self.setFunction = {}
     if self.notebookID == -1 then
         TDLZ_ISTodoListZWindow._setFormattedTitle(self, self.notebookID)
     else
+        -- Book ID changed (and different from -1), refresh whole UI
+        -- =========================================================
         local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
-        TDLZ_ISTodoListZWindow._setFormattedTitle(self, TDLZ_Map.get(notebookMap, self.notebookID):getName())
+        -- Get notebook object
+        local currentNotebook = TDLZ_Map.get(notebookMap, self.notebookID)
+
+        -- Set Title
+        -- ---------
+        TDLZ_ISTodoListZWindow._setFormattedTitle(self, currentNotebook:getName())
+
+        -- Set Checkboxes
+        -- ---------------
+        if self.tickBox~=nil then
+            self.tickBox:clearOptions()
+        end
+        self.tickBox = ISTickBox:new(10, 50, 100, 20, "Admin Powers", self, self.onTicked)
+        self.tickBox.choicesColor = {r=1, g=1, b=1, a=1}
+        self.tickBox.leftMargin = 2
+        self.tickBox:setFont(UIFont.Small)
+        self:addChild(self.tickBox);
+
+        -- Save pages
+        self.newPage = {}
+        for i = 0, currentNotebook:getCustomPages():size() - 1 do
+            local currentIndex = i + 1
+            self.newPage[currentIndex] = currentNotebook:seePage(currentIndex);
+            local lines = TDLZ_StringUtils.split(self.newPage[currentIndex], "\n")
+            self.filterUI = {}
+            for lineNumber, lineString in ipairs(lines) do
+                self:addOption(lineString, false, function(self, selected)
+                    print("Checkbox clicked " .. selected)
+                end);
+            end
+        end
     end
-end
-
-function TDLZ_ISTodoListZWindow:renderStoredChannels()
-    -- clear rendered channels
-    for _, rc in ipairs(self.renderedChannels) do
-        rc.statusBtn:removeFromUIManager();
-        rc.contentBtn:removeFromUIManager();
-        rc.deleteBtn:removeFromUIManager();
-        rc.prnt:removeChild(rc.statusBtn);
-        rc.prnt:removeChild(rc.contentBtn);
-        rc.prnt:removeChild(rc.deleteBtn);
-    end
-    for i, _ in ipairs(self.renderedChannels) do
-        self.renderedChannels[i] = nil;
-    end
-    self.renderedChannels = {};
-
-    -- table.sort(self.storedChannels, function(a, b) return a.Freq < b.Freq end);
-
-    -- insert stored channels
-    -- local idx = 0;
-    -- for _, channel in ipairs(self.storedChannels) do
-    -- table.insert(self.renderedChannels, self.createChannelRow(self, channel, idx));
-    -- idx  = idx + 1;
-    -- end
-
     -- save changes
     self:saveModData();
 end
@@ -127,32 +150,8 @@ end
 -- ** TodoListZManagerUI - creating
 -- ************************************************************************--
 function TDLZ_ISTodoListZWindow:create()
-    -- "Toolbar" buttons - Import/Export
-    self.copyButton = ISButton:new(0, 25, 25, 25, getText("UI_KRFM_CopyFromRadio"), self, self.onCopy);
-    self.copyButton:initialise();
-    self.copyButton:instantiate();
-    self.copyButton.borderColor = {
-        r = 0.7,
-        g = 0.7,
-        b = 0.7,
-        a = 0.5
-    };
-    self:addChild(self.copyButton);
-
-    self.customButton = ISButton:new(self.copyButton:getRight(), 25, 25, 25, getText("UI_KRFM_Custom"), self,
-        self.onCustomAdd);
-    self.customButton:initialise();
-    self.customButton:instantiate();
-    self.customButton.borderColor = {
-        r = 0.7,
-        g = 0.7,
-        b = 0.7,
-        a = 0.5
-    };
-    self:addChild(self.customButton);
-
-    -- Render rows
-    self:renderStoredChannels();
+    -- Render UI
+    self:refreshUIElements();
 end
 
 -- ************************************************************************--

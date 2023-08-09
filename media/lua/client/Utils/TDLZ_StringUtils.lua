@@ -3,13 +3,12 @@ TDLZ_StringUtils = {}
 -- ****************************************
 -- *************     UTILS    *************
 -- ****************************************
-function TDLZ_StringUtils.split(inputstr, sep)
-    if sep == nil then
-        sep = "%s"
+function TDLZ_StringUtils.split(inputString, delimiter)
+    local r = {}
+    local pattern = string.format("([^%s]+)", delimiter)
+    
+    for token in string.gmatch(inputString, pattern) do
+        table.insert(r, token)
     end
-    local t = {}
-    for str in string.gmatch(inputstr, "([^" .. sep .. "]+)") do
-        table.insert(t, str)
-    end
-    return t
+    return r
 end

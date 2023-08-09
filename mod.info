@@ -2,8 +2,8 @@ name=Todo List
 poster=poster.png
 id=TDLZ
 description=Project Zomboid Todo List Mod
-url=http://myurl.com
+url=https://github.com/enrico-bottani/todoz
 
-modversion=0.0.1
+modversion=0.1.0
 versionMin=41.65
 tags=Build 41,Interface

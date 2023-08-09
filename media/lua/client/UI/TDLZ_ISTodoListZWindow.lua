@@ -115,8 +115,7 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
         self.tickBox.leftMargin = 2
         self.tickBox:setFont(UIFont.Small)
         self:addChild(self.tickBox);
-        
-     
+
         -- Save pages
         self.newPage = {}
 
@@ -125,10 +124,11 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
         for i = 0, currentNotebook:getCustomPages():size() - 1 do
             local currentIndex = i + 1
             self.newPage[currentIndex] = currentNotebook:seePage(currentIndex);
-            local lines = TDLZ_StringUtils.split(self.newPage[currentIndex], "\n")
+            local lines = TDLZ_StringUtils.splitKeepingEmptyLines(self.newPage[currentIndex])
             for lineNumber, lineString in ipairs(lines) do
                 self:addOption(lineString, false, function(self, selected)
-                    print("Checkbox ".. lineString .. "clicked " .. tostring(selected))
+                    print("Checkbox [page: " .. i .. ", line: " .. lineNumber .. "] " .. lineString ..
+                              "clicked " .. tostring(selected))
                 end);
             end
         end
@@ -153,7 +153,6 @@ end
 function TDLZ_ISTodoListZWindow:render()
     ISCollapsableWindow.render(self);
 end
-
 
 -- ************************************************************************--
 -- ** TodoListZManagerUI - actions and radio data processing

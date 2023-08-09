@@ -67,8 +67,7 @@ TDLZ_Menu.handleShowTodoListContenxtMenu = function(player, context, items)
             notebookID then
             if TDLZ_ISTodoListTZWindowHandler.instance:getIsVisible() then
                 -- TodoZ UI is open and visible, don't do anything.
-                    print("TDLZ_ISTodoListTZWindowHandler.instance is visible")
-                    return
+                return
             end
         end
         local opt = context:addOption(getText('IGUI_TDLZ_context_open_onclick'), notebooks, TDLZ_Menu.onOpenTodoZ,

@@ -5,6 +5,9 @@ TDLZ_ISTodoListZWindow = ISCollapsableWindow:derive("TDLZ_ISTodoListZWindow")
 -- ** TodoListZManagerUI:new
 -- **
 -- ************************************************************************--
+CK_BOX_FLEX_PATTERN = "^(%s-)%[([ Xx_]-)%]"
+CK_BOX_CHECKED_PATTERN = "^(%s-)%[([Xx])%]"
+CK_BOX_CHECKED_R_PATTERN = "^(%s-)%[([ _])%]"
 function TDLZ_ISTodoListZWindow:new()
     local mD = TDLZ_ISTodoListZWindow.loadModData();
 
@@ -78,13 +81,6 @@ function TDLZ_ISTodoListZWindow:setNotebookID(notebookID)
     self.notebookID = notebookID;
     self:refreshUIElements()
 end
-function ISCheatPanelUI:onTicked(index, selected)
-end
-function TDLZ_ISTodoListZWindow:addOption(text, selected, setFunction)
-    local n = self.tickBox:addOption(text)
-    self.tickBox:setSelected(n, selected)
-    self.setFunction[n] = setFunction
-end
 
 function TDLZ_ISTodoListZWindow:refreshUIElements()
     if self.notebookID == -1 then
@@ -120,16 +116,21 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
         self.newPage = {}
 
         -- Create tibox
-        self.setFunction = {}
-        for i = 0, currentNotebook:getCustomPages():size() - 1 do
+        self.tickBox.setFunction = {}
+        -- TEMP, let's test 1 page for now (change 1 to currentNotebook:getCustomPages():size() - 1)
+        for i = 0, 1 - 1 do
             local currentIndex = i + 1
-            self.newPage[currentIndex] = currentNotebook:seePage(currentIndex);
-            local lines = TDLZ_StringUtils.splitKeepingEmptyLines(self.newPage[currentIndex])
+            local page = currentNotebook:seePage(currentIndex);
+            local lines = TDLZ_StringUtils.splitKeepingEmptyLines(page)
+            -- Dirty trick for lambda
             for lineNumber, lineString in ipairs(lines) do
-                self:addOption(lineString, false, function(self, selected)
-                    print("Checkbox [page: " .. i .. ", line: " .. lineNumber .. "] " .. lineString ..
-                              "clicked " .. tostring(selected))
-                end);
+                self:addOption(lineString, true, {
+                    pageNumber = currentIndex,
+                    lineNumber = lineNumber,
+                    lineString = lineString, -- test only (redundant)
+                    lines = lines, -- test only (redundant)
+                    notebook = currentNotebook
+                }, TDLZ_ISTodoListZWindow.onOptionTicked);
             end
         end
         self.tickBox:setWidthToFit()
@@ -138,6 +139,53 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
     self:saveModData();
 end
 
+function TDLZ_ISTodoListZWindow:onOptionTicked(selected, data)
+    print("Checkbox [page: " .. data.pageNumber .. ", line: " .. data.lineNumber .. "] " .. data.lineString ..
+              "clicked " .. tostring(selected))
+    local toWrite = ""
+    for ln, s in pairs(data.lines) do
+        local sep = "\n"
+        if ln == 1 then
+            sep = "";
+        end
+        if ln == data.lineNumber then
+            
+            if selected then
+                -- add x
+                s = s:gsub(CK_BOX_CHECKED_R_PATTERN, function(space)
+                    return space .. "[x]"
+                end,1)
+            else
+                -- remove
+                s = s:gsub(CK_BOX_CHECKED_PATTERN, function(space)
+                    return space .. "[_]"
+                end,1)
+            end
+            toWrite = toWrite .. sep .. s
+        else
+            toWrite = toWrite .. sep .. s
+        end
+    end
+    -- Get notebook object
+    data.notebook:addPage(data.pageNumber, toWrite);
+    self:refreshUIElements();
+end
+
+function TDLZ_ISTodoListZWindow:onTicked(index, selected)
+    -- Dispatch onTicked
+    local data = self.tickBox:getOptionData(index);
+    self.tickBox.setFunction[index](self, selected, data)
+end
+function TDLZ_ISTodoListZWindow:addOption(text, selected, data, setFunction)
+    local optionID = self.tickBox:addOption(text, data)
+    local startIndex, endIndex = text:find(CK_BOX_CHECKED_PATTERN)
+    if startIndex then
+        self.tickBox:setSelected(optionID, true)
+    else
+        self.tickBox:setSelected(optionID, false)
+    end
+    self.tickBox.setFunction[optionID] = setFunction
+end
 -- ************************************************************************--
 -- ** TodoListZManagerUI - base
 -- ************************************************************************--
@@ -158,11 +206,7 @@ end
 -- ** TodoListZManagerUI - actions and radio data processing
 -- ************************************************************************--
 function TDLZ_ISTodoListZWindow:close()
-    -- TEMP
-    for i = 1, #self.tickBox.options do
-        self.setFunction[i](self, self.tickBox:isSelected(i))
-    end
-    -- /TEMP
+
     print("Saving TDLZ_ISTodoListZWindow mod data")
     self:setVisible(false)
     self:saveModData();

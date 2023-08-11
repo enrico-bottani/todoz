@@ -1,5 +1,8 @@
 TDLZ_ISTickboxBuilder = {}
 TDLZ_ISTickboxBuilder.Type = "TDLZ_ISTickboxBuilder";
+require 'UI/TDLZ_ISTickboxBuilderDefaultDispatcher'
+CK_BOX_CHECKED_PATTERN = "^(%s-)%[([Xx])%]"
+
 function TDLZ_ISTickboxBuilder:new(parent_self)
     o = {}
     setmetatable(o, self)
@@ -7,25 +10,31 @@ function TDLZ_ISTickboxBuilder:new(parent_self)
 
     o.parent_self = parent_self;
     o.options = {}
-    return o
-end
-function TDLZ_ISTickboxBuilder:onTicked(onTicked)
-    if onTicked ~= nil then
-        self.onTicked = onTicked
-    end
-    return self
-end
-function TDLZ_ISTickboxBuilder:build()
-    local tickBox = ISTickBox:new(10, 50, 10, 10, "Admin Powers", nil, self.onTicked)
-    tickBox.changeOptionArgs = {tickBox, nil}
-    tickBox.choicesColor = {
+
+    o.tickBox = ISTickBox:new(10, 50, 10, 10, "Admin Powers", nil, TDLZ_ISTickboxBuilderDefaultDispatcher.onTicked)
+    o.tickBox.changeOptionArgs = {o.tickBox, nil}
+    o.tickBox.choicesColor = {
         r = 1,
         g = 1,
         b = 1,
         a = 1
     }
-    tickBox.leftMargin = 2
-    tickBox:setFont(UIFont.Small)
-    self.parent_self:addChild(tickBox);
-    return tickBox
+    o.tickBox.leftMargin = 2
+    o.tickBox:setFont(UIFont.Small)
+
+    return o
+end
+function TDLZ_ISTickboxBuilder:addOption(text, selected, data)
+    local optionID = self.tickBox:addOption(text, data)
+    local startIndex, endIndex = text:find(CK_BOX_CHECKED_PATTERN)
+    if startIndex then
+        self.tickBox:setSelected(optionID, true)
+    else
+        self.tickBox:setSelected(optionID, false)
+    end
+end
+function TDLZ_ISTickboxBuilder:build()
+    self.parent_self:addChild(self.tickBox);
+    self.tickBox:setWidthToFit()
+    return self.tickBox
 end

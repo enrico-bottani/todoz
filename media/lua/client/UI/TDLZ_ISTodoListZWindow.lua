@@ -103,8 +103,8 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
         if self.tickBox ~= nil then
             self.tickBox:clearOptions()
         end
-
-        self.tickBox = TDLZ_ISTickboxBuilder:new(self):onTicked(TDLZ_ISTickboxBuilderDefaultDispatcher.onTicked):build()
+        local tbBuilder = TDLZ_ISTickboxBuilder:new(self);
+       
 
         -- Save pages
         self.newPage = {}
@@ -117,7 +117,7 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
             local lines = TDLZ_StringUtils.splitKeepingEmptyLines(page)
             -- Dirty trick for lambda
             for lineNumber, lineString in ipairs(lines) do
-                self:addOption(lineString, true, {
+                tbBuilder:addOption(lineString, true, {
                     bookInfo = {
                         pageNumber = currentIndex,
                         lineNumber = lineNumber,
@@ -130,7 +130,7 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
                 });
             end
         end
-        self.tickBox:setWidthToFit()
+        self.tickBox = tbBuilder:build()
     end
     -- save changes
     self:saveModData();
@@ -168,15 +168,6 @@ function TDLZ_ISTodoListZWindow:onOptionTicked(selected, data)
     self:refreshUIElements();
 end
 
-function TDLZ_ISTodoListZWindow:addOption(text, selected, data)
-    local optionID = self.tickBox:addOption(text, data)
-    local startIndex, endIndex = text:find(CK_BOX_CHECKED_PATTERN)
-    if startIndex then
-        self.tickBox:setSelected(optionID, true)
-    else
-        self.tickBox:setSelected(optionID, false)
-    end
-end
 -- ************************************************************************--
 -- ** TodoListZManagerUI - base
 -- ************************************************************************--

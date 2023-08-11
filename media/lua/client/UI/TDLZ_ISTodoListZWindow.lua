@@ -1,5 +1,7 @@
 require 'Utils/TDLZ_Map'
 require 'Utils/TDLZ_StringUtils'
+require 'UI/TDLZ_ISTickboxBuilder'
+require 'UI/TDLZ_ISTickboxBuilderDefaultDispatcher'
 TDLZ_ISTodoListZWindow = ISCollapsableWindow:derive("TDLZ_ISTodoListZWindow")
 -- ************************************************************************--
 -- ** TodoListZManagerUI:new
@@ -101,22 +103,13 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
         if self.tickBox ~= nil then
             self.tickBox:clearOptions()
         end
-        self.tickBox = ISTickBox:new(10, 50, 10, 10, "Admin Powers", self, self.onTicked)
-        self.tickBox.choicesColor = {
-            r = 1,
-            g = 1,
-            b = 1,
-            a = 1
-        }
-        self.tickBox.leftMargin = 2
-        self.tickBox:setFont(UIFont.Small)
-        self:addChild(self.tickBox);
+
+        self.tickBox = TDLZ_ISTickboxBuilder:new(self):onTicked(TDLZ_ISTickboxBuilderDefaultDispatcher.onTicked):build()
 
         -- Save pages
         self.newPage = {}
 
         -- Create tibox
-        self.tickBox.setFunction = {}
         -- TEMP, let's test 1 page for now (change 1 to currentNotebook:getCustomPages():size() - 1)
         for i = 0, 1 - 1 do
             local currentIndex = i + 1
@@ -125,12 +118,16 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
             -- Dirty trick for lambda
             for lineNumber, lineString in ipairs(lines) do
                 self:addOption(lineString, true, {
-                    pageNumber = currentIndex,
-                    lineNumber = lineNumber,
-                    lineString = lineString, -- test only (redundant)
-                    lines = lines, -- test only (redundant)
-                    notebook = currentNotebook
-                }, TDLZ_ISTodoListZWindow.onOptionTicked);
+                    bookInfo = {
+                        pageNumber = currentIndex,
+                        lineNumber = lineNumber,
+                        lineString = lineString, -- test only (redundant)
+                        lines = lines, -- test only (redundant)
+                        notebook = currentNotebook
+                    },
+                    onTickedSelf = self,
+                    onTicked = TDLZ_ISTodoListZWindow.onOptionTicked
+                });
             end
         end
         self.tickBox:setWidthToFit()
@@ -149,17 +146,17 @@ function TDLZ_ISTodoListZWindow:onOptionTicked(selected, data)
             sep = "";
         end
         if ln == data.lineNumber then
-            
+
             if selected then
                 -- add x
                 s = s:gsub(CK_BOX_CHECKED_R_PATTERN, function(space)
                     return space .. "[x]"
-                end,1)
+                end, 1)
             else
                 -- remove
                 s = s:gsub(CK_BOX_CHECKED_PATTERN, function(space)
                     return space .. "[_]"
-                end,1)
+                end, 1)
             end
             toWrite = toWrite .. sep .. s
         else
@@ -171,12 +168,7 @@ function TDLZ_ISTodoListZWindow:onOptionTicked(selected, data)
     self:refreshUIElements();
 end
 
-function TDLZ_ISTodoListZWindow:onTicked(index, selected)
-    -- Dispatch onTicked
-    local data = self.tickBox:getOptionData(index);
-    self.tickBox.setFunction[index](self, selected, data)
-end
-function TDLZ_ISTodoListZWindow:addOption(text, selected, data, setFunction)
+function TDLZ_ISTodoListZWindow:addOption(text, selected, data)
     local optionID = self.tickBox:addOption(text, data)
     local startIndex, endIndex = text:find(CK_BOX_CHECKED_PATTERN)
     if startIndex then
@@ -184,7 +176,6 @@ function TDLZ_ISTodoListZWindow:addOption(text, selected, data, setFunction)
     else
         self.tickBox:setSelected(optionID, false)
     end
-    self.tickBox.setFunction[optionID] = setFunction
 end
 -- ************************************************************************--
 -- ** TodoListZManagerUI - base

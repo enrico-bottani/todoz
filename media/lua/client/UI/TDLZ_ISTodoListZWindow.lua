@@ -23,7 +23,6 @@ function TDLZ_ISTodoListZWindow:new()
     if mD.panelSettings.hidden then
         hidden = true
     end
-    print("On create - UI hidden: " .. tostring(hidden))
     local o = {}
     o = ISCollapsableWindow:new(startingX, startingY, panelWidth, panelHeight);
     setmetatable(o, self);
@@ -115,7 +114,6 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
             local currentIndex = i + 1
             local page = currentNotebook:seePage(currentIndex);
             local lines = TDLZ_StringUtils.splitKeepingEmptyLines(page)
-            -- Dirty trick for lambda
             for lineNumber, lineString in ipairs(lines) do
                 tbBuilder:addOption(lineString, true, {
                     bookInfo = {

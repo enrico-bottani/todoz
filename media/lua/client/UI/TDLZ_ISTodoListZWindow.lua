@@ -1,7 +1,7 @@
 require 'Utils/TDLZ_Map'
 require 'Utils/TDLZ_StringUtils'
 require 'UI/TDLZ_ISTickboxBuilder'
-require 'UI/TDLZ_ISTickboxBuilderDefaultDispatcher'
+require 'UI/Builder/TDLZ_ISTickboxBuilderDefaultDispatcher'
 TDLZ_ISTodoListZWindow = ISCollapsableWindow:derive("TDLZ_ISTodoListZWindow")
 -- ************************************************************************--
 -- ** TodoListZManagerUI:new

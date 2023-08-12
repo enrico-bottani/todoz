@@ -23,7 +23,6 @@ function ISUIWriteJournal:onClick(button)
         local notebookID = editedNotebook:getID();
         local openedTodoUIID = TDLZ_ISTodoListTZWindowHandler.getNotebookID();
         if openedTodoUIID == notebookID then
-            print("Refreshing Todo UI")
             TDLZ_ISTodoListTZWindowHandler.refreshContent();
             return
         end

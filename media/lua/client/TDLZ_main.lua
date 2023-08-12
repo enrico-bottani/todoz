@@ -34,8 +34,6 @@ end
 TDLZ_Menu.onOpenTodoZ = function(items, player, itemMode)
     TDLZ_ISTodoListTZWindowHandler.setNotebookID(items[1]:getID())
     TDLZ_ISTodoListTZWindowHandler.setVisible()
-
-    print("onOpenTodoZ() -> Open UI")
 end
 
 function getNotebooks(items)

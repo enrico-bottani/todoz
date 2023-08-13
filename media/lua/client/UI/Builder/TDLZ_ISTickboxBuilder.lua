@@ -3,7 +3,7 @@ TDLZ_ISTickboxBuilder.Type = "TDLZ_ISTickboxBuilder";
 require 'UI/TDLZ_ISTickboxBuilderDefaultDispatcher'
 CK_BOX_CHECKED_PATTERN = "^(%s-)%[([Xx])%]"
 
-function TDLZ_ISTickboxBuilder:new(parent_self)
+function TDLZ_ISTickboxBuilder:new(parent_self, x, y)
     o = {}
     setmetatable(o, self)
     self.__index = self
@@ -11,7 +11,7 @@ function TDLZ_ISTickboxBuilder:new(parent_self)
     o.parent_self = parent_self;
     o.options = {}
 
-    o.tickBox = ISTickBox:new(10, 50, 10, 10, "Admin Powers", nil, TDLZ_ISTickboxBuilderDefaultDispatcher.onTicked)
+    o.tickBox = ISTickBox:new(x, y, 10, 100, "Admin Powers", nil, TDLZ_ISTickboxBuilderDefaultDispatcher.onTicked)
     o.tickBox.changeOptionArgs = {o.tickBox, nil}
     o.tickBox.choicesColor = {
         r = 1,

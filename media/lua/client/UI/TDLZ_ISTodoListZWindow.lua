@@ -1,7 +1,5 @@
 require 'Utils/TDLZ_Map'
 require 'Utils/TDLZ_StringUtils'
-require 'UI/TDLZ_ISTickboxBuilder'
-require 'UI/Builder/TDLZ_ISTickboxBuilderDefaultDispatcher'
 TDLZ_ISTodoListZWindow = ISCollapsableWindow:derive("TDLZ_ISTodoListZWindow")
 -- ************************************************************************--
 -- ** TodoListZManagerUI:new
@@ -54,12 +52,17 @@ function TDLZ_ISTodoListZWindow:new()
         b = 0.4,
         a = 1
     };
-    o.backgroundColor.a = 0.9;
+    o.backgroundColor = {
+        r = 0,
+        g = 0,
+        b = 0,
+        a = 0.8
+    };
     o.moveWithMouse = true;
+    o.listbox = nil
+
     o:setVisible(not hidden)
     -- o.storedChannels = mD.storedChannels;
-    o.renderedChannels = {}
-
     o:initialise();
     o:addToUIManager();
 
@@ -83,6 +86,16 @@ function TDLZ_ISTodoListZWindow:setNotebookID(notebookID)
     self:refreshUIElements()
 end
 
+function TDLZ_ISTodoListZWindow:createChildren()
+    ISCollapsableWindow.createChildren(self);
+    print("TDLZ_ISTodoListZWindow:createChildren()")
+
+    self:refreshUIElements()
+
+    self.resizeWidget2:bringToTop()
+    self.resizeWidget:bringToTop()
+end
+
 function TDLZ_ISTodoListZWindow:refreshUIElements()
     if self.notebookID == -1 then
         TDLZ_ISTodoListZWindow._setFormattedTitle(self, self.notebookID)
@@ -99,44 +112,45 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
 
         -- Set Checkboxes
         -- ---------------
-        if self.tickBox ~= nil then
-            self.tickBox:clearOptions()
+        if self.listbox ~= nil then
+            self.listbox:clear()
         end
-        local tbBuilder = TDLZ_ISTickboxBuilder:new(self);
-       
 
         -- Save pages
         self.newPage = {}
 
         -- Create tibox
         -- TEMP, let's test 1 page for now (change 1 to currentNotebook:getCustomPages():size() - 1)
+        local rh = self.resizable and self:resizeWidgetHeight() or 0
+        local tbh = self:titleBarHeight()
+        self.listbox = TDLZ_ISList:new(0, tbh, self.width, self.height - rh - tbh);
+        self.listbox:setOnMouseDoubleClick(self, TDLZ_ISTodoListZWindow.onOptionTicked);
         for i = 0, 1 - 1 do
             local currentIndex = i + 1
             local page = currentNotebook:seePage(currentIndex);
             local lines = TDLZ_StringUtils.splitKeepingEmptyLines(page)
             for lineNumber, lineString in ipairs(lines) do
-                tbBuilder:addOption(lineString, true, {
-                    bookInfo = {
-                        pageNumber = currentIndex,
-                        lineNumber = lineNumber,
-                        lineString = lineString, -- test only (redundant)
-                        lines = lines, -- test only (redundant)
-                        notebook = currentNotebook
-                    },
-                    onTickedSelf = self,
-                    onTicked = TDLZ_ISTodoListZWindow.onOptionTicked
+
+                -- if is a todo
+
+                self.listbox:addItem(lineString, {
+                    pageNumber = currentIndex,
+                    lineNumber = lineNumber,
+                    lineString = lineString, -- test only (redundant)
+                    lines = lines, -- test only (redundant)
+                    notebook = currentNotebook
                 });
             end
         end
-        self.tickBox = tbBuilder:build()
+        self:addChild(self.listbox);
     end
     -- save changes
     self:saveModData();
 end
 
-function TDLZ_ISTodoListZWindow:onOptionTicked(selected, data)
+function TDLZ_ISTodoListZWindow:onOptionTicked(data)
     print("Checkbox [page: " .. data.pageNumber .. ", line: " .. data.lineNumber .. "] " .. data.lineString ..
-              "clicked " .. tostring(selected))
+              "clicked ")
     local toWrite = ""
     for ln, s in pairs(data.lines) do
         local sep = "\n"
@@ -164,6 +178,7 @@ function TDLZ_ISTodoListZWindow:onOptionTicked(selected, data)
     -- Get notebook object
     data.notebook:addPage(data.pageNumber, toWrite);
     self:refreshUIElements();
+    
 end
 
 -- ************************************************************************--

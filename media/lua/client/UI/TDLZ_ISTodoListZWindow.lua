@@ -112,8 +112,15 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
 
         -- Set Checkboxes
         -- ---------------
+        local selectedIndex = -1;
+        local previousState = nil
         if self.listbox ~= nil then
             self.listbox:clear()
+            self:removeChild(self.listbox)
+
+            previousState = {
+                mouseoverselected = self.listbox.mouseoverselected
+            }
         end
 
         -- Save pages
@@ -123,16 +130,14 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
         -- TEMP, let's test 1 page for now (change 1 to currentNotebook:getCustomPages():size() - 1)
         local rh = self.resizable and self:resizeWidgetHeight() or 0
         local tbh = self:titleBarHeight()
-        self.listbox = TDLZ_ISList:new(0, tbh, self.width, self.height - rh - tbh);
-        self.listbox:setOnMouseDoubleClick(self, TDLZ_ISTodoListZWindow.onOptionTicked);
+
+        self.listbox = TDLZ_ISList:new(0, tbh, self.width, self.height - rh - tbh, self, previousState);
+        self.listbox:setOnMouseClick(self, TDLZ_ISTodoListZWindow.onOptionTicked);
         for i = 0, 1 - 1 do
             local currentIndex = i + 1
             local page = currentNotebook:seePage(currentIndex);
             local lines = TDLZ_StringUtils.splitKeepingEmptyLines(page)
             for lineNumber, lineString in ipairs(lines) do
-
-                -- if is a todo
-
                 self.listbox:addItem(lineString, {
                     pageNumber = currentIndex,
                     lineNumber = lineNumber,
@@ -178,7 +183,7 @@ function TDLZ_ISTodoListZWindow:onOptionTicked(data)
     -- Get notebook object
     data.notebook:addPage(data.pageNumber, toWrite);
     self:refreshUIElements();
-    
+
 end
 
 -- ************************************************************************--

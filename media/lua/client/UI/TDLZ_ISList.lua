@@ -23,11 +23,10 @@ function TDLZ_ISList:new(x, y, width, height, parent, previousState)
     o:setAnchorBottom(true);
     o.drawBorder = true
     o.tickTexture = getTexture("Quest_Succeed");
-
+    o.doDrawItem = TDLZ_ISList.doDrawItem
     o.selected = -1;
     o.joypadParent = self;
     o.font = UIFont.NewSmall;
-    o.doDrawItem = TDLZ_ISTodoListZWindow.drawTodoLines;
 
     o.onmouseclick = nil
     o.parent = parent;
@@ -88,7 +87,7 @@ function TDLZ_ISList:onMouseUp(x, y)
     end
 end
 
-function TDLZ_ISTodoListZWindow._drawCheckboxBackground(uiSelf, y, item, alt)
+function TDLZ_ISList._drawCheckboxBackground(uiSelf, y, item, alt)
     if alt then
         uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 0.2, uiSelf.borderColor.r, uiSelf.borderColor.g,
             uiSelf.borderColor.b);
@@ -97,7 +96,7 @@ function TDLZ_ISTodoListZWindow._drawCheckboxBackground(uiSelf, y, item, alt)
             uiSelf.borderColor.b);
     end
 end
-function TDLZ_ISTodoListZWindow._drawT1RowBackground(uiSelf, y, item, alt)
+function TDLZ_ISList._drawT1RowBackground(uiSelf, y, item, alt)
     if alt then
         uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 1, 0.98, 0.98, 0.97);
     else
@@ -105,16 +104,16 @@ function TDLZ_ISTodoListZWindow._drawT1RowBackground(uiSelf, y, item, alt)
     end
 end
 
-function TDLZ_ISTodoListZWindow:drawTodoLines(y, item, alt)
+function TDLZ_ISList:doDrawItem(y, item, alt)
 
     if y + self:getYScroll() + self.itemheight < 0 or y + self:getYScroll() >= self.height then
         return y + self.itemheight
     end
 
     if item.lineData.isCheckbox or not item.lineData.isTitle then
-        TDLZ_ISTodoListZWindow._drawCheckboxBackground(self, y, item, alt)
+        TDLZ_ISList._drawCheckboxBackground(self, y, item, alt)
     else
-        TDLZ_ISTodoListZWindow._drawT1RowBackground(self, y, item, alt)
+        TDLZ_ISList._drawT1RowBackground(self, y, item, alt)
     end
 
     local borderOpacity = 1

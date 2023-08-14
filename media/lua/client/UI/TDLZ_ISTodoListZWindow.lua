@@ -9,6 +9,7 @@ TDLZ_ISTodoListZWindow = ISCollapsableWindow:derive("TDLZ_ISTodoListZWindow")
 -- ************************************************************************--
 CK_BOX_CHECKED_PATTERN = "^(%s-)%[([Xx])%]"
 CK_BOX_CHECKED_R_PATTERN = "^(%s-)%[([ _])%]"
+local REM = getTextManager():getFontHeight(UIFont.Small)
 function TDLZ_ISTodoListZWindow:new()
     local mD = TDLZ_ISTodoListZWindow.loadModData();
 
@@ -122,8 +123,11 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
         -- TEMP, let's test 1 page for now (change 1 to currentNotebook:getCustomPages():size() - 1)
         local rh = self.resizable and self:resizeWidgetHeight() or 0
         local tbh = self:titleBarHeight()
+        local btnNewHeight = REM * 1.25
+        local btnNewMV = 0.25 * REM
 
-        self.listbox = TDLZ_ISList:new(0, tbh, self.width, self.height - rh - tbh, self, previousState);
+        self.listbox = TDLZ_ISList:new(0, tbh + btnNewHeight + 0.5 * REM, self.width,
+            self.height - rh - tbh - btnNewHeight * 2 - btnNewMV * 2 * 2, self, previousState);
         self.listbox:setOnMouseClick(self, TDLZ_ISTodoListZWindow.onOptionTicked);
         for i = 0, 1 - 1 do
             local currentIndex = i + 1
@@ -147,6 +151,128 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
             self.listbox:setYScroll(previousState.yScroll)
         end
         self:addChild(self.listbox);
+
+        local buttonDelete = ISButton:new(REM * 0.25, tbh + btnNewMV, REM * 1.5, btnNewHeight, "")
+        buttonDelete.borderColor = {
+            r = 0.5,
+            g = 0.5,
+            b = 0.5,
+            a = 1
+        };
+        buttonDelete:setImage(getTexture("media/ui/trashIcon.png"));
+        buttonDelete:setTooltip(getText("Tooltip_Journal_Erase"));
+        buttonDelete.anchorBottom = false
+        buttonDelete.anchorLeft = true
+        buttonDelete.anchorRight = false
+        buttonDelete.anchorTop = true
+        self:addChild(buttonDelete);
+        local buttonLock = ISButton:new(REM * 0.25 + buttonDelete.width + REM * 0.125, tbh + btnNewMV, REM * 1.5,
+            btnNewHeight, "")
+        buttonLock.borderColor = {
+            r = 0.5,
+            g = 0.5,
+            b = 0.5,
+            a = 1
+        };
+        buttonLock.anchorBottom = false
+        buttonLock.anchorLeft = true
+        buttonLock.anchorRight = false
+        buttonLock.anchorTop = true
+        buttonLock:setImage(getTexture("media/ui/lockOpen.png"));
+        buttonLock:setTooltip(getText("Tooltip_Journal_Lock"));
+        self:addChild(buttonLock);
+        local labelY = tbh + btnNewMV
+
+        local previousPage = ISButton:new(buttonLock.x + buttonLock.width + 0.5 * REM, buttonLock.y, btnNewHeight,
+            btnNewHeight, "<");
+        previousPage.internal = "PREVIOUSPAGE";
+        previousPage.anchorLeft = true
+        previousPage.anchorRight = false
+        previousPage:initialise();
+        previousPage:instantiate();
+        previousPage.borderColor = {
+            r = 1,
+            g = 1,
+            b = 1,
+            a = 0.1
+        };
+        previousPage:setEnable(false);
+        self:addChild(previousPage);
+
+        local nextPage = ISButton:new(previousPage.x + previousPage.width + 0.125 * REM, buttonLock.y, btnNewHeight,
+            btnNewHeight, ">");
+        nextPage.internal = "NEXTPAGE";
+        nextPage.anchorLeft = true
+        nextPage.anchorRight = false
+        nextPage:initialise();
+        nextPage:instantiate();
+        buttonDelete.borderColor = {
+            r = 0.5,
+            g = 0.5,
+            b = 0.5,
+            a = 1
+        };
+        self:addChild(nextPage);
+        if self.pageLabel ~= nil then
+            self:removeChild(self.pageLabel)
+        end
+
+        self.pageLabel = ISLabel:new(nextPage.x + nextPage.width + 0.5 * REM, labelY + REM * 0.125, REM,
+            getText("IGUI_Pages") .. "1" .. "/" .. "10", 1, 1, 1, 1, UIFont.Small, true);
+        self.pageLabel.anchorRight = false
+        self.pageLabel.anchorLeft = true
+        self.pageLabel:initialise();
+        self.pageLabel:instantiate();
+        self:addChild(self.pageLabel);
+
+        --[[
+        self.nextPage = ISButton:new(self.width / 2 + 3, self.pageLabel.y, btnHgt2, btnHgt2, ">", self, ISUIWriteJournal.onClick);
+        self.nextPage.internal = "NEXTPAGE";
+        self.nextPage:initialise();
+        self.nextPage:instantiate();
+        self.nextPage.borderColor = {r=1, g=1, b=1, a=0.1};
+        self:addChild(self.nextPage);
+
+        self.previousPage = ISButton:new(self.nextPage.x - btnHgt2 - 3, self.nextPage.y, btnHgt2, btnHgt2, "<", self, ISUIWriteJournal.onClick);
+        self.previousPage.internal = "PREVIOUSPAGE";
+        self.previousPage:initialise();
+        self.previousPage:instantiate();
+        self.previousPage.borderColor = {r=1, g=1, b=1, a=0.1};
+        self.previousPage:setEnable(false);
+        self:addChild(self.previousPage);
+]] --
+
+        local buttonNewMarginLeft = REM * 0.5
+        local buttonNewItem = ISButton:new(REM * 0.5, self.height - rh - btnNewHeight - btnNewMV,
+            self.width - 100 - REM, btnNewHeight, "New item")
+        buttonNewItem.borderColor = {
+            r = 0.5,
+            g = 0.5,
+            b = 0.5,
+            a = 1
+        };
+        buttonNewItem.anchorBottom = true
+        buttonNewItem.anchorLeft = true
+        buttonNewItem.anchorRight = true
+        buttonNewItem.anchorTop = false
+        self:addChild(buttonNewItem);
+
+        local marginRight = REM * 0.25
+        local buttonCheckMarginLeft = buttonNewMarginLeft + REM * 0.25 + buttonNewItem.width
+        local buttonCheck = ISButton:new(buttonCheckMarginLeft, self.height - rh - btnNewHeight - btnNewMV,
+            100 - marginRight, btnNewHeight, "Check all")
+        buttonCheck.borderColor = {
+            r = 0.5,
+            g = 0.5,
+            b = 0.5,
+            a = 1
+        };
+        buttonCheck.anchorBottom = true
+        buttonCheck.anchorLeft = false
+        buttonCheck.anchorRight = true
+        buttonCheck.anchorTop = false
+        self:addChild(buttonCheck);
+
     end
     -- save changes
     self:saveModData();

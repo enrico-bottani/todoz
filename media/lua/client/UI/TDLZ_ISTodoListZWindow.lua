@@ -1,11 +1,12 @@
 require 'Utils/TDLZ_Map'
 require 'Utils/TDLZ_StringUtils'
+require 'Utils/TDLZ_CheckboxUtils'
+
 TDLZ_ISTodoListZWindow = ISCollapsableWindow:derive("TDLZ_ISTodoListZWindow")
 -- ************************************************************************--
 -- ** TodoListZManagerUI:new
 -- **
 -- ************************************************************************--
-CK_BOX_FLEX_PATTERN = "^(%s-)%[([ Xx_]-)%]"
 CK_BOX_CHECKED_PATTERN = "^(%s-)%[([Xx])%]"
 CK_BOX_CHECKED_R_PATTERN = "^(%s-)%[([ _])%]"
 function TDLZ_ISTodoListZWindow:new()
@@ -86,16 +87,6 @@ function TDLZ_ISTodoListZWindow:setNotebookID(notebookID)
     self:refreshUIElements()
 end
 
-function TDLZ_ISTodoListZWindow:createChildren()
-    ISCollapsableWindow.createChildren(self);
-    print("TDLZ_ISTodoListZWindow:createChildren()")
-
-    self:refreshUIElements()
-
-    self.resizeWidget2:bringToTop()
-    self.resizeWidget:bringToTop()
-end
-
 function TDLZ_ISTodoListZWindow:refreshUIElements()
     if self.notebookID == -1 then
         TDLZ_ISTodoListZWindow._setFormattedTitle(self, self.notebookID)
@@ -119,7 +110,8 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
             self:removeChild(self.listbox)
 
             previousState = {
-                mouseoverselected = self.listbox.mouseoverselected
+                mouseoverselected = self.listbox.mouseoverselected,
+                yScroll = self.listbox:getYScroll()
             }
         end
 
@@ -138,7 +130,11 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
             local page = currentNotebook:seePage(currentIndex);
             local lines = TDLZ_StringUtils.splitKeepingEmptyLines(page)
             for lineNumber, lineString in ipairs(lines) do
-                self.listbox:addItem(lineString, {
+                self.listbox:addItem(lineString:gsub(CK_BOX_FLEX_PATTERN, function(space)
+                    return space
+                end, 1), {
+                    isCheckbox = TDLZ_CheckboxUtils.containsCheckBox(lineString),
+                    isChecked = TDLZ_CheckboxUtils.containsCheckedCheckBox(lineString),
                     pageNumber = currentIndex,
                     lineNumber = lineNumber,
                     lineString = lineString, -- test only (redundant)
@@ -147,10 +143,15 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
                 });
             end
         end
+        if (previousState ~= nil) then
+            self.listbox:setYScroll(previousState.yScroll)
+        end
         self:addChild(self.listbox);
     end
     -- save changes
     self:saveModData();
+    self.resizeWidget2:bringToTop()
+    self.resizeWidget:bringToTop()
 end
 
 function TDLZ_ISTodoListZWindow:onOptionTicked(data)
@@ -164,7 +165,7 @@ function TDLZ_ISTodoListZWindow:onOptionTicked(data)
         end
         if ln == data.lineNumber then
 
-            if selected then
+            if not data.isChecked then
                 -- add x
                 s = s:gsub(CK_BOX_CHECKED_R_PATTERN, function(space)
                     return space .. "[x]"

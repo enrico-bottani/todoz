@@ -22,6 +22,7 @@ function TDLZ_ISList:new(x, y, width, height, parent, previousState)
     o:setAnchorTop(true);
     o:setAnchorBottom(true);
     o.drawBorder = true
+    o.tickTexture = getTexture("Quest_Succeed");
 
     o.selected = -1;
     o.joypadParent = self;
@@ -31,11 +32,10 @@ function TDLZ_ISList:new(x, y, width, height, parent, previousState)
     o.onmouseclick = nil
     o.parent = parent;
 
-    if previousState ~=nil then
+    if previousState ~= nil then
         o.mouseoverselected = previousState.mouseoverselected
-        print("new: ".. tostring(o.mouseoverselected))
+        print("new: " .. tostring(o.mouseoverselected))
     end
-        
 
     o:initialise();
     o:instantiate();
@@ -51,14 +51,14 @@ end
 function TDLZ_ISList:addItem(name, item)
     local i = {}
     i.text = name;
-    i.item = item;
+    i.lineData = item;
     i.tooltip = nil;
     i.itemindex = self.count + 1;
     i.height = self.itemheight
     table.insert(self.items, i);
     self.count = self.count + 1;
     self:setScrollHeight(self:getScrollHeight() + i.height);
-    print("self.addItem: ".. tostring(self.mouseoverselected))
+    print("self.addItem: " .. tostring(self.mouseoverselected))
     return i;
 end
 
@@ -78,50 +78,72 @@ function TDLZ_ISList:onMouseUp(x, y)
     end
 
     getSoundManager():playUISound("UISelectListItem")
-    print("self.mouseoverselected: ".. tostring(self.mouseoverselected))
+    print("self.mouseoverselected: " .. tostring(self.mouseoverselected))
     if self.selected == row then
         self.selected = row;
         self.mouseoverselected = self:rowAt(x, y)
         if self.onmouseclick then
-            self.onmouseclick(self.target, self.items[self.selected].item);
+            self.onmouseclick(self.target, self.items[self.selected].lineData);
         end
     end
 end
 
+function TDLZ_ISTodoListZWindow._drawCheckboxBackground(uiSelf, y, item, alt)
+    if alt then
+        uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 0.2, uiSelf.borderColor.r, uiSelf.borderColor.g,
+            uiSelf.borderColor.b);
+    else
+        uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 0.1, uiSelf.borderColor.r, uiSelf.borderColor.g,
+            uiSelf.borderColor.b);
+    end
+end
+function TDLZ_ISTodoListZWindow._drawT1RowBackground(uiSelf, y, item, alt)
+    if alt then
+        uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 1, 0.98, 0.98, 0.97);
+    else
+        uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 1, 1, 1, 1);
+    end
+end
+
 function TDLZ_ISTodoListZWindow:drawTodoLines(y, item, alt)
-    
+
     if y + self:getYScroll() + self.itemheight < 0 or y + self:getYScroll() >= self.height then
         return y + self.itemheight
     end
 
-    if alt then
-        self:drawRect(0, (y), self:getWidth(), self.itemheight, 0.2, self.borderColor.r, self.borderColor.g,
-            self.borderColor.b);
+    if item.lineData.isCheckbox or not item.lineData.isTitle then
+        TDLZ_ISTodoListZWindow._drawCheckboxBackground(self, y, item, alt)
     else
-        self:drawRect(0, (y), self:getWidth(), self.itemheight, 0.1, self.borderColor.r, self.borderColor.g,
-            self.borderColor.b);
+        TDLZ_ISTodoListZWindow._drawT1RowBackground(self, y, item, alt)
     end
 
-    -- if we selected an item, we display a grey rect over it
-
-    -- On selected (unused?)
-    -- if self.selected == item.index then
-    --  self:drawRect(0, (y), self:getWidth(), self.itemheight - 1, 0.3, 0.7, 0.35, 0.15);
-    -- end
     local borderOpacity = 1
     -- DRAW CHECKBOX RECT
     local isMouseOver = self.mouseoverselected == item.index and not self:isMouseOverScrollBar()
-    if isMouseOver then
-        self:drawRect(self.marginLeft, y + (self.itemheight / 2 - BOX_SIZE / 2), BOX_SIZE, BOX_SIZE, 1.0, 0.3, 0.3,
-        0.3);
+    if item.lineData.isCheckbox then
+        if isMouseOver then
+            self:drawRect(self.marginLeft, y + (self.itemheight / 2 - BOX_SIZE / 2), BOX_SIZE, BOX_SIZE, 1.0, 0.3, 0.3,
+                0.3);
+        end
+        self:drawRectBorder(self.marginLeft, y + (self.itemheight / 2 - BOX_SIZE / 2), BOX_SIZE, BOX_SIZE, 1.0, 0.3,
+            0.3, 0.3);
+
+        if item.lineData.isChecked then
+            self:drawTexture(self.tickTexture, self.marginLeft + 3, y + (self.itemheight / 2 - BOX_SIZE / 2) + 2, 1, 1,
+                1, 1);
+        end
     end
-    self:drawRectBorder(self.marginLeft, y + (self.itemheight / 2 - BOX_SIZE / 2), BOX_SIZE, BOX_SIZE, 1.0, 0.3, 0.3,
-        0.3);
-    -- self:drawRect(0, y, BOX_SIZE, BOX_SIZE, 1.0, 0.3, 0.3, 0.3);
+
     local dy = (self.itemheight - FONT_HGT_SMALL) / 2
     -- Text pos debug
     -- self:drawRect(BOX_SIZE + MARGIN_BETWEEN, y + dy, self:getWidth(), FONT_HGT_SMALL, 1.0, 0.8, 0.3, 0.3);
-    self:drawText(item.text, self.marginLeft + BOX_SIZE + MARGIN_BETWEEN, y + dy, TEXT_RGBA.r, TEXT_RGBA.g, TEXT_RGBA.b,
-        TEXT_RGBA.a, UIFont.Small);
+    if item.lineData.isCheckbox or not item.lineData.isTitle then
+        self:drawText(item.text, self.marginLeft + BOX_SIZE + MARGIN_BETWEEN, y + dy, TEXT_RGBA.r, TEXT_RGBA.g,
+            TEXT_RGBA.b, TEXT_RGBA.a, UIFont.Small);
+    else
+        -- Not a checkbox, write text
+        self:drawText(item.text, self.marginLeft + BOX_SIZE + MARGIN_BETWEEN, y + dy, 0.3, 0.3, 0.3, 1, UIFont.Small);
+
+    end
     return y + self.itemheight;
 end

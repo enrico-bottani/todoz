@@ -24,6 +24,31 @@ local BTN_ERROR_BORDER_COLOR = {
     b = 0,
     a = 1
 }
+local function _setNotebookID(o, notebookID)
+    if (notebookID == nil) then
+        o.notebookID = -1
+    else
+        o.notebookID = notebookID
+    end
+
+    if o.notebookID == -1 then
+        TDLZ_ISTodoListZWindow._setFormattedTitle(o, o.notebookID)
+        o.notebook = {
+            currentNotebook = {},
+            currentPage = -1,
+            numberOfPages = -1
+        }
+    else
+        local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
+        local nb = TDLZ_Map.get(notebookMap, o.notebookID)
+        TDLZ_ISTodoListZWindow._setFormattedTitle(o, nb:getName())
+        o.notebook = {
+            currentNotebook = nb,
+            currentPage = 1,
+            numberOfPages = nb:getPageToWrite()
+        }
+    end
+end
 function TDLZ_ISTodoListZWindow:new()
     local mD = TDLZ_ISTodoListZWindow.loadModData();
 
@@ -41,17 +66,14 @@ function TDLZ_ISTodoListZWindow:new()
     o = ISCollapsableWindow:new(startingX, startingY, panelWidth, panelHeight);
     setmetatable(o, self);
     self.__index = self;
+
     if mD.todoListData == nil or mD.todoListData.notebookID == nil then
-        o.notebookID = -1
+        _setNotebookID(o, -1)
     else
-        o.notebookID = mD.todoListData.notebookID
+        _setNotebookID(o, mD.todoListData.notebookID)
     end
-    if o.notebookID == -1 then
-        TDLZ_ISTodoListZWindow._setFormattedTitle(o, o.notebookID)
-    else
-        local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
-        TDLZ_ISTodoListZWindow._setFormattedTitle(o, TDLZ_Map.get(notebookMap, o.notebookID):getName())
-    end
+
+    -- Window notebook status
 
     o.pin = pin;
     o.x = startingX;
@@ -98,10 +120,56 @@ function TDLZ_ISTodoListZWindow:setNotebookID(notebookID)
         -- if same do nothing
         return
     end
-    self.notebookID = notebookID;
+    _setNotebookID(self, notebookID)
+
     self:refreshUIElements()
 end
 
+function TDLZ_ISTodoListZWindow:onClick(button)
+    if button.internal == "NEXTPAGE" then
+        --        print("add at pos " .. self.currentPage .. " text " .. self.entry:getText())
+        -- self.newPage[self.currentPage] = self.entry:getText();
+        self.notebook.currentPage = self.notebook.currentPage + 1;
+        -- self.entry.javaObject:setCursorLine(0);
+        -- self.entry:setText(self.newPage[self.currentPage]);
+    elseif button.internal == "PREVIOUSPAGE" then
+        -- self.newPage[self.currentPage] = self.entry:getText();
+        self.notebook.currentPage = self.notebook.currentPage - 1;
+
+        --        print("set text from pos " .. self.currentPage .. " text " .. self.newPage[self.currentPage]);
+        -- self.entry.javaObject:setCursorLine(0);
+        -- self.entry:setText(self.newPage[self.currentPage]);
+    elseif button.internal == "DELETEPAGE" then
+        -- self.newPage[self.currentPage] = "";
+        self.entry:setText("");
+        self.entry.javaObject:setCursorLine(0);
+    elseif button.internal == "LOCKBOOK" then
+        self.lockButton:setImage(getTexture("media/ui/lock.png"));
+        self.lockButton.internal = "UNLOCKBOOK";
+        self.notebook:setLockedBy(self.character:getUsername());
+        self.title:setEditable(false);
+        self.entry:setEditable(false);
+        self.lockButton:setTooltip("Allow the journal to be edited");
+        self:setJoypadButtons(self.joyfocus)
+    elseif button.internal == "UNLOCKBOOK" then
+        self.lockButton:setImage(getTexture("media/ui/lockOpen.png"));
+        self.lockButton.internal = "LOCKBOOK";
+        self.notebook:setLockedBy(nil);
+        self.title:setEditable(true);
+        self.entry:setEditable(true);
+        self.lockButton:setTooltip("Prevent the journal from being edited");
+        self:setJoypadButtons(self.joyfocus)
+    else
+        --   self.newPage[self.currentPage] = self.entry:getText();
+        --  self:destroy(); 
+        -- if self.onclick ~= nil then
+        --   self.onclick(self.target, button, self.param1, self.param2);
+        -- end
+    end
+
+    self:refreshUIElements()
+    -- self.pinButton:setVisible(false);
+end
 
 function TDLZ_ISTodoListZWindow:_createPageNav(titleBarHight)
     local y = titleBarHight + BTN_MV
@@ -114,8 +182,7 @@ function TDLZ_ISTodoListZWindow:_createPageNav(titleBarHight)
     buttonDelete.anchorRight = false
     buttonDelete.anchorTop = true
     self:addChild(buttonDelete);
-    local buttonLock = ISButton:new(REM * 0.25 + buttonDelete.width + REM * 0.125, y, REM * 1.5,
-        BTN_DEFAULT_H, "")
+    local buttonLock = ISButton:new(REM * 0.25 + buttonDelete.width + REM * 0.125, y, REM * 1.5, BTN_DEFAULT_H, "")
     buttonLock.borderColor = BTN_DEFAULT_BORDER_COLOR;
     buttonLock.anchorBottom = false
     buttonLock.anchorLeft = true
@@ -125,32 +192,43 @@ function TDLZ_ISTodoListZWindow:_createPageNav(titleBarHight)
     buttonLock:setTooltip(getText("Tooltip_Journal_Lock"));
     self:addChild(buttonLock);
 
-    local previousPage = ISButton:new(buttonLock.x + buttonLock.width + 0.5 * REM, y, BTN_DEFAULT_H,
-        BTN_DEFAULT_H, "<");
-    previousPage.internal = "PREVIOUSPAGE";
-    previousPage.anchorLeft = true
-    previousPage.anchorRight = false
-    previousPage:initialise();
-    previousPage:instantiate();
-    previousPage.borderColor = BTN_ERROR_BORDER_COLOR;
-    previousPage:setEnable(false);
-    self:addChild(previousPage);
+    self.previousPage = ISButton:new(buttonLock.x + buttonLock.width + 0.5 * REM, y, BTN_DEFAULT_H, BTN_DEFAULT_H, "<",
+        self, TDLZ_ISTodoListZWindow.onClick);
+    self.previousPage.internal = "PREVIOUSPAGE";
+    self.previousPage.anchorLeft = true
+    self.previousPage.anchorRight = false
+    --self.previousPage.borderColorEnabled = BTN_DEFAULT_BORDER_COLOR;
+   -- self.previousPage.borderColor = BTN_ERROR_BORDER_COLOR;
+    self.previousPage:initialise();
+    self.previousPage:instantiate();
+    if self.notebook.currentPage == 1 then
+        self.previousPage:setEnable(false);
+    else
+        self.previousPage:setEnable(true);
+    end
+    self:addChild(self.previousPage);
 
-    local nextPage = ISButton:new(previousPage.x + previousPage.width + 0.125 * REM, y, BTN_DEFAULT_H,
-        BTN_DEFAULT_H, ">");
-    nextPage.internal = "NEXTPAGE";
-    nextPage.anchorLeft = true
-    nextPage.anchorRight = false
-    nextPage:initialise();
-    nextPage:instantiate();
-    buttonDelete.borderColor = BTN_DEFAULT_BORDER_COLOR;
-    self:addChild(nextPage);
+    self.nextPage = ISButton:new(self.previousPage.x + self.previousPage.width + 0.125 * REM, y, BTN_DEFAULT_H,
+        BTN_DEFAULT_H, ">", self, TDLZ_ISTodoListZWindow.onClick);
+    self.nextPage.internal = "NEXTPAGE";
+    self.nextPage.anchorLeft = true
+    self.nextPage.anchorRight = false
+    -- self.nextPage.borderColorEnabled = BTN_DEFAULT_BORDER_COLOR;
+    -- self.nextPage.borderColor = BTN_ERROR_BORDER_COLOR;
+    self.nextPage:initialise();
+    self.nextPage:instantiate();
+    if self.notebook.currentPage == self.notebook.numberOfPages then
+        self.nextPage:setEnable(false);
+    else
+        self.nextPage:setEnable(true);
+    end
+    self:addChild(self.nextPage);
+
     if self.pageLabel ~= nil then
         self:removeChild(self.pageLabel)
     end
-
-    self.pageLabel = ISLabel:new(nextPage.x + nextPage.width + 0.5 * REM, y, BTN_DEFAULT_H,
-        getText("IGUI_Pages") .. "1" .. "/" .. "10", 1, 1, 1, 1, UIFont.Small, true);
+    self.pageLabel = ISLabel:new(self.nextPage.x + self.nextPage.width + 0.5 * REM, y, BTN_DEFAULT_H, getText(
+        "IGUI_Pages") .. self.notebook.currentPage .. "/" .. self.notebook.numberOfPages, 1, 1, 1, 1, UIFont.Small, true);
     self.pageLabel.anchorRight = false
     self.pageLabel.anchorLeft = true
     self.pageLabel:initialise();
@@ -162,15 +240,9 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
     if self.notebookID == -1 then
         TDLZ_ISTodoListZWindow._setFormattedTitle(self, self.notebookID)
     else
-        -- Book ID changed (and different from -1), refresh whole UI
-        -- =========================================================
-        local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
-        -- Get notebook object
-        local currentNotebook = TDLZ_Map.get(notebookMap, self.notebookID)
-
         -- Set Title
         -- ---------
-        TDLZ_ISTodoListZWindow._setFormattedTitle(self, currentNotebook:getName())
+        TDLZ_ISTodoListZWindow._setFormattedTitle(self, self.notebook.currentNotebook:getName())
 
         -- Set Checkboxes
         -- ---------------
@@ -190,70 +262,67 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
         self.newPage = {}
 
         -- Create tibox
-        -- TEMP, let's test 1 page for now (change 1 to currentNotebook:getCustomPages():size() - 1)
+        -- TEMP, let's test 1 page for now (change 1 to self.notebook.currentNotebook:getCustomPages():size() - 1)
         local rh = self.resizable and self:resizeWidgetHeight() or 0
         local tbh = self:titleBarHeight()
         local btnNewHeight = REM * 1.25
-
-
-        self.listbox = TDLZ_ISList:new(0, tbh + btnNewHeight + 0.5 * REM, self.width,
+        local y = tbh + btnNewHeight + 0.5 * REM
+        self.listbox = TDLZ_ISList:new(0, y, self.width,
             self.height - rh - tbh - btnNewHeight * 2 - BTN_MV * 2 * 2, self, previousState);
         self.listbox:setOnMouseClick(self, TDLZ_ISTodoListZWindow.onOptionTicked);
-        for i = 0, 1 - 1 do
-            local currentIndex = i + 1
-            local page = currentNotebook:seePage(currentIndex);
-            local lines = TDLZ_StringUtils.splitKeepingEmptyLines(page)
-            for lineNumber, lineString in ipairs(lines) do
-                self.listbox:addItem(lineString:gsub(CK_BOX_FLEX_PATTERN, function(space)
-                    return space
-                end, 1), {
-                    isCheckbox = TDLZ_CheckboxUtils.containsCheckBox(lineString),
-                    isChecked = TDLZ_CheckboxUtils.containsCheckedCheckBox(lineString),
-                    pageNumber = currentIndex,
-                    lineNumber = lineNumber,
-                    lineString = lineString, -- test only (redundant)
-                    lines = lines, -- test only (redundant)
-                    notebook = currentNotebook
-                });
-            end
+
+        local page = self.notebook.currentNotebook:seePage(self.notebook.currentPage);
+        local lines = TDLZ_StringUtils.splitKeepingEmptyLines(page)
+        for lineNumber, lineString in ipairs(lines) do
+            self.listbox:addItem(lineString:gsub(CK_BOX_FLEX_PATTERN, function(space)
+                return space
+            end, 1), {
+                isCheckbox = TDLZ_CheckboxUtils.containsCheckBox(lineString),
+                isChecked = TDLZ_CheckboxUtils.containsCheckedCheckBox(lineString),
+                pageNumber = self.notebook.currentPage,
+                lineNumber = lineNumber,
+                lineString = lineString, -- test only (redundant)
+                lines = lines, -- test only (redundant)
+                notebook = self.notebook.currentNotebook
+            });
         end
+
         if (previousState ~= nil) then
             self.listbox:setYScroll(previousState.yScroll)
         end
         self:addChild(self.listbox);
 
         self:_createPageNav(tbh)
-
-        local buttonNewMarginLeft = REM * 0.5
-        local buttonNewItem = ISButton:new(REM * 0.5, self.height - rh - btnNewHeight - BTN_MV,
-            self.width - 100 - REM, btnNewHeight, "New item")
-        buttonNewItem.borderColor = {
-            r = 0.5,
-            g = 0.5,
-            b = 0.5,
-            a = 1
-        };
+        y = self.listbox.y + self.listbox.height + BTN_MV
+        local buttonCheckWidth = 200
+        local buttonCheckOtherWidth = BTN_DEFAULT_H
+        local buttonNewMarginLR = REM * 0.5
+        local marginBetween = REM * 0.25
+        local buttonNewItem = ISButton:new(buttonNewMarginLR, y, self.width - marginBetween - buttonCheckWidth - buttonCheckOtherWidth - buttonNewMarginLR * 2, btnNewHeight, "+ New...")
+        buttonNewItem.borderColor = BTN_DEFAULT_BORDER_COLOR;
         buttonNewItem.anchorBottom = true
         buttonNewItem.anchorLeft = true
         buttonNewItem.anchorRight = true
         buttonNewItem.anchorTop = false
         self:addChild(buttonNewItem);
 
-        local marginRight = REM * 0.25
-        local buttonCheckMarginLeft = buttonNewMarginLeft + REM * 0.25 + buttonNewItem.width
-        local buttonCheck = ISButton:new(buttonCheckMarginLeft, self.height - rh - btnNewHeight - BTN_MV,
-            100 - marginRight, btnNewHeight, "Check all")
-        buttonCheck.borderColor = {
-            r = 0.5,
-            g = 0.5,
-            b = 0.5,
-            a = 1
-        };
+        
+        local buttonCheck = ISButton:new(buttonNewItem.x + buttonNewItem.width + REM * 0.25 , y, buttonCheckWidth, btnNewHeight, "Take inventory")
+        --buttonCheck:setImage(getTexture("media/ui/trashIcon.png"));
+        buttonCheck.borderColor = BTN_DEFAULT_BORDER_COLOR;
         buttonCheck.anchorBottom = true
         buttonCheck.anchorLeft = false
         buttonCheck.anchorRight = true
         buttonCheck.anchorTop = false
         self:addChild(buttonCheck);
+
+        local buttonCheckOthers = ISButton:new(buttonCheck.x + buttonCheck.width, y, buttonCheckOtherWidth, btnNewHeight, ">")
+        buttonCheckOthers.borderColor = BTN_DEFAULT_BORDER_COLOR;
+        buttonCheckOthers.anchorBottom = true
+        buttonCheckOthers.anchorLeft = false
+        buttonCheckOthers.anchorRight = true
+        buttonCheckOthers.anchorTop = false
+        self:addChild(buttonCheckOthers);
 
     end
     -- save changes

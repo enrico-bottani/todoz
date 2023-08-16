@@ -60,6 +60,35 @@ function TDLZ_ISList:addItem(name, item)
     print("self.addItem: " .. tostring(self.mouseoverselected))
     return i;
 end
+local function isSelectAllPossible(page)
+    if true then
+        return true
+    end
+    if not page then
+        return false
+    end
+    if not page:isVisible() then
+        return false
+    end
+    if page.isCollapsed then
+        return false
+    end
+    if not page:isMouseOver() then
+        return false
+    end
+    for _, v in pairs(page.inventoryPane.selected) do
+        return true
+    end
+    return false
+end
+function TDLZ_ISList:update()
+    if isCtrlKeyDown() and isKeyDown(Keyboard.KEY_A) and isSelectAllPossible(self.parent) then
+        table.wipe(self.selected)
+        for k, v in ipairs(self.items) do
+            self.selected[k] = v
+        end
+    end
+end
 
 function TDLZ_ISList:onMouseUp(x, y)
     original_onmouseup(x, y)

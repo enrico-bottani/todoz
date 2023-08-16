@@ -11,6 +11,9 @@ function TDLZ_StringUtils.split(inputString, delimiter)
     return r
 end
 function TDLZ_StringUtils.splitKeepingEmptyLines(inputString)
+    if inputString ==nil then
+        return ""
+    end
     local result = {};
     local lastChar = string.sub(inputString, -1);
     local added = false;

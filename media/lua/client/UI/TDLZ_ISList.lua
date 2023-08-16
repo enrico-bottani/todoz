@@ -1,4 +1,5 @@
-TDLZ_ISList = ISScrollingListBox:derive("TDLZ_ISList")
+require "UI/TDLZ_MultiSelectScrollList"
+TDLZ_ISList = TDLZ_MultiSelectScrollList:derive("TDLZ_ISList")
 local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
 local MARGIN_TOP_BOTTOM = FONT_HGT_SMALL / 4;
 local MARGIN_BETWEEN = FONT_HGT_SMALL / 4;
@@ -9,10 +10,10 @@ local TEXT_RGBA = {
     b = 0.8,
     a = 1
 }
-local original_onmouseup = ISScrollingListBox.onMouseUp;
+local original_onmouseup = TDLZ_MultiSelectScrollList.onMouseUp;
 function TDLZ_ISList:new(x, y, width, height, parent, previousState)
     local o = {}
-    o = ISScrollingListBox:new(x, y, width, height);
+    o = TDLZ_MultiSelectScrollList:new(x, y, width, height);
     setmetatable(o, self);
     self.__index = self;
 

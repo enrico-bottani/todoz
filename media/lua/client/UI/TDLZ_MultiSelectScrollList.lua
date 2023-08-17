@@ -4,8 +4,6 @@ require "ISUI/ISMouseDrag"
 require "TimedActions/ISTimedActionQueue"
 require "TimedActions/ISEatFoodAction"
 
-
-
 TDLZ_MultiSelectScrollList = ISPanelJoypad:derive("TDLZ_MultiSelectScrollList");
 TDLZ_MultiSelectScrollList.joypadListIndex = 1;
 
@@ -67,7 +65,11 @@ end
 --**
 --************************************************************************--
 function TDLZ_MultiSelectScrollList:instantiate()
-
+	local t =TDLZ_NumSet:new();
+	t:add(3)
+	t:add(1)
+	t:add(2)
+	print("Min: " .. t._min)
 	--self:initialise();
 	self.javaObject = UIElement.new(self);
 	self.javaObject:setX(self.x);
@@ -202,6 +204,7 @@ function TDLZ_MultiSelectScrollList:removeItem(itemText)
     return nil;
 end
 
+-- UNUSED
 function TDLZ_MultiSelectScrollList:removeItemByIndex(itemIndex)
 	if itemIndex >= 1 and itemIndex <= #self.items then
 		local item = self.items[itemIndex]
@@ -217,7 +220,7 @@ function TDLZ_MultiSelectScrollList:removeItemByIndex(itemIndex)
 	return nil
 end
 
-
+-- UNUSED
 function TDLZ_MultiSelectScrollList:removeFirst()
     if self.count == 0 then return end
     local item = self.items[1]

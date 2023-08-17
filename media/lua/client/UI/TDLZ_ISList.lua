@@ -34,7 +34,6 @@ function TDLZ_ISList:new(x, y, width, height, parent, previousState)
 
     if previousState ~= nil then
         o.mouseoverselected = previousState.mouseoverselected
-        print("new: " .. tostring(o.mouseoverselected))
     end
 
     o:initialise();
@@ -58,7 +57,6 @@ function TDLZ_ISList:addItem(name, item)
     table.insert(self.items, i);
     self.count = self.count + 1;
     self:setScrollHeight(self:getScrollHeight() + i.height);
-    print("self.addItem: " .. tostring(self.mouseoverselected))
     return i;
 end
 local function isSelectAllPossible(page)
@@ -107,7 +105,6 @@ function TDLZ_ISList:onMouseUp(x, y)
     end
 
     getSoundManager():playUISound("UISelectListItem")
-    print("self.mouseoverselected: " .. tostring(self.mouseoverselected))
     if self.selected == row then
         self.selected = row;
         self.mouseoverselected = self:rowAt(x, y)

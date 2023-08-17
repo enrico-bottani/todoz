@@ -1,0 +1,32 @@
+How to run the test suite
+=====================
+To run the test suite execute the following command from the `todoz` directory:
+
+```
+lua .\media\lua\test\<file_dir>\<filename>.lua -v
+```
+For example:
+
+```
+lua .\media\lua\test\client\Utils\TEST_TDLZ_Set.lua -v
+```
+Remove arg `-v` in case you don't want a verbose output
+
+For vscode
+---------------------
+To run/debug on visual studio code copy the following in you `.vscode/lauch.json`
+```
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lua",
+            "request": "launch",
+            "name": "Debug",
+            "program": "${workspaceFolder}/media/lua/test/<file_dir>/<filename>.lua",
+            "arg": ["-v"],
+            "stopOnEntry": false
+        }
+    ]
+}
+```

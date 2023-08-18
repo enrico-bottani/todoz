@@ -1,9 +1,1 @@
-name=Todo List
-poster=poster.png
-id=TDLZ
-description=Project Zomboid Todo List Mod
-url=https://github.com/enrico-bottani/todoz
-
-modversion=0.1.4
-versionMin=41.65
-tags=Build 41,Interface
+name=Todo Listposter=poster.pngid=TDLZdescription=Project Zomboid Todo List Modurl=https://github.com/enrico-bottani/todozmodversion=0.1.4versionMin=41.65tags=Build 41,Interface

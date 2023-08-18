@@ -1,12 +1,4 @@
 require "Utils/TDLZ_Set"
--- require 'Utils/TDLZ_Set'
---[[
-if true and os and os.getenv("env") == "test" then
-    require "media.lua.client.Utils.TDLZ_Set"
-else
-    require 'Utils/TDLZ_Set'
-end]]--
-
 TDLZ_NumSet = TDLZ_Set:derive("TDLZ_NumSet")
 local oAdd = TDLZ_Set.add;
 local oRemove = TDLZ_Set.remove;

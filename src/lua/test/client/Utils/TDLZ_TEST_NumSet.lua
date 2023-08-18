@@ -1,7 +1,7 @@
-require('media.lua.client.Utils.TDLZ_NumSet')
-local test = require('media.lua.test.common.luaunit')
+require('src.lua.client.Utils.TDLZ_NumSet')
+local test = require('src.lua.test.common.luaunit')
 TEST_TDLZ_NumSet = {}
-if test ~= nil and os.getenv("env")=="test"then
+if test ~= nil then
     function TEST_TDLZ_NumSet.test_TDLZ_NumSet_New_NotNilReturnValue()
         local set = TDLZ_NumSet:new()
         test.assertNotIsNil(set)

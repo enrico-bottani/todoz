@@ -26,7 +26,6 @@ function lines_from(file)
     return lines
 end
 
-local dirWhitelist = {"media"}
 function attrdir(path)
     for file in lfs.dir(path) do
         if file ~= "." and file ~= ".." then
@@ -48,11 +47,11 @@ function attrdir(path)
                                          file
                 local destFile = io.open(destFilePath, "w")
                 for k, v in pairs(ls) do
-                    if string.find(v, "[\"\']media%.lua%.client.-[\"\']") then
-                        v = string.gsub(v, "[\"\']media%.lua%.client.-[\"\']",
+                    if string.find(v, "[\"\']src%.lua%.client.-[\"\']") then
+                        v = string.gsub(v, "[\"\']src%.lua%.client.-[\"\']",
                                         function(t1, t2)
                             return
-                                t1:gsub("%.", "/"):gsub("media/lua/client/", "")
+                                t1:gsub("%.", "/"):gsub("src/lua/client/", "")
                         end)
                     end
                     destFile:write(v .. "\n")

@@ -28,44 +28,41 @@ end
 
 local dirWhitelist = {"media"}
 function attrdir(path)
-    if path == "." or
-        not (path.find(path, "^%./%.git") or path.find(path, "^%./media") or
-            path.find(path, "^%./src/lua/test")) then
-        for file in lfs.dir(path) do
-            if file ~= "." and file ~= ".." then
-                local f = path .. '/' .. file
+    for file in lfs.dir(path) do
+        if file ~= "." and file ~= ".." then
+            local f = path .. '/' .. file
 
-                local attr = lfs.attributes(f)
-                assert(type(attr) == "table")
-                if attr.mode == "directory" then
-                    local folder = f:gsub("src",DEST_FOLDER)
-                    print("create folder: "..folder )
+            local attr = lfs.attributes(f)
+            assert(type(attr) == "table")
+            if attr.mode == "directory" then
+                local folder = f:gsub("src", DEST_FOLDER)
+                if not (string.find(f, "^%./%.git") or string.find(f, "^%./media") or
+                    string.find(f, "^%./src/lua/test")) then
+                    local folder = f:gsub("src", DEST_FOLDER)
                     lfs.mkdir(folder)
                     attrdir(f)
-                elseif (path ~= ".") then
-                    local ls = lines_from(f)
-                    local destFilePath = path:gsub("src",DEST_FOLDER) .. "/"..file
-                    local destFile = io.open(destFilePath, "w")
-                    for k, v in pairs(ls) do
-                        if string.find(v, "[\"\']media%.lua%.client.-[\"\']") then
-                            v = string.gsub(v,
-                                            "[\"\']media%.lua%.client.-[\"\']",
-                                            function(t1, t2)
-                                return
-                                    t1:gsub("%.", "/"):gsub("media/lua/client/",
-                                                            "")
-                            end)
-                        end
-                        destFile:write(v.."\n")
-                    end
-                    destFile:close()
-                    print(f)
-                    print("-")
                 end
+            elseif (path ~= ".") then
+                local ls = lines_from(f)
+                local destFilePath = path:gsub("src", DEST_FOLDER) .. "/" ..
+                                         file
+                local destFile = io.open(destFilePath, "w")
+                for k, v in pairs(ls) do
+                    if string.find(v, "[\"\']media%.lua%.client.-[\"\']") then
+                        v = string.gsub(v, "[\"\']media%.lua%.client.-[\"\']",
+                                        function(t1, t2)
+                            return
+                                t1:gsub("%.", "/"):gsub("media/lua/client/", "")
+                        end)
+                    end
+                    destFile:write(v .. "\n")
+                end
+                destFile:close()
             end
         end
     end
+
 end
 lfs.rmdir(DEST_FOLDER)
 lfs.mkdir(DEST_FOLDER)
-attrdir(".")
+attrdir("./src")

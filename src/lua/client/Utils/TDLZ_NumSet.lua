@@ -1,4 +1,4 @@
-require 'Utils/TDLZ_Set'
+require 'media.lua.client.Utils.TDLZ_Set'
 
 TDLZ_NumSet = TDLZ_Set:derive("TDLZ_NumSet")
 local oAdd = TDLZ_Set.add;

@@ -19,10 +19,6 @@ function TDLZ_Set:new()
     o._min = nil
     o._max = nil
     o._empty = true
-    
-
-
-
     return o
 end
 

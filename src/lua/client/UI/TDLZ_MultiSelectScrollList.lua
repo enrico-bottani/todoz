@@ -4,6 +4,8 @@ require "ISUI/ISMouseDrag"
 require "TimedActions/ISTimedActionQueue"
 require "TimedActions/ISEatFoodAction"
 
+require "src.lua.client.Utils.TDLZ_NumSet"
+
 TDLZ_MultiSelectScrollList = ISPanelJoypad:derive("TDLZ_MultiSelectScrollList");
 TDLZ_MultiSelectScrollList.joypadListIndex = 1;
 
@@ -25,39 +27,39 @@ local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
 --************************************************************************--
 
 function TDLZ_MultiSelectScrollList:initialise()
-    ISPanelJoypad.initialise(self);
+	ISPanelJoypad.initialise(self);
 end
 
 function TDLZ_MultiSelectScrollList:setJoypadFocused(focused, joypadData)
-    if focused then
-        joypadData.focus = self;
-        updateJoypadFocus(joypadData);
-        if self.selected == -1 then
-            self.selected = 1;
-            if self.resetSelectionOnChangeFocus then
-                if self.items[self.selectedBeforeReset] then
-                    self.selected = self.selectedBeforeReset
-                end
-                self.selectedBeforeReset = nil
-            end
-            if self.onmousedown and self.items[self.selected] then
-                self.onmousedown(self.target, self.items[self.selected].item);
-            end
-        end
-    end
-    self.joypadFocused = focused;
+	if focused then
+		joypadData.focus = self;
+		updateJoypadFocus(joypadData);
+		if self.selected == -1 then
+			self.selected = 1;
+			if self.resetSelectionOnChangeFocus then
+				if self.items[self.selectedBeforeReset] then
+					self.selected = self.selectedBeforeReset
+				end
+				self.selectedBeforeReset = nil
+			end
+			if self.onmousedown and self.items[self.selected] then
+				self.onmousedown(self.target, self.items[self.selected].item);
+			end
+		end
+	end
+	self.joypadFocused = focused;
 end
 
 function TDLZ_MultiSelectScrollList:onJoypadDirRight(joypadData)
-    if self.joypadParent then
-        self.joypadParent:onJoypadDirRight(joypadData);
-    end
+	if self.joypadParent then
+		self.joypadParent:onJoypadDirRight(joypadData);
+	end
 end
 
 function TDLZ_MultiSelectScrollList:onJoypadDirLeft(joypadData)
-    if self.joypadParent then
-        self.joypadParent:onJoypadDirLeft(joypadData);
-    end
+	if self.joypadParent then
+		self.joypadParent:onJoypadDirLeft(joypadData);
+	end
 end
 
 --************************************************************************--
@@ -65,11 +67,6 @@ end
 --**
 --************************************************************************--
 function TDLZ_MultiSelectScrollList:instantiate()
-	local t =TDLZ_NumSet:new();
-	t:add(3)
-	t:add(1)
-	t:add(2)
-	print("Min: " .. t._min)
 	--self:initialise();
 	self.javaObject = UIElement.new(self);
 	self.javaObject:setX(self.x);
@@ -85,7 +82,7 @@ end
 
 function TDLZ_MultiSelectScrollList:rowAt(x, y)
 	local y0 = 0
-	for i,v in ipairs(self.items) do
+	for i, v in ipairs(self.items) do
 		if not v.height then v.height = self.itemheight end -- compatibililty
 		if y >= y0 and y < y0 + v.height then
 			return i
@@ -97,7 +94,7 @@ end
 
 function TDLZ_MultiSelectScrollList:topOfItem(index)
 	local y = 0
-	for k,v in ipairs(self.items) do
+	for k, v in ipairs(self.items) do
 		if k == index then
 			return y
 		end
@@ -108,7 +105,7 @@ end
 
 function TDLZ_MultiSelectScrollList:prevVisibleIndex(index)
 	if index <= 1 then return -1 end
-	for i=index-1,1,-1 do
+	for i = index - 1, 1, -1 do
 		local item = self.items[i]
 		if item and item.height and item.height > 0 then
 			return i
@@ -119,7 +116,7 @@ end
 
 function TDLZ_MultiSelectScrollList:nextVisibleItem(index)
 	if index >= #self.items then return -1 end
-	for i=index+1,#self.items do
+	for i = index + 1, #self.items do
 		if self.items[i] and self.items[i].height and self.items[i].height > 0 then
 			return i
 		end
@@ -155,16 +152,16 @@ function TDLZ_MultiSelectScrollList:onMouseUp(x, y)
 end
 
 function TDLZ_MultiSelectScrollList:addItem(name, item)
-    local i = {}
-    i.text=name;
-    i.item=item;
+	local i = {}
+	i.text = name;
+	i.item = item;
 	i.tooltip = nil;
-    i.itemindex = self.count + 1;
+	i.itemindex = self.count + 1;
 	i.height = self.itemheight
-    table.insert(self.items, i);
-    self.count = self.count + 1;
-    self:setScrollHeight(self:getScrollHeight()+i.height);
-    return i;
+	table.insert(self.items, i);
+	self.count = self.count + 1;
+	self:setScrollHeight(self:getScrollHeight() + i.height);
+	return i;
 end
 
 function TDLZ_MultiSelectScrollList:insertItem(index, name, item)
@@ -189,19 +186,25 @@ function TDLZ_MultiSelectScrollList:insertItem(index, name, item)
 end
 
 function TDLZ_MultiSelectScrollList:removeItem(itemText)
-	for i,v in ipairs(self.items) do
+	for i, v in ipairs(self.items) do
 		if v.text == itemText then
 			table.remove(self.items, i);
 			self.count = self.count - 1;
 			if not v.height then v.height = self.itemheight end -- compatibililty
-			self:setScrollHeight(self:getScrollHeight()-v.height);
+			self:setScrollHeight(self:getScrollHeight() - v.height);
 			if self.selected > self.count then
 				self.selected = self.count
 			end
-            return v;
+			for key, value in pairs(self.highlighted) do
+				if key > self.count then
+					self.highlighted:remove(key)
+					self.highlighted:add(self.count)
+				end
+			end
+			return v;
 		end
 	end
-    return nil;
+	return nil;
 end
 
 -- UNUSED
@@ -215,6 +218,12 @@ function TDLZ_MultiSelectScrollList:removeItemByIndex(itemIndex)
 		if self.selected > self.count then
 			self.selected = self.count
 		end
+		for key, value in pairs(self.highlighted) do
+			if key > self.count then
+				self.highlighted:remove(key)
+				self.highlighted:add(self.count)
+			end
+		end
 		return item
 	end
 	return nil
@@ -222,16 +231,16 @@ end
 
 -- UNUSED
 function TDLZ_MultiSelectScrollList:removeFirst()
-    if self.count == 0 then return end
-    local item = self.items[1]
-    table.remove(self.items, 0);
-    self.count = self.count - 1;
+	if self.count == 0 then return end
+	local item = self.items[1]
+	table.remove(self.items, 0);
+	self.count = self.count - 1;
 	if not item.height then item.height = self.itemheight end -- compatibililty
-    self:setScrollHeight(self:getScrollHeight()-item.height);
+	self:setScrollHeight(self:getScrollHeight() - item.height);
 end
 
 function TDLZ_MultiSelectScrollList:size()
-    return self.count;
+	return self.count;
 end
 
 function TDLZ_MultiSelectScrollList:setOnMouseDownFunction(target, onmousedown)
@@ -246,22 +255,23 @@ end
 
 function TDLZ_MultiSelectScrollList:doDrawItem(y, item, alt)
 	if not item.height then item.height = self.itemheight end -- compatibililty
-    if self.selected == item.index then
-        self:drawRect(0, (y), self:getWidth(), item.height-1, 0.3, 0.7, 0.35, 0.15);
-
-    end
-	self:drawRectBorder(0, (y), self:getWidth(), item.height, 0.5, self.borderColor.r, self.borderColor.g, self.borderColor.b);
+	if self.selected == item.index then
+		self:drawRect(0, (y), self:getWidth(), item.height - 1, 0.3, 0.7, 0.35, 0.15);
+	end
+	self:drawRectBorder(0, (y), self:getWidth(), item.height, 0.5, self.borderColor.r, self.borderColor.g,
+		self.borderColor.b);
 	local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
-	self:drawText(item.text, 15, (y)+itemPadY, 0.9, 0.9, 0.9, 0.9, self.font);
+	self:drawText(item.text, 15, (y) + itemPadY, 0.9, 0.9, 0.9, 0.9, self.font);
 	y = y + item.height;
 	return y;
-
 end
+
 function TDLZ_MultiSelectScrollList:clear()
 	self.items = {}
 	self.selected = 1;
+	self.highlighted = TDLZ_NumSet:new();
 	self.itemheightoverride = {}
-    self.count = 0;
+	self.count = 0;
 end
 
 function TDLZ_MultiSelectScrollList:onMouseWheel(del)
@@ -280,9 +290,9 @@ function TDLZ_MultiSelectScrollList:onMouseWheel(del)
 			self.smoothScrollTargetY = -(y + self.items[topRow].height);
 		end
 	else
-		self:setYScroll(self:getYScroll() - (del*18));
+		self:setYScroll(self:getYScroll() - (del * 18));
 	end
-    return true;
+	return true;
 end
 
 function TDLZ_MultiSelectScrollList:scrollToSelected()
@@ -290,14 +300,14 @@ function TDLZ_MultiSelectScrollList:scrollToSelected()
 end
 
 function TDLZ_MultiSelectScrollList.sortByName(a, b)
-    return not string.sort(a.text, b.text);
-
+	return not string.sort(a.text, b.text);
 end
+
 function TDLZ_MultiSelectScrollList:sort()
-    table.sort(self.items, TDLZ_MultiSelectScrollList.sortByName);
-    for i,item in ipairs(self.items) do
-        item.itemindex = i;
-    end
+	table.sort(self.items, TDLZ_MultiSelectScrollList.sortByName);
+	for i, item in ipairs(self.items) do
+		item.itemindex = i;
+	end
 end
 
 function TDLZ_MultiSelectScrollList:updateTooltip()
@@ -316,8 +326,8 @@ function TDLZ_MultiSelectScrollList:updateTooltip()
 			root = root.parent
 		end
 		local uis = UIManager.getUI()
-		for i=1,uis:size() do
-			local ui = uis:get(i-1)
+		for i = 1, uis:size() do
+			local ui = uis:get(i - 1)
 			if ui:isMouseOver() and (not self.tooltipUI or ui ~= self.tooltipUI.javaObject) and ui ~= root.javaObject then
 				row = -1
 				break
@@ -345,7 +355,7 @@ function TDLZ_MultiSelectScrollList:updateTooltip()
 			self.tooltipUI:setVisible(false)
 			self.tooltipUI:removeFromUIManager()
 		end
-    end
+	end
 end
 
 function TDLZ_MultiSelectScrollList:updateSmoothScrolling()
@@ -356,7 +366,8 @@ function TDLZ_MultiSelectScrollList:updateSmoothScrolling()
 	local itemHeightFrac = 160 / (self:getScrollHeight() / #self.items)
 	local targetY = self.smoothScrollY + dy * math.min(0.5, 0.25 * frameRateFrac * itemHeightFrac)
 	if frameRateFrac > 1 then
-		targetY = self.smoothScrollY + dy * math.min(1.0, math.min(0.5, 0.25 * frameRateFrac * itemHeightFrac) * frameRateFrac)
+		targetY = self.smoothScrollY +
+		dy * math.min(1.0, math.min(0.5, 0.25 * frameRateFrac * itemHeightFrac) * frameRateFrac)
 	end
 	if targetY > 0 then targetY = 0 end
 	if targetY < -maxYScroll then targetY = -maxYScroll end
@@ -380,9 +391,11 @@ function TDLZ_MultiSelectScrollList:prerender()
 	local stencilX2 = self.width
 	local stencilY2 = self.height
 
-    self:drawRect(0, -self:getYScroll(), self.width, self.height, self.backgroundColor.a, self.backgroundColor.r, self.backgroundColor.g, self.backgroundColor.b);
+	self:drawRect(0, -self:getYScroll(), self.width, self.height, self.backgroundColor.a, self.backgroundColor.r,
+		self.backgroundColor.g, self.backgroundColor.b);
 	if self.drawBorder then
-		self:drawRectBorder(0, -self:getYScroll(), self.width, self.height, self.borderColor.a, self.borderColor.r, self.borderColor.g, self.borderColor.b)
+		self:drawRectBorder(0, -self:getYScroll(), self.width, self.height, self.borderColor.a, self.borderColor.r,
+			self.borderColor.g, self.borderColor.b)
 		stencilX = 1
 		stencilY = 1
 		stencilX2 = self.width - 1
@@ -405,8 +418,8 @@ function TDLZ_MultiSelectScrollList:prerender()
 	local y = 0;
 	local alt = false;
 
---	if self.selected ~= -1 and self.selected < 1 then
---		self.selected = 1
+	--	if self.selected ~= -1 and self.selected < 1 then
+	--		self.selected = 1
 	if self.selected ~= -1 and self.selected > #self.items then
 		self.selected = #self.items
 	end
@@ -414,25 +427,24 @@ function TDLZ_MultiSelectScrollList:prerender()
 	local altBg = self.altBgColor
 
 	self.listHeight = 0;
-	 local i = 1;
-	 for k, v in ipairs(self.items) do
+	local i = 1;
+	for k, v in ipairs(self.items) do
 		if not v.height then v.height = self.itemheight end -- compatibililty
 
-		 if alt and altBg then
-			self:drawRect(0, y, self:getWidth(), v.height-1, altBg.r, altBg.g, altBg.b, altBg.a);
-		 else
+		if alt and altBg then
+			self:drawRect(0, y, self:getWidth(), v.height - 1, altBg.r, altBg.g, altBg.b, altBg.a);
+		else
 
-		 end
-		 v.index = i;
-		 local y2 = self:doDrawItem(y, v, alt);
-		 self.listHeight = y2;
-		 v.height = y2 - y
-		 y = y2
+		end
+		v.index = i;
+		local y2 = self:doDrawItem(y, v, alt);
+		self.listHeight = y2;
+		v.height = y2 - y
+		y = y2
 
-		 alt = not alt;
-		 i = i + 1;
-		
-	 end
+		alt = not alt;
+		i = i + 1;
+	end
 
 	self:setScrollHeight((y));
 	self:clearStencilRect();
@@ -446,16 +458,21 @@ function TDLZ_MultiSelectScrollList:prerender()
 		self:onMouseMove(0, self:getMouseY() - mouseY)
 	end
 	self:updateTooltip()
-	
+
 	if #self.columns > 0 then
---		print(self:getScrollHeight())
-		self:drawRectBorderStatic(0, 0 - self.itemheight, self.width, self.itemheight - 1, 1, self.borderColor.r, self.borderColor.g, self.borderColor.b);
-		self:drawRectStatic(0, 0 - self.itemheight - 1, self.width, self.itemheight-2,self.listHeaderColor.a,self.listHeaderColor.r, self.listHeaderColor.g, self.listHeaderColor.b);
+		--		print(self:getScrollHeight())
+		self:drawRectBorderStatic(0, 0 - self.itemheight, self.width, self.itemheight - 1, 1, self.borderColor.r,
+			self.borderColor.g, self.borderColor.b);
+		self:drawRectStatic(0, 0 - self.itemheight - 1, self.width, self.itemheight - 2, self.listHeaderColor.a,
+			self.listHeaderColor.r, self.listHeaderColor.g, self.listHeaderColor.b);
 		local dyText = (self.itemheight - FONT_HGT_SMALL) / 2
-		for i,v in ipairs(self.columns) do
-			self:drawRectStatic(v.size, 0 - self.itemheight, 1, self.itemheight + math.min(self.height, self.itemheight * #self.items - 1), 1, self.borderColor.r, self.borderColor.g, self.borderColor.b);
+		for i, v in ipairs(self.columns) do
+			self:drawRectStatic(v.size, 0 - self.itemheight, 1,
+				self.itemheight + math.min(self.height, self.itemheight * #self.items - 1), 1, self.borderColor.r,
+				self.borderColor.g, self.borderColor.b);
 			if v.name then
-				self:drawText(v.name, v.size + 10, 0 - self.itemheight - 1 + dyText - self:getYScroll(), 1,1,1,1,UIFont.Small);
+				self:drawText(v.name, v.size + 10, 0 - self.itemheight - 1 + dyText - self:getYScroll(), 1, 1, 1, 1,
+					UIFont.Small);
 			end
 		end
 	end
@@ -466,7 +483,6 @@ function TDLZ_MultiSelectScrollList:onMouseDoubleClick(x, y)
 		self.onmousedblclick(self.target, self.items[self.selected].item);
 	end
 end
-
 
 function TDLZ_MultiSelectScrollList:onMouseDown(x, y)
 	if #self.items == 0 then return end
@@ -482,8 +498,8 @@ function TDLZ_MultiSelectScrollList:onMouseDown(x, y)
 	-- RJ: If you select the same item it unselect it
 	--if self.selected == y then
 	--if self.selected == y then
-		--self.selected = -1;
-		--return;
+	--self.selected = -1;
+	--return;
 	--end
 
 	getSoundManager():playUISound("UISelectListItem")
@@ -495,17 +511,16 @@ function TDLZ_MultiSelectScrollList:onMouseDown(x, y)
 	end
 end
 
-
 function TDLZ_MultiSelectScrollList:onJoypadDirUp()
-    self.selected = self:prevVisibleIndex(self.selected)
+	self.selected = self:prevVisibleIndex(self.selected)
 
-    if self.selected <= 0 then
-        self.selected = self:prevVisibleIndex(self.count + 1);
-    end
+	if self.selected <= 0 then
+		self.selected = self:prevVisibleIndex(self.count + 1);
+	end
 
-    getSoundManager():playUISound("UISelectListItem")
+	getSoundManager():playUISound("UISelectListItem")
 
-    self:ensureVisible(self.selected)
+	self:ensureVisible(self.selected)
 
 	if self.onmousedown and self.items[self.selected] then
 		self.onmousedown(self.target, self.items[self.selected].item);
@@ -513,14 +528,14 @@ function TDLZ_MultiSelectScrollList:onJoypadDirUp()
 end
 
 function TDLZ_MultiSelectScrollList:onJoypadDirDown()
-        self.selected = self:nextVisibleIndex(self.selected)
-        if self.selected == -1 then
-            self.selected = self:nextVisibleIndex(0);
-        end
+	self.selected = self:nextVisibleIndex(self.selected)
+	if self.selected == -1 then
+		self.selected = self:nextVisibleIndex(0);
+	end
 
-    getSoundManager():playUISound("UISelectListItem")
+	getSoundManager():playUISound("UISelectListItem")
 
-    self:ensureVisible(self.selected)
+	self:ensureVisible(self.selected)
 
 	if self.onmousedown and self.items[self.selected] then
 		self.onmousedown(self.target, self.items[self.selected].item);
@@ -528,19 +543,19 @@ function TDLZ_MultiSelectScrollList:onJoypadDirDown()
 end
 
 function TDLZ_MultiSelectScrollList:ensureVisible(index)
-    if not index or index < 1 or index > #self.items then return end
-    local y = 0
-    local height = 0
-    for k, v in ipairs(self.items) do
+	if not index or index < 1 or index > #self.items then return end
+	local y = 0
+	local height = 0
+	for k, v in ipairs(self.items) do
 		if k == index then
 			height = v.height
 			break
 		end
 		y = y + v.height
 	end
---	print('y='..y..' top='..self:getYScroll()..' bottom='..(self:getYScroll() + self.height))
+	--	print('y='..y..' top='..self:getYScroll()..' bottom='..(self:getYScroll() + self.height))
 	if not self.smoothScrollTargetY then self.smoothScrollY = self:getYScroll() end
-	if y < 0-self:getYScroll() then
+	if y < 0 - self:getYScroll() then
 		self.smoothScrollTargetY = 0 - y
 	elseif y + height > 0 - self:getYScroll() + self.height then
 		self.smoothScrollTargetY = 0 - (y + height - self.height)
@@ -548,53 +563,53 @@ function TDLZ_MultiSelectScrollList:ensureVisible(index)
 end
 
 function TDLZ_MultiSelectScrollList:render()
-    if self.joypadFocused then
-        self:drawRectBorder(0, -self:getYScroll(), self:getWidth(), self:getHeight(), 0.4, 0.2, 1.0, 1.0);
-        self:drawRectBorder(1, 1-self:getYScroll(), self:getWidth()-2, self:getHeight()-2, 0.4, 0.2, 1.0, 1.0);
-    end
+	if self.joypadFocused then
+		self:drawRectBorder(0, -self:getYScroll(), self:getWidth(), self:getHeight(), 0.4, 0.2, 1.0, 1.0);
+		self:drawRectBorder(1, 1 - self:getYScroll(), self:getWidth() - 2, self:getHeight() - 2, 0.4, 0.2, 1.0, 1.0);
+	end
 end
 
 function TDLZ_MultiSelectScrollList:onJoypadDown(button, joypadData)
-    if button == Joypad.AButton and self.onmousedblclick then
+	if button == Joypad.AButton and self.onmousedblclick then
 		if (#self.items > 0) and (self.selected ~= -1) then
 			local previousSelected = self.selected;
 			self.onmousedblclick(self.target, self.items[self.selected].item);
 			self.selected = previousSelected;
 		end
-    elseif button == Joypad.BButton and self.joypadParent then
-        self.joypadFocused = false;
-        joypadData.focus = self.joypadParent;
-        updateJoypadFocus(joypadData);
-    else
-        ISPanelJoypad.onJoypadDown(self, button);
-    end
+	elseif button == Joypad.BButton and self.joypadParent then
+		self.joypadFocused = false;
+		joypadData.focus = self.joypadParent;
+		updateJoypadFocus(joypadData);
+	else
+		ISPanelJoypad.onJoypadDown(self, button);
+	end
 end
 
 function TDLZ_MultiSelectScrollList:onLoseJoypadFocus(joypadData)
-    ISPanelJoypad.onLoseJoypadFocus(self, joypadData)
-    self:setJoypadFocused(false, joypadData)
-    if self.resetSelectionOnChangeFocus then
-        self.selectedBeforeReset = self.selected
-        self.selected = -1;
-    end
+	ISPanelJoypad.onLoseJoypadFocus(self, joypadData)
+	self:setJoypadFocused(false, joypadData)
+	if self.resetSelectionOnChangeFocus then
+		self.selectedBeforeReset = self.selected
+		self.selected = -1;
+	end
 end
 
 function TDLZ_MultiSelectScrollList:setFont(font, padY)
-    self.font = UIFont[font] or font
-    self.fontHgt = getTextManager():getFontFromEnum(self.font):getLineHeight()
-    self.itemPadY = padY
-    self.itemheight = self.fontHgt + (self.itemPadY or 0) * 2;
+	self.font = UIFont[font] or font
+	self.fontHgt = getTextManager():getFontFromEnum(self.font):getLineHeight()
+	self.itemPadY = padY
+	self.itemheight = self.fontHgt + (self.itemPadY or 0) * 2;
 end
 
 function TDLZ_MultiSelectScrollList:addColumn(columnName, size)
-	table.insert(self.columns, {name = columnName, size = size});
+	table.insert(self.columns, { name = columnName, size = size });
 end
 
-	--************************************************************************--
+--************************************************************************--
 --** ISInventoryPane:new
 --**
 --************************************************************************--
-function TDLZ_MultiSelectScrollList:new (x, y, width, height)
+function TDLZ_MultiSelectScrollList:new(x, y, width, height)
 	local o = {}
 	--o.data = {}
 	o = ISPanelJoypad:new(x, y, width, height);
@@ -603,10 +618,10 @@ function TDLZ_MultiSelectScrollList:new (x, y, width, height)
 	o.x = x;
 	o.y = y;
 	o:noBackground();
-	o.backgroundColor = {r=0, g=0, b=0, a=0.8};
-	o.borderColor = {r=0.4, g=0.4, b=0.4, a=0.9};
-	o.altBgColor = {r=0.2, g=0.3, b=0.2, a=0.1 }
-	o.listHeaderColor = {r=0.4, g=0.4, b=0.4, a=0.3};
+	o.backgroundColor = { r = 0, g = 0, b = 0, a = 0.8 };
+	o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.9 };
+	o.altBgColor = { r = 0.2, g = 0.3, b = 0.2, a = 0.1 }
+	o.listHeaderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.3 };
 	-- Since these were broken before, don't draw them by default
 	o.altBgColor = nil
 	o.drawBorder = false
@@ -621,10 +636,10 @@ function TDLZ_MultiSelectScrollList:new (x, y, width, height)
 	o.itemPadY = 7
 	o.itemheight = o.fontHgt + o.itemPadY * 2;
 	o.selected = 1;
-    o.count = 0;
+	o.highlighted = TDLZ_NumSet:new();
+	o.count = 0;
 	o.itemheightoverride = {}
 	o.items = {}
 	o.columns = {};
 	return o
 end
-

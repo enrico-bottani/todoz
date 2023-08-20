@@ -1,6 +1,6 @@
 local lfs = require "lfs"
 local DEST_FOLDER = "media"
-
+local MOD_FOLDER = "/mnt/c/Users/Enrico/Zomboid/mods/todoz/"
 function table.contains(tbl, x)
     local found = false
     for _, v in pairs(tbl) do if v == x then found = true end end
@@ -29,19 +29,19 @@ function build(path)
     for file in lfs.dir(path) do
         if file ~= "." and file ~= ".." then
             local f = path .. '/' .. file
-
             local attr = lfs.attributes(f)
             assert(type(attr) == "table")
             if attr.mode == "directory" then
                 if not (string.find(f, "^%./%.git") or string.find(f, "^%./media") or
                         string.find(f, "^%./src/lua/test")) then
-                    lfs.mkdir(f:gsub("src", DEST_FOLDER))
+                    lfs.mkdir(MOD_FOLDER .. f:gsub("src", DEST_FOLDER))
                     build(f)
                 end
             elseif (path ~= ".") then
                 local ls = lines_from(f)
-                local destFilePath = path:gsub("src", DEST_FOLDER) .. "/" ..
+                local destFilePath = MOD_FOLDER .. path:gsub("src", DEST_FOLDER) .. "/" ..
                     file
+               --  print(destFilePath)
                 local destFile = io.open(destFilePath, "w")
                 if destFile ~= nil then
                     for k, v in pairs(ls) do
@@ -59,7 +59,8 @@ function build(path)
         end
     end
 end
-lfs.rmdir(DEST_FOLDER)
-lfs.mkdir(DEST_FOLDER)
+
+lfs.rmdir(MOD_FOLDER .. DEST_FOLDER)
+lfs.mkdir(MOD_FOLDER .. DEST_FOLDER)
 build("./src")
-print("Build in dest folder [".. DEST_FOLDER.."] OK")
+print("Build in dest folder [" .. MOD_FOLDER .. DEST_FOLDER .. "]\nOK")

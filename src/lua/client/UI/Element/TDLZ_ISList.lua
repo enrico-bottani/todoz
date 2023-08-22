@@ -1,4 +1,4 @@
-require "UI/TDLZ_MultiSelectScrollList"
+require "UI/Element/TDLZ_MultiSelectScrollList"
 TDLZ_ISList = TDLZ_MultiSelectScrollList:derive("TDLZ_ISList")
 local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
 local MARGIN_TOP_BOTTOM = FONT_HGT_SMALL / 4;

@@ -1,5 +1,5 @@
 require 'Utils/TDLZ_Map'
-require 'UI/TDLZ_ISTodoListZWindow'
+require 'UI/Window/TDLZ_ISTodoListZWindow'
 
 TDLZ_ISTodoListTZWindowHandler = {}
 -- ************************************************************************--

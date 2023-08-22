@@ -12,7 +12,7 @@ function TDLZ_StringUtils.split(inputString, delimiter)
 end
 function TDLZ_StringUtils.splitKeepingEmptyLines(inputString)
     if inputString ==nil then
-        return ""
+        return {}
     end
     local result = {};
     local lastChar = string.sub(inputString, -1);

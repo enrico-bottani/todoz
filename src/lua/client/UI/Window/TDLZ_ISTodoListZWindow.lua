@@ -43,8 +43,6 @@ function TDLZ_ISTodoListZWindow:getBookID()
     return self.notebookID
 end
 
-
-
 local function _setNotebookID(o, notebookID)
     if (notebookID == nil) then
         o.notebookID = -1
@@ -52,6 +50,9 @@ local function _setNotebookID(o, notebookID)
         o.notebookID = notebookID
     end
 
+    local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
+    local nb = TDLZ_Map.get(notebookMap, o.notebookID)
+    if nb == nil then o.notebookID = -1 end
     if o.notebookID == -1 then
         TDLZ_ISTodoListZWindow._setFormattedTitle(o, o.notebookID)
         o.notebook = {
@@ -60,8 +61,6 @@ local function _setNotebookID(o, notebookID)
             numberOfPages = -1
         }
     else
-        local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
-        local nb = TDLZ_Map.get(notebookMap, o.notebookID)
         TDLZ_ISTodoListZWindow._setFormattedTitle(o, nb:getName())
         o.notebook = {
             currentNotebook = nb,
@@ -317,29 +316,29 @@ end
 -- ** TodoListZManagerUI - mod data
 -- ************************************************************************--
 function TDLZ_ISTodoListZWindow.loadModData()
+    local defaultModData = {
+        isFirstRun = true,
+        todoListData = {
+            notebookID = -1
+        },
+        panelSettings = {
+            x = 70,
+            y = 400,
+            width = 400,
+            height = 300,
+            pin = false,
+            hidden = false
+        }
+    }
     local player = getPlayer();
     if player then
         local modData = player:getModData()
         local reset = false;
         if modData.todoListZMod == nil or reset == true then
-            modData.todoListZMod = {
-                isFirstRun = true,
-                todoListData = {
-                    notebookID = -1
-                },
-                panelSettings = {
-                    x = 70,
-                    y = 400,
-                    width = 400,
-                    height = 300,
-                    pin = false,
-                    hidden = false
-                }
-            }
+            modData.todoListZMod = defaultModData
         end
         return modData.todoListZMod;
     end
     print("ERROR: failed to load player and mod data.");
-    return nil;
+    return defaultModData;
 end
-

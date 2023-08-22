@@ -12,6 +12,8 @@ TDLZ_Menu = {}
 -- ****************************************************************
 
 local original_ISUIOnClick = ISUIWriteJournal.onClick;
+-- @original_ISUIOnClick override
+---@diagnostic disable-next-line: duplicate-set-field
 function ISUIWriteJournal:onClick(button)
     original_ISUIOnClick(self, button)
 
@@ -35,7 +37,7 @@ TDLZ_Menu.onOpenTodoZ = function(items, player, itemMode)
     TDLZ_ISTodoListTZWindowHandler.setVisible()
 end
 
-function getNotebooks(items)
+function TDLZ_Menu.getNotebooks(items)
     local itemsUsedInRecipes = {}
     local item
     -- Go through the items selected (because multiple selections in inventory is possible)
@@ -56,7 +58,7 @@ function getNotebooks(items)
 end
 
 TDLZ_Menu.handleShowTodoListContenxtMenu = function(player, context, items)
-    local notebooks = getNotebooks(items);
+    local notebooks = TDLZ_Menu.getNotebooks(items);
 
     if type(notebooks) == 'table' and #notebooks > 0 then
         local notebookID = notebooks[1]:getID();

@@ -1,3 +1,4 @@
+require "src.lua.client.UI.Element.TDLZ_ISList"
 TDLZ_ISTodoListZWindowUtils = {}
 function TDLZ_ISTodoListZWindowUtils._createPageNav(windowUI, titleBarHight)
     local y = titleBarHight + TDLZ_BTN_MV

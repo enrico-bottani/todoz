@@ -7,11 +7,14 @@ TDLZ_ISTodoListTZWindowHandler = {}
 -- ************************************************************************--
 TDLZ_ISTodoListTZWindowHandler.instance = nil;
 local function _removeFromController()
-    TDLZ_ISTodoListTZWindowHandler.instance = null;
+    TDLZ_ISTodoListTZWindowHandler.instance:removeFromUIManager()
+    TDLZ_ISTodoListTZWindowHandler.instance = nil;
 end
 local function _newWindow()
     if TDLZ_ISTodoListTZWindowHandler.instance == nil then
         TDLZ_ISTodoListTZWindowHandler.instance = TDLZ_ISTodoListZWindow:new();
+        TDLZ_ISTodoListTZWindowHandler.instance:initialise()
+        TDLZ_ISTodoListTZWindowHandler.instance:addToUIManager()
         TDLZ_ISTodoListTZWindowHandler.instance.onClose = _removeFromController
     end
 end

@@ -125,6 +125,16 @@ function TDLZ_ISTodoListZWindow:setNotebookID(notebookID)
     self:refreshUIElements()
 end
 
+function TDLZ_ISTodoListZWindow:onMouseMove(dx, dy)
+	ISCollapsableWindow.onMouseMove(self,dx,dy);
+	getPlayer():setIgnoreAimingInput(self:isMouseOver() and not self.closingWindow);
+end
+
+function TDLZ_ISTodoListZWindow:onMouseMoveOutside(dx, dy)
+	ISCollapsableWindow.onMouseMoveOutside(self,dx,dy);
+	getPlayer():setIgnoreAimingInput(false);
+end
+
 function TDLZ_ISTodoListZWindow:onClick(button)
     if button.internal == "NEXTPAGE" then
         --        print("add at pos " .. self.currentPage .. " text " .. self.entry:getText())
@@ -307,7 +317,7 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
         self:addChild(buttonNewItem);
 
         
-        local buttonCheck = ISButton:new(buttonNewItem.x + buttonNewItem.width + REM * 0.25 , y, buttonCheckWidth, btnNewHeight, "Take inventory")
+        local buttonCheck = ISButton:new(buttonNewItem.x + buttonNewItem.width + REM * 0.25 , y, buttonCheckWidth, btnNewHeight, "Review all")
         --buttonCheck:setImage(getTexture("media/ui/trashIcon.png"));
         buttonCheck.borderColor = BTN_DEFAULT_BORDER_COLOR;
         buttonCheck.anchorBottom = true
@@ -369,6 +379,7 @@ end
 -- ************************************************************************--
 function TDLZ_ISTodoListZWindow:initialise()
     ISCollapsableWindow.initialise(self);
+    self.closingWindow = false
     self:refreshUIElements();
 end
 
@@ -384,12 +395,15 @@ end
 -- ** TodoListZManagerUI - actions and radio data processing
 -- ************************************************************************--
 function TDLZ_ISTodoListZWindow:close()
-
+    self.closingWindow = true
     print("Saving TDLZ_ISTodoListZWindow mod data")
+    getPlayer():setIgnoreAimingInput(false);
     self:setVisible(false)
     self:saveModData();
     ISCollapsableWindow.close(self);
     self:removeFromUIManager();
+    
+    -- Callback
     if self.onClose then
         self:onClose()
     end

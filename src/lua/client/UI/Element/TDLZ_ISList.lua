@@ -24,7 +24,7 @@ function TDLZ_ISList:new(x, y, width, height, parent, previousState)
     o:setAnchorBottom(true);
     o.drawBorder = true
     o.tickTexture = getTexture("Quest_Succeed");
-    o.doDrawItem = TDLZ_ISList.doDrawItem
+    -- o.doDrawItem = TDLZ_ISList.doDrawItem
     o.selected = -1;
     o.joypadParent = self;
     o.font = UIFont.NewSmall;
@@ -43,10 +43,12 @@ function TDLZ_ISList:new(x, y, width, height, parent, previousState)
 
     return o
 end
+
 function TDLZ_ISList:setOnMouseClick(target, onmouseclick)
     self.onmouseclick = onmouseclick;
     self.target = target;
 end
+
 function TDLZ_ISList:addItem(name, item)
     local i = {}
     i.text = name;
@@ -60,6 +62,7 @@ function TDLZ_ISList:addItem(name, item)
     return i;
 end
 
+--[[
 function TDLZ_ISList:onMouseUp(x, y)
     original_onmouseup(x, y)
 
@@ -84,16 +87,18 @@ function TDLZ_ISList:onMouseUp(x, y)
         end
     end
 end
-
+]]
+--
 function TDLZ_ISList._drawCheckboxBackground(uiSelf, y, item, alt)
     if alt then
-        uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 0.2, uiSelf.borderColor.r, uiSelf.borderColor.g,
+        uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 0.08, uiSelf.borderColor.r, uiSelf.borderColor.g,
             uiSelf.borderColor.b);
     else
-        uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 0.1, uiSelf.borderColor.r, uiSelf.borderColor.g,
+        uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 0.0, uiSelf.borderColor.r, uiSelf.borderColor.g,
             uiSelf.borderColor.b);
     end
 end
+
 function TDLZ_ISList._drawT1RowBackground(uiSelf, y, item, alt)
     if alt then
         uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 1, 0.98, 0.98, 0.97);
@@ -102,8 +107,7 @@ function TDLZ_ISList._drawT1RowBackground(uiSelf, y, item, alt)
     end
 end
 
-function TDLZ_ISList:doDrawItem(y, item, alt)
-
+function TDLZ_ISList:doDrawItem(y, item, alt, k)
     if y + self:getYScroll() + self.itemheight < 0 or y + self:getYScroll() >= self.height then
         return y + self.itemheight
     end
@@ -118,6 +122,12 @@ function TDLZ_ISList:doDrawItem(y, item, alt)
     -- DRAW CHECKBOX RECT
     local isMouseOver = self.mouseoverselected == item.index and not self:isMouseOverScrollBar()
     if item.lineData.isCheckbox then
+        if self.highlighted:contains(k) then
+
+            self:drawRect(3, y, self.width - 5, self.itemheight, 1, 0.12,
+            0.12, 0.12);
+            self:drawRectBorder(1, y, 2, self.itemheight, 1, 0.6, 0.6, 0.3);
+        end
         if isMouseOver then
             self:drawRect(self.marginLeft, y + (self.itemheight / 2 - BOX_SIZE / 2), BOX_SIZE, BOX_SIZE, 1.0, 0.3, 0.3,
                 0.3);
@@ -140,7 +150,6 @@ function TDLZ_ISList:doDrawItem(y, item, alt)
     else
         -- Not a checkbox, write text
         self:drawText(item.text, self.marginLeft + BOX_SIZE + MARGIN_BETWEEN, y + dy, 0.3, 0.3, 0.3, 1, UIFont.Small);
-
     end
     return y + self.itemheight;
 end

@@ -253,7 +253,7 @@ function TDLZ_MultiSelectScrollList:setOnMouseDoubleClick(target, onmousedblclic
 	self.target = target;
 end
 
-function TDLZ_MultiSelectScrollList:doDrawItem(y, item, alt)
+function TDLZ_MultiSelectScrollList:doDrawItem(y, item, alt, k)
 	if not item.height then item.height = self.itemheight end -- compatibililty
 	if self.selected == item.index then
 		self:drawRect(0, (y), self:getWidth(), item.height - 1, 0.3, 0.7, 0.35, 0.15);
@@ -437,7 +437,7 @@ function TDLZ_MultiSelectScrollList:prerender()
 
 		end
 		v.index = i;
-		local y2 = self:doDrawItem(y, v, alt);
+		local y2 = self:doDrawItem(y, v, alt,k);
 		self.listHeight = y2;
 		v.height = y2 - y
 		y = y2
@@ -505,6 +505,12 @@ function TDLZ_MultiSelectScrollList:onMouseDown(x, y)
 	getSoundManager():playUISound("UISelectListItem")
 
 	self.selected = row;
+	if self.highlighted:contains(row) then
+		self.highlighted:remove(row)
+	else
+		self.highlighted:add(row)
+	end
+	
 
 	if self.onmousedown then
 		self.onmousedown(self.target, self.items[self.selected].item);

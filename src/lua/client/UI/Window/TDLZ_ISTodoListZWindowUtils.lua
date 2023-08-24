@@ -10,7 +10,7 @@ function TDLZ_ISTodoListZWindowUtils._createPageNav(windowUI, titleBarHight)
     buttonDelete.anchorLeft = true
     buttonDelete.anchorRight = false
     buttonDelete.anchorTop = true
-    windowUI:addChild(buttonDelete);
+    windowUI:addFrameChild(buttonDelete);
 
     local buttonLock = ISButton:new(TDLZ_REM * 0.25 + buttonDelete.width + TDLZ_REM * 0.125, y, TDLZ_REM * 1.5,
         TDLZ_BTN_DEFAULT_H, "")
@@ -21,7 +21,7 @@ function TDLZ_ISTodoListZWindowUtils._createPageNav(windowUI, titleBarHight)
     buttonLock.anchorTop = true
     buttonLock:setImage(getTexture("media/ui/lockOpen.png"));
     buttonLock:setTooltip(getText("Tooltip_Journal_Lock"));
-    windowUI:addChild(buttonLock);
+    windowUI:addFrameChild(buttonLock);
 
     windowUI.previousPage = ISButton:new(buttonLock.x + buttonLock.width + 0.5 * TDLZ_REM, y, TDLZ_BTN_DEFAULT_H,
         TDLZ_BTN_DEFAULT_H, "<",
@@ -38,7 +38,7 @@ function TDLZ_ISTodoListZWindowUtils._createPageNav(windowUI, titleBarHight)
     else
         windowUI.previousPage:setEnable(true);
     end
-    windowUI:addChild(windowUI.previousPage);
+    windowUI:addFrameChild(windowUI.previousPage);
 
     windowUI.nextPage = ISButton:new(windowUI.previousPage.x + windowUI.previousPage.width + 0.125 * TDLZ_REM, y,
         TDLZ_BTN_DEFAULT_H,
@@ -55,7 +55,7 @@ function TDLZ_ISTodoListZWindowUtils._createPageNav(windowUI, titleBarHight)
     else
         windowUI.nextPage:setEnable(true);
     end
-    windowUI:addChild(windowUI.nextPage);
+    windowUI:addFrameChild(windowUI.nextPage);
 
     if windowUI.pageLabel ~= nil then
         windowUI:removeChild(windowUI.pageLabel)
@@ -68,44 +68,102 @@ function TDLZ_ISTodoListZWindowUtils._createPageNav(windowUI, titleBarHight)
     windowUI.pageLabel.anchorLeft = true
     windowUI.pageLabel:initialise();
     windowUI.pageLabel:instantiate();
-    windowUI:addChild(windowUI.pageLabel);
+    windowUI:addFrameChild(windowUI.pageLabel);
 end
 
 function TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(windowUI, y)
-    local buttonCheckWidth = 100
     local buttonCheckOtherWidth = TDLZ_BTN_DEFAULT_H
     local buttonNewMarginLR = TDLZ_REM * 0.5
     local marginBetween = TDLZ_REM * 0.25
-    local buttonNewItem = ISButton:new(buttonNewMarginLR, y,
-        windowUI.width - marginBetween - buttonCheckWidth - buttonCheckOtherWidth - buttonNewMarginLR * 2,
-        TDLZ_BTN_DEFAULT_H,
-        "+ New...")
-    buttonNewItem.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-    buttonNewItem.anchorBottom = true
-    buttonNewItem.anchorLeft = true
-    buttonNewItem.anchorRight = true
-    buttonNewItem.anchorTop = false
-    windowUI:addChild(buttonNewItem);
+    if windowUI.multiSelectMode then
+        local buttonCheckWidth = 140
+        local buttonBack = ISButton:new(buttonNewMarginLR, y, TDLZ_BTN_DEFAULT_H,
+            TDLZ_BTN_DEFAULT_H,
+            "")
+        buttonBack:setImage(getTexture("media/ui/arrow-small-left.png"));
+        buttonBack.borderColor = {
+            r = 0.5,
+            g = 0.5,
+            b = 0.5,
+            a = 0
+        };
+        buttonBack.anchorBottom = true
+        buttonBack.anchorLeft = true
+        buttonBack.anchorRight = false
+        buttonBack.anchorTop = false
+        buttonBack.onclick = function()
+            windowUI.multiSelectMode = false
+            TDLZ_ISTodoListTZWindowHandler.refreshContent();
+        end
+        windowUI:addFrameChild(buttonBack);
 
-    local buttonCheck = ISButton:new(buttonNewItem.x + buttonNewItem.width + TDLZ_REM * 0.25, y, buttonCheckWidth,
-        TDLZ_BTN_DEFAULT_H, "Review all")
-    --buttonCheck:setImage(getTexture("media/ui/trashIcon.png"));
-    buttonCheck.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-    buttonCheck.anchorBottom = true
-    buttonCheck.anchorLeft = false
-    buttonCheck.anchorRight = true
-    buttonCheck.anchorTop = false
-    windowUI:addChild(buttonCheck);
 
-    local buttonCheckOthers = ISButton:new(buttonCheck.x + buttonCheck.width, y, buttonCheckOtherWidth,
-        TDLZ_BTN_DEFAULT_H,
-        ">")
-    buttonCheckOthers.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-    buttonCheckOthers.anchorBottom = true
-    buttonCheckOthers.anchorLeft = false
-    buttonCheckOthers.anchorRight = true
-    buttonCheckOthers.anchorTop = false
-    windowUI:addChild(buttonCheckOthers);
+
+        local buttonUncheck = ISButton:new(buttonBack.x + buttonBack.width + TDLZ_REM * 0.5, y, 100,
+            TDLZ_BTN_DEFAULT_H, "Review")
+        --buttonCheck:setImage(getTexture("media/ui/trashIcon.png"));
+        buttonUncheck.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+        buttonUncheck.anchorBottom = true
+        buttonUncheck.anchorLeft = true
+        buttonUncheck.anchorRight = false
+        buttonUncheck.anchorTop = false
+        windowUI:addFrameChild(buttonUncheck);
+
+        local btnExecute = ISButton:new(buttonUncheck.x + buttonUncheck.width, y, TDLZ_BTN_DEFAULT_H,
+            TDLZ_BTN_DEFAULT_H, "")
+        btnExecute:setImage(getTexture("media/ui/execute.png"));
+        btnExecute.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+        btnExecute.anchorBottom = true
+        btnExecute.anchorLeft = true
+        btnExecute.anchorRight = false
+        btnExecute.anchorTop = false
+        windowUI:addFrameChild(btnExecute);
+
+        local taskLabel = ISLabel:new(btnExecute.x + btnExecute.width + 0.5 * TDLZ_REM, y,
+            TDLZ_BTN_DEFAULT_H, "3 Tasks", 1, 1, 1, 1,
+            UIFont.Small, true);
+        taskLabel.anchorBottom = true
+        taskLabel.anchorRight = false
+        taskLabel.anchorLeft = true
+        taskLabel.anchorTop = false
+        taskLabel:initialise();
+        taskLabel:instantiate();
+
+        windowUI:addFrameChild(taskLabel);
+    else
+        local buttonCheckWidth = 140
+        local buttonNewItem = ISButton:new(buttonNewMarginLR, y,
+            windowUI.width - marginBetween - buttonCheckWidth - buttonCheckOtherWidth - buttonNewMarginLR * 2,
+            TDLZ_BTN_DEFAULT_H,
+            "+ New...")
+        buttonNewItem.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+        buttonNewItem.anchorBottom = true
+        buttonNewItem.anchorLeft = true
+        buttonNewItem.anchorRight = true
+        buttonNewItem.anchorTop = false
+        windowUI:addFrameChild(buttonNewItem);
+
+        local buttonCheck = ISButton:new(buttonNewItem.x + buttonNewItem.width + TDLZ_REM * 0.25, y, buttonCheckWidth,
+            TDLZ_BTN_DEFAULT_H, "Select all")
+        --buttonCheck:setImage(getTexture("media/ui/trashIcon.png"));
+        buttonCheck.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+        buttonCheck.anchorBottom = true
+        buttonCheck.anchorLeft = false
+        buttonCheck.anchorRight = true
+        buttonCheck.anchorTop = false
+        windowUI:addFrameChild(buttonCheck);
+
+        local buttonCheckOthers = ISButton:new(buttonCheck.x + buttonCheck.width, y, buttonCheckOtherWidth,
+            TDLZ_BTN_DEFAULT_H,
+            "")
+        buttonCheckOthers:setImage(getTexture("media/ui/menu-dots-vertical.png"));
+        buttonCheckOthers.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+        buttonCheckOthers.anchorBottom = true
+        buttonCheckOthers.anchorLeft = false
+        buttonCheckOthers.anchorRight = true
+        buttonCheckOthers.anchorTop = false
+        windowUI:addFrameChild(buttonCheckOthers);
+    end
 end
 
 function TDLZ_ISTodoListZWindowUtils._createTodoList(windowUI, x, y, width, height, previousState)

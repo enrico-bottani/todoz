@@ -77,7 +77,7 @@ function TDLZ_ISTodoListZWindow:new()
     local startingX = mD.panelSettings.x;
     local startingY = mD.panelSettings.y;
     local pin = mD.panelSettings.pin;
-
+    
     local hidden = false;
     if mD.panelSettings.hidden then
         hidden = true
@@ -86,7 +86,10 @@ function TDLZ_ISTodoListZWindow:new()
     o = ISCollapsableWindow:new(startingX, startingY, panelWidth, panelHeight);
     setmetatable(o, self);
     self.__index = self;
-
+    
+    o.multiSelectMode = true
+    o.frameChildren = {}
+    
     if mD.todoListData == nil or mD.todoListData.notebookID == nil then
         _setNotebookID(o, -1)
     else
@@ -94,7 +97,7 @@ function TDLZ_ISTodoListZWindow:new()
     end
 
     -- Window notebook status
-
+    
     o.pin = pin;
     o.x = startingX;
     o.y = startingY;
@@ -136,10 +139,10 @@ end
 
 function TDLZ_ISTodoListZWindow:setNotebookID(notebookID)
     -- is a different notebook id?
-    if self.notebookID == notebookID then
+    --if self.notebookID == notebookID then
         -- if same do nothing
-        return
-    end
+    --    return
+   -- end
     _setNotebookID(self, notebookID)
 
     self:refreshUIElements()
@@ -201,6 +204,16 @@ function TDLZ_ISTodoListZWindow:onClick(button)
     -- self.pinButton:setVisible(false);
 end
 
+function TDLZ_ISTodoListZWindow:addFrameChild(child)
+    self:addChild(child)
+    table.insert(self.frameChildren, child)
+end
+function TDLZ_ISTodoListZWindow:clearFrameChildren()
+    for index, c in pairs(self.frameChildren) do
+        self:removeChild(c)
+    end
+    self.frameChildren = {}
+end
 function TDLZ_ISTodoListZWindow:refreshUIElements()
     if self.notebookID == -1 then
         TDLZ_ISTodoListZWindow._setFormattedTitle(self, self.notebookID)
@@ -222,6 +235,8 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
                 yScroll = self.listbox:getYScroll()
             }
         end
+        
+        self:clearFrameChildren()
 
         -- Save pages
         self.newPage = {}

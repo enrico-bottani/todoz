@@ -19,29 +19,7 @@ TDLZ_BTN_DEFAULT_BORDER_COLOR = {
     a = 1
 }
 
-
-function TDLZ_ISTodoListZWindow:saveModData()
-    local player = getPlayer();
-    local modData = player:getModData()
-    modData.todoListZMod.isFirstRun = false;
-    modData.todoListZMod.storedChannels = self.storedChannels;
-    modData.todoListZMod.panelSettings = {
-        x = self.x,
-        y = self.y,
-        width = self.width,
-        height = self.height,
-        pin = self.pin,
-        hidden = not self:getIsVisible()
-    };
-    modData.todoListZMod.todoListData = {
-        notebookID = self.notebookID
-    };
-    player:transmitModData();
-end
-
-function TDLZ_ISTodoListZWindow:getBookID()
-    return self.notebookID
-end
+function TDLZ_ISTodoListZWindow:getBookID() return self.notebookID end
 
 local function _setNotebookID(o, notebookID)
     if (notebookID == nil) then
@@ -69,27 +47,38 @@ local function _setNotebookID(o, notebookID)
         }
     end
 end
-function TDLZ_ISTodoListZWindow:new()
-    local mD = TDLZ_ISTodoListZWindow.loadModData();
+function TDLZ_ISTodoListZWindow:setNotebookID(notebookID)
+    _setNotebookID(self, notebookID)
+    self:refreshUIElements()
+end
 
-    local panelWidth = mD.panelSettings.width;
-    local panelHeight = mD.panelSettings.height;
-    local startingX = mD.panelSettings.x;
-    local startingY = mD.panelSettings.y;
-    local pin = mD.panelSettings.pin;
-    
-    local hidden = false;
-    if mD.panelSettings.hidden then
-        hidden = true
+-- Frame functions
+------------------
+---Add a child inside the Window frame
+---@param child any UI Element
+function TDLZ_ISTodoListZWindow:addFrameChild(child)
+    self:addChild(child)
+    table.insert(self.frameChildren, child)
+end
+
+function TDLZ_ISTodoListZWindow:clearFrameChildren()
+    for index, c in pairs(self.frameChildren) do
+        self:removeChild(c)
     end
+    self.frameChildren = {}
+end
+
+function TDLZ_ISTodoListZWindow:new()
+    local mD = TDLZ_ModData.loadModData();
     local o = {}
-    o = ISCollapsableWindow:new(startingX, startingY, panelWidth, panelHeight);
+    o = ISCollapsableWindow:new(mD.panelSettings.x, mD.panelSettings.y, mD.panelSettings.width, mD.panelSettings.height);
     setmetatable(o, self);
     self.__index = self;
-    
+
     o.multiSelectMode = true
     o.frameChildren = {}
-    
+    o.pin = mD.panelSettings.pin
+
     if mD.todoListData == nil or mD.todoListData.notebookID == nil then
         _setNotebookID(o, -1)
     else
@@ -97,16 +86,18 @@ function TDLZ_ISTodoListZWindow:new()
     end
 
     -- Window notebook status
-    
-    o.pin = pin;
-    o.x = startingX;
-    o.y = startingY;
-    o.width = panelWidth;
-    o.height = panelHeight;
+
+
+    o.x = mD.panelSettings.x
+    o.y = mD.panelSettings.y
+    o.width = mD.panelSettings.width
+    o.height = mD.panelSettings.height
     o.minimumWidth = 300;
-    o.minimumHeight = 100;
+    o.minimumHeight = 300;
     o.resizable = true;
     o.drawFrame = true;
+    o.moveWithMouse = true;
+
     o.borderColor = {
         r = 0.4,
         g = 0.4,
@@ -119,33 +110,23 @@ function TDLZ_ISTodoListZWindow:new()
         b = 0,
         a = 0.8
     };
-    o.moveWithMouse = true;
+
     o.listbox = nil
 
-    o:setVisible(not hidden)
-    -- o.storedChannels = mD.storedChannels;
     o:initialise();
+    -- This will call the instantiate method
     o:addToUIManager();
-
-    -- o:setInfo("test");
-
+    if o.pin then
+        ISCollapsableWindow.pin(o)
+    else
+        ISCollapsableWindow.collapse(o)
+    end
     return o;
 end
 
 function TDLZ_ISTodoListZWindow._setFormattedTitle(obj, id)
     local todoText = getText("IGUI_TDLZ_window_title");
     obj.title = tostring(id) .. " " .. todoText;
-end
-
-function TDLZ_ISTodoListZWindow:setNotebookID(notebookID)
-    -- is a different notebook id?
-    --if self.notebookID == notebookID then
-        -- if same do nothing
-    --    return
-   -- end
-    _setNotebookID(self, notebookID)
-
-    self:refreshUIElements()
 end
 
 function TDLZ_ISTodoListZWindow:onMouseMove(dx, dy)
@@ -160,20 +141,10 @@ end
 
 function TDLZ_ISTodoListZWindow:onClick(button)
     if button.internal == "NEXTPAGE" then
-        --        print("add at pos " .. self.currentPage .. " text " .. self.entry:getText())
-        -- self.newPage[self.currentPage] = self.entry:getText();
         self.notebook.currentPage = self.notebook.currentPage + 1;
-        -- self.entry.javaObject:setCursorLine(0);
-        -- self.entry:setText(self.newPage[self.currentPage]);
     elseif button.internal == "PREVIOUSPAGE" then
-        -- self.newPage[self.currentPage] = self.entry:getText();
         self.notebook.currentPage = self.notebook.currentPage - 1;
-
-        --        print("set text from pos " .. self.currentPage .. " text " .. self.newPage[self.currentPage]);
-        -- self.entry.javaObject:setCursorLine(0);
-        -- self.entry:setText(self.newPage[self.currentPage]);
     elseif button.internal == "DELETEPAGE" then
-        -- self.newPage[self.currentPage] = "";
         self.entry:setText("");
         self.entry.javaObject:setCursorLine(0);
     elseif button.internal == "LOCKBOOK" then
@@ -192,28 +163,11 @@ function TDLZ_ISTodoListZWindow:onClick(button)
         self.entry:setEditable(true);
         self.lockButton:setTooltip("Prevent the journal from being edited");
         self:setJoypadButtons(self.joyfocus)
-    else
-        --   self.newPage[self.currentPage] = self.entry:getText();
-        --  self:destroy();
-        -- if self.onclick ~= nil then
-        --   self.onclick(self.target, button, self.param1, self.param2);
-        -- end
     end
 
     self:refreshUIElements()
-    -- self.pinButton:setVisible(false);
 end
 
-function TDLZ_ISTodoListZWindow:addFrameChild(child)
-    self:addChild(child)
-    table.insert(self.frameChildren, child)
-end
-function TDLZ_ISTodoListZWindow:clearFrameChildren()
-    for index, c in pairs(self.frameChildren) do
-        self:removeChild(c)
-    end
-    self.frameChildren = {}
-end
 function TDLZ_ISTodoListZWindow:refreshUIElements()
     if self.notebookID == -1 then
         TDLZ_ISTodoListZWindow._setFormattedTitle(self, self.notebookID)
@@ -227,15 +181,15 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
         local selectedIndex = -1;
         local previousState = nil
         if self.listbox ~= nil then
-            self.listbox:clear()
-            self:removeChild(self.listbox)
-
             previousState = {
                 mouseoverselected = self.listbox.mouseoverselected,
-                yScroll = self.listbox:getYScroll()
+                yScroll = self.listbox:getYScroll(),
+                highlighted = self.listbox.highlighted
             }
+            self.listbox:clear()
+            self:removeChild(self.listbox)
         end
-        
+
         self:clearFrameChildren()
 
         -- Save pages
@@ -256,14 +210,12 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
         TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(self, y)
     end
     -- save changes
-    self:saveModData();
+    TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(), self.notebookID);
     self.resizeWidget2:bringToTop()
     self.resizeWidget:bringToTop()
 end
 
 function TDLZ_ISTodoListZWindow:onOptionTicked(data)
-    print("Checkbox [page: " .. data.pageNumber .. ", line: " .. data.lineNumber .. "] " .. data.lineString ..
-        "clicked ")
     local toWrite = ""
     for ln, s in pairs(data.lines) do
         local sep = "\n"
@@ -297,6 +249,7 @@ end
 -- ************************************************************************--
 function TDLZ_ISTodoListZWindow:initialise()
     ISCollapsableWindow.initialise(self);
+
     self.closingWindow = false
     self:refreshUIElements();
 end
@@ -314,10 +267,9 @@ end
 -- ************************************************************************--
 function TDLZ_ISTodoListZWindow:close()
     self.closingWindow = true
-    print("Saving TDLZ_ISTodoListZWindow mod data")
     getPlayer():setIgnoreAimingInput(false);
     self:setVisible(false)
-    self:saveModData();
+    TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(), self.notebookID);
     ISCollapsableWindow.close(self);
     self:removeFromUIManager();
 
@@ -325,35 +277,4 @@ function TDLZ_ISTodoListZWindow:close()
     if self.onClose then
         self:onClose()
     end
-end
-
--- ************************************************************************--
--- ** TodoListZManagerUI - mod data
--- ************************************************************************--
-function TDLZ_ISTodoListZWindow.loadModData()
-    local defaultModData = {
-        isFirstRun = true,
-        todoListData = {
-            notebookID = -1
-        },
-        panelSettings = {
-            x = 70,
-            y = 400,
-            width = 400,
-            height = 300,
-            pin = false,
-            hidden = false
-        }
-    }
-    local player = getPlayer();
-    if player then
-        local modData = player:getModData()
-        local reset = false;
-        if modData.todoListZMod == nil or reset == true then
-            modData.todoListZMod = defaultModData
-        end
-        return modData.todoListZMod;
-    end
-    print("ERROR: failed to load player and mod data.");
-    return defaultModData;
 end

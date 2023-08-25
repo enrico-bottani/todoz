@@ -19,6 +19,7 @@ function TDLZ_Set:new()
     o._min = nil
     o._max = nil
     o._empty = true
+    o._size = 0
     return o
 end
 
@@ -31,23 +32,32 @@ function TDLZ_Set:derive(type)
     o._min = nil
     o._max = nil
     o._empty = true
+    o._size = 0
     return o
 end
 
 function TDLZ_Set:add(element)
+    if not self:contains(element) then self._size = self._size + 1 end
     self._table[element] = true
     local sortedKeys = self:_getSortedKeys();
     self:_updateMin(sortedKeys)
     self:_updateMax(sortedKeys)
     self._empty = TDLZ_Set.isEmpty(self._table)
 end
+
 function TDLZ_Set:remove(element)
+    if self:contains(element) then self._size = self._size - 1 end
     self._table[element] = nil
     local sortedKeys = self:_getSortedKeys();
     self:_updateMin(sortedKeys)
     self:_updateMax(sortedKeys)
     self._empty = TDLZ_Set.isEmpty(self._table)
 end
+
+function TDLZ_Set:size()
+    return self._size
+end
+
 function TDLZ_Set:_getSortedKeys()
     if TDLZ_Set.isEmpty(self._table) then
         return nil

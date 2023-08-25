@@ -75,7 +75,7 @@ function TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(windowUI, y)
     local buttonCheckOtherWidth = TDLZ_BTN_DEFAULT_H
     local buttonNewMarginLR = TDLZ_REM * 0.5
     local marginBetween = TDLZ_REM * 0.25
-    if windowUI.multiSelectMode then
+    if windowUI.listbox.highlighted:size()>0 then
         local buttonCheckWidth = 140
         local buttonBack = ISButton:new(buttonNewMarginLR, y, TDLZ_BTN_DEFAULT_H,
             TDLZ_BTN_DEFAULT_H,
@@ -120,7 +120,7 @@ function TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(windowUI, y)
         windowUI:addFrameChild(btnExecute);
 
         local taskLabel = ISLabel:new(btnExecute.x + btnExecute.width + 0.5 * TDLZ_REM, y,
-            TDLZ_BTN_DEFAULT_H, "3 Tasks", 1, 1, 1, 1,
+            TDLZ_BTN_DEFAULT_H, windowUI.listbox.highlighted:size() .. " Tasks", 1, 1, 1, 1,
             UIFont.Small, true);
         taskLabel.anchorBottom = true
         taskLabel.anchorRight = false
@@ -166,8 +166,19 @@ function TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(windowUI, y)
     end
 end
 
+function TDLZ_ISTodoListZWindowUtils.onHighlightChange(windowUI, int)
+    if windowUI ~= nil then
+        windowUI:refreshUIElements()
+        return
+    end
+    error("Callback ok")
+end
+
 function TDLZ_ISTodoListZWindowUtils._createTodoList(windowUI, x, y, width, height, previousState)
-    windowUI.listbox = TDLZ_ISList:new(x, y, width, height, windowUI, previousState);
+    windowUI.listbox = TDLZ_ISList:new(x, y, width, height, windowUI, previousState, {
+        o = windowUI,
+        f = TDLZ_ISTodoListZWindowUtils.onHighlightChange
+    });
     windowUI.listbox:setOnMouseClick(windowUI, TDLZ_ISTodoListZWindow.onOptionTicked);
 
     local page = windowUI.notebook.currentNotebook:seePage(windowUI.notebook.currentPage);

@@ -11,9 +11,9 @@ local TEXT_RGBA = {
     a = 1
 }
 local original_onmouseup = TDLZ_MultiSelectScrollList.onMouseUp;
-function TDLZ_ISList:new(x, y, width, height, parent, previousState)
+function TDLZ_ISList:new(x, y, width, height, parent, previousState,onHighlight)
     local o = {}
-    o = TDLZ_MultiSelectScrollList:new(x, y, width, height);
+    o = TDLZ_MultiSelectScrollList:new(x, y, width, height, onHighlight);
     setmetatable(o, self);
     self.__index = self;
 
@@ -34,6 +34,7 @@ function TDLZ_ISList:new(x, y, width, height, parent, previousState)
 
     if previousState ~= nil then
         o.mouseoverselected = previousState.mouseoverselected
+        o.highlighted = previousState.highlighted
     end
 
     o:initialise();
@@ -91,19 +92,11 @@ end
 --
 function TDLZ_ISList._drawCheckboxBackground(uiSelf, y, item, alt)
     if alt then
-        uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 0.08, uiSelf.borderColor.r, uiSelf.borderColor.g,
+        uiSelf:drawRect(0, y, uiSelf:getWidth(), uiSelf.itemheight, 0.08, uiSelf.borderColor.r, uiSelf.borderColor.g,
             uiSelf.borderColor.b);
     else
-        uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 0.0, uiSelf.borderColor.r, uiSelf.borderColor.g,
+        uiSelf:drawRect(0, y, uiSelf:getWidth(), uiSelf.itemheight, 0.0, uiSelf.borderColor.r, uiSelf.borderColor.g,
             uiSelf.borderColor.b);
-    end
-end
-
-function TDLZ_ISList._drawT1RowBackground(uiSelf, y, item, alt)
-    if alt then
-        uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 1, 0.98, 0.98, 0.97);
-    else
-        uiSelf:drawRect(0, (y), uiSelf:getWidth(), uiSelf.itemheight, 1, 1, 1, 1);
     end
 end
 
@@ -112,26 +105,30 @@ function TDLZ_ISList:doDrawItem(y, item, alt, k)
         return y + self.itemheight
     end
 
-    if item.lineData.isCheckbox or not item.lineData.isTitle then
-        TDLZ_ISList._drawCheckboxBackground(self, y, item, alt)
-    else
-        TDLZ_ISList._drawT1RowBackground(self, y, item, alt)
-    end
+    TDLZ_ISList._drawCheckboxBackground(self, y, item, alt)
 
     local borderOpacity = 1
     -- DRAW CHECKBOX RECT
-    local isMouseOver = self.mouseoverselected == item.index and not self:isMouseOverScrollBar()
     if item.lineData.isCheckbox then
         if self.highlighted:contains(k) then
-
-            self:drawRect(3, y, self.width - 5, self.itemheight, 1, 0.12,
-            0.12, 0.12);
-            self:drawRectBorder(1, y, 2, self.itemheight, 1, 0.6, 0.6, 0.3);
+            self:drawRect(3, y - 1, self.width - 5, self.itemheight + 2, 1, 0.13,
+                0.13, 0.13);
+            self:drawRectBorder(1, y - 1, 2, self.itemheight + 2, 1, 0.6, 0.6, 0.3);
         end
+        local isMouseOver = self.mouseoverselected == item.index and not self:isMouseOverScrollBar()
         if isMouseOver then
-            self:drawRect(self.marginLeft, y + (self.itemheight / 2 - BOX_SIZE / 2), BOX_SIZE, BOX_SIZE, 1.0, 0.3, 0.3,
-                0.3);
+            if self.marginLeft < self:getMouseX() and self:getMouseX() < self.marginLeft + BOX_SIZE then
+                local ckBoxY = y + (self.itemheight / 2 - BOX_SIZE / 2)
+                self:drawRect(self.marginLeft, ckBoxY, BOX_SIZE, BOX_SIZE, 1.0, 0.3,
+                    0.3,
+                    0.3);
+            elseif not self.highlighted:contains(k) then
+                self:drawRect(0, y, self:getWidth(), self.itemheight, 1.0, 0.1,
+                    0.1,
+                    0.1);
+            end
         end
+
         self:drawRectBorder(self.marginLeft, y + (self.itemheight / 2 - BOX_SIZE / 2), BOX_SIZE, BOX_SIZE, 1.0, 0.3,
             0.3, 0.3);
 
@@ -142,8 +139,6 @@ function TDLZ_ISList:doDrawItem(y, item, alt, k)
     end
 
     local dy = (self.itemheight - FONT_HGT_SMALL) / 2
-    -- Text pos debug
-    -- self:drawRect(BOX_SIZE + MARGIN_BETWEEN, y + dy, self:getWidth(), FONT_HGT_SMALL, 1.0, 0.8, 0.3, 0.3);
     if item.lineData.isCheckbox or not item.lineData.isTitle then
         self:drawText(item.text, self.marginLeft + BOX_SIZE + MARGIN_BETWEEN, y + dy, TEXT_RGBA.r, TEXT_RGBA.g,
             TEXT_RGBA.b, TEXT_RGBA.a, UIFont.Small);

@@ -54,7 +54,6 @@ function TDLZ_ISTodoListTZWindowHandler.setVisible()
         return
     end
     TDLZ_ISTodoListTZWindowHandler.instance:setVisible(true);
-    TDLZ_ISTodoListTZWindowHandler.instance:saveModData();
     print("TDLZ_ISTodoListTZWindowHandler.setVisible - UI hidden: " .. tostring(not TDLZ_ISTodoListTZWindowHandler.instance:getIsVisible()))
 end
 TDLZ_ISTodoListTZWindowHandler.setNotebookID = function(id)

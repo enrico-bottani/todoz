@@ -80,11 +80,14 @@ function TDLZ_MultiSelectScrollList:instantiate()
 	self:addScrollBars();
 end
 
-function TDLZ_MultiSelectScrollList:rowAt(x, y)
+function TDLZ_MultiSelectScrollList:rowAt(x, y, debug)
 	local y0 = 0
 	for i, v in ipairs(self.items) do
 		if not v.height then v.height = self.itemheight end -- compatibililty
 		if y >= y0 and y < y0 + v.height then
+			if debug ~= nil and debug ~= "" then
+				print(debug .. " i: " .. i)
+			end
 			return i
 		end
 		y0 = y0 + v.height
@@ -253,7 +256,7 @@ function TDLZ_MultiSelectScrollList:setOnMouseDoubleClick(target, onmousedblclic
 	self.target = target;
 end
 
-function TDLZ_MultiSelectScrollList:doDrawItem(y, item, alt, k)
+function TDLZ_MultiSelectScrollList:doDrawItem(x, y, item, alt, k)
 	if not item.height then item.height = self.itemheight end -- compatibililty
 	if self.selected == item.index then
 		self:drawRect(0, (y), self:getWidth(), item.height - 1, 0.3, 0.7, 0.35, 0.15);
@@ -367,7 +370,7 @@ function TDLZ_MultiSelectScrollList:updateSmoothScrolling()
 	local targetY = self.smoothScrollY + dy * math.min(0.5, 0.25 * frameRateFrac * itemHeightFrac)
 	if frameRateFrac > 1 then
 		targetY = self.smoothScrollY +
-		dy * math.min(1.0, math.min(0.5, 0.25 * frameRateFrac * itemHeightFrac) * frameRateFrac)
+			dy * math.min(1.0, math.min(0.5, 0.25 * frameRateFrac * itemHeightFrac) * frameRateFrac)
 	end
 	if targetY > 0 then targetY = 0 end
 	if targetY < -maxYScroll then targetY = -maxYScroll end
@@ -437,7 +440,7 @@ function TDLZ_MultiSelectScrollList:prerender()
 
 		end
 		v.index = i;
-		local y2 = self:doDrawItem(y, v, alt,k);
+		local y2 = self:doDrawItem(y, v, alt, k);
 		self.listHeight = y2;
 		v.height = y2 - y
 		y = y2
@@ -486,32 +489,40 @@ end
 
 function TDLZ_MultiSelectScrollList:onMouseDown(x, y)
 	if #self.items == 0 then return end
-	local row = self:rowAt(x, y)
-
+	local row = self:rowAt(x, y, "[onmousedown] ")
+	if row == nil then return end
 	if row > #self.items then
 		row = #self.items;
 	end
 	if row < 1 then
 		row = 1;
 	end
-
-	-- RJ: If you select the same item it unselect it
-	--if self.selected == y then
-	--if self.selected == y then
-	--self.selected = -1;
-	--return;
-	--end
-
 	getSoundManager():playUISound("UISelectListItem")
-
 	self.selected = row;
-	if self.highlighted:contains(row) then
-		self.highlighted:remove(row)
-	else
-		self.highlighted:add(row)
-	end
-	
 
+	if isCtrlKeyDown() then
+		if self.highlighted:contains(row) then
+			self.highlighted:remove(row)
+			self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
+		else
+			self.highlighted:add(row)
+			self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
+		end
+	else
+		print("self.highlighted:size(): " .. self.highlighted:size())
+		if self.highlighted:contains(row) and self.highlighted:size() == 1 then
+			-- remove highlight from choosen element only if one is highlighted
+			print("remove highlight from choosen element")
+			self.highlighted = TDLZ_NumSet:new();
+			self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
+		else
+			-- wipe all and add highlight choosen element
+			self.highlighted = TDLZ_NumSet:new();
+			self.highlighted:add(row)
+			self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
+		end
+	end
+	-- callback
 	if self.onmousedown then
 		self.onmousedown(self.target, self.items[self.selected].item);
 	end
@@ -615,7 +626,7 @@ end
 --** ISInventoryPane:new
 --**
 --************************************************************************--
-function TDLZ_MultiSelectScrollList:new(x, y, width, height)
+function TDLZ_MultiSelectScrollList:new(x, y, width, height, onHighlightCD)
 	local o = {}
 	--o.data = {}
 	o = ISPanelJoypad:new(x, y, width, height);
@@ -624,6 +635,7 @@ function TDLZ_MultiSelectScrollList:new(x, y, width, height)
 	o.x = x;
 	o.y = y;
 	o:noBackground();
+	o.onHighlightCD = onHighlightCD
 	o.backgroundColor = { r = 0, g = 0, b = 0, a = 0.8 };
 	o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 0.9 };
 	o.altBgColor = { r = 0.2, g = 0.3, b = 0.2, a = 0.1 }

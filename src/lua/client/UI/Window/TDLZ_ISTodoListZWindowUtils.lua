@@ -70,7 +70,11 @@ function TDLZ_ISTodoListZWindowUtils._createPageNav(windowUI, titleBarHight)
     windowUI.pageLabel:instantiate();
     windowUI:addFrameChild(windowUI.pageLabel);
 end
-
+function TDLZ_ISTodoListZWindowUtils.setAmountAndGrab(target, button, obj, items, player)
+	if button.internal == "OK" then
+		print("Test")
+	end
+end
 function TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(windowUI, y)
     local buttonCheckOtherWidth = TDLZ_BTN_DEFAULT_H
     local buttonNewMarginLR = TDLZ_REM * 0.5
@@ -141,6 +145,15 @@ function TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(windowUI, y)
         buttonNewItem.anchorLeft = true
         buttonNewItem.anchorRight = true
         buttonNewItem.anchorTop = false
+        buttonNewItem.onclick = function ()
+            local mx = (windowUI.width-280)/2
+            local modal =TDLZ_ISNewItemModal:new(windowUI.x+mx, windowUI.y+windowUI.height-180-50, 280, 180)
+            modal:initialise();
+            modal:addToUIManager();
+            --if JoypadState.players[getPlayer()+1] then
+             --   setJoypadFocus(getPlayer(), modal)
+            --end
+        end
         windowUI:addFrameChild(buttonNewItem);
 
         local btnSelectAll = ISButton:new(buttonNewItem.x + buttonNewItem.width + TDLZ_REM * 0.25, y, buttonCheckWidth,
@@ -154,7 +167,6 @@ function TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(windowUI, y)
         btnSelectAll.onclick = function()
             for key, value in pairs(windowUI.listbox:getItems()) do
                 if value.lineData.isCheckbox then
-                        print("k: ".. key)
                     windowUI.listbox.highlighted:add(key)
                 end
             end

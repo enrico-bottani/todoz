@@ -143,17 +143,26 @@ function TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(windowUI, y)
         buttonNewItem.anchorTop = false
         windowUI:addFrameChild(buttonNewItem);
 
-        local buttonCheck = ISButton:new(buttonNewItem.x + buttonNewItem.width + TDLZ_REM * 0.25, y, buttonCheckWidth,
+        local btnSelectAll = ISButton:new(buttonNewItem.x + buttonNewItem.width + TDLZ_REM * 0.25, y, buttonCheckWidth,
             TDLZ_BTN_DEFAULT_H, "Select all")
         --buttonCheck:setImage(getTexture("media/ui/trashIcon.png"));
-        buttonCheck.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        buttonCheck.anchorBottom = true
-        buttonCheck.anchorLeft = false
-        buttonCheck.anchorRight = true
-        buttonCheck.anchorTop = false
-        windowUI:addFrameChild(buttonCheck);
+        btnSelectAll.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+        btnSelectAll.anchorBottom = true
+        btnSelectAll.anchorLeft = false
+        btnSelectAll.anchorRight = true
+        btnSelectAll.anchorTop = false
+        btnSelectAll.onclick = function()
+            for key, value in pairs(windowUI.listbox:getItems()) do
+                if value.lineData.isCheckbox then
+                        print("k: ".. key)
+                    windowUI.listbox.highlighted:add(key)
+                end
+            end
+            windowUI:refreshUIElements()
+        end
+        windowUI:addFrameChild(btnSelectAll);
 
-        local buttonCheckOthers = ISButton:new(buttonCheck.x + buttonCheck.width, y, buttonCheckOtherWidth,
+        local buttonCheckOthers = ISButton:new(btnSelectAll.x + btnSelectAll.width, y, buttonCheckOtherWidth,
             TDLZ_BTN_DEFAULT_H,
             "")
         buttonCheckOthers:setImage(getTexture("media/ui/menu-dots-vertical.png"));

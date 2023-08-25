@@ -153,7 +153,7 @@ function TDLZ_MultiSelectScrollList:onMouseUp(x, y)
 		self.vscroll.scrolling = false;
 	end
 end
-
+--[[
 function TDLZ_MultiSelectScrollList:addItem(name, item)
 	local i = {}
 	i.text = name;
@@ -166,7 +166,7 @@ function TDLZ_MultiSelectScrollList:addItem(name, item)
 	self:setScrollHeight(self:getScrollHeight() + i.height);
 	return i;
 end
-
+]]--
 function TDLZ_MultiSelectScrollList:insertItem(index, name, item)
 	local i = {}
 	i.text = name
@@ -311,6 +311,10 @@ function TDLZ_MultiSelectScrollList:sort()
 	for i, item in ipairs(self.items) do
 		item.itemindex = i;
 	end
+end
+
+function TDLZ_MultiSelectScrollList:getItems()
+	return self.items;
 end
 
 function TDLZ_MultiSelectScrollList:updateTooltip()

@@ -75,7 +75,7 @@ function TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(windowUI, y)
     local buttonCheckOtherWidth = TDLZ_BTN_DEFAULT_H
     local buttonNewMarginLR = TDLZ_REM * 0.5
     local marginBetween = TDLZ_REM * 0.25
-    if windowUI.listbox.highlighted:size()>0 then
+    if windowUI.listbox.highlighted:size() > 0 then
         local buttonCheckWidth = 140
         local buttonBack = ISButton:new(buttonNewMarginLR, y, TDLZ_BTN_DEFAULT_H,
             TDLZ_BTN_DEFAULT_H,
@@ -92,7 +92,7 @@ function TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(windowUI, y)
         buttonBack.anchorRight = false
         buttonBack.anchorTop = false
         buttonBack.onclick = function()
-            windowUI.multiSelectMode = false
+            windowUI.listbox.highlighted = TDLZ_NumSet:new();
             TDLZ_ISTodoListTZWindowHandler.refreshContent();
         end
         windowUI:addFrameChild(buttonBack);

@@ -93,7 +93,7 @@ function TDLZ_ISTodoListZWindow:new()
     o.width = mD.panelSettings.width
     o.height = mD.panelSettings.height
     o.minimumWidth = 300;
-    o.minimumHeight = 300;
+    o.minimumHeight = 600;
     o.resizable = true;
     o.drawFrame = true;
     o.moveWithMouse = true;

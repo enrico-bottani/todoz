@@ -509,7 +509,6 @@ function TDLZ_MultiSelectScrollList:onMouseDown(x, y)
 			self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
 		end
 	else
-		print("self.highlighted:size(): " .. self.highlighted:size())
 		if self.highlighted:contains(row) and self.highlighted:size() == 1 then
 			-- remove highlight from choosen element only if one is highlighted
 			print("remove highlight from choosen element")

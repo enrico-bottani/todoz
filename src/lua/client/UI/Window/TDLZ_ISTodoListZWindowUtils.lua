@@ -70,11 +70,13 @@ function TDLZ_ISTodoListZWindowUtils._createPageNav(windowUI, titleBarHight)
     windowUI.pageLabel:instantiate();
     windowUI:addFrameChild(windowUI.pageLabel);
 end
+
 function TDLZ_ISTodoListZWindowUtils.setAmountAndGrab(target, button, obj, items, player)
-	if button.internal == "OK" then
-		print("Test")
-	end
+    if button.internal == "OK" then
+        print("Test")
+    end
 end
+
 function TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(windowUI, y)
     local buttonCheckOtherWidth = TDLZ_BTN_DEFAULT_H
     local buttonNewMarginLR = TDLZ_REM * 0.5
@@ -145,13 +147,20 @@ function TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(windowUI, y)
         buttonNewItem.anchorLeft = true
         buttonNewItem.anchorRight = true
         buttonNewItem.anchorTop = false
-        buttonNewItem.onclick = function ()
-            local mx = (windowUI.width-280)/2
-            local modal =TDLZ_ISNewItemModal:new(windowUI.x+mx, windowUI.y+windowUI.height-180-50, 280, 180)
+        buttonNewItem.onclick = function()
+            windowUI.modal1 = TDLZ_ISNewItemModalMask:new(windowUI.x, windowUI.y, windowUI.width, windowUI.height)
+            windowUI.modal1:initialise();
+            windowUI.modal1:addToUIManager();
+            local mx = (windowUI.width - 280) / 2
+            local modal = TDLZ_ISNewItemModal:new(windowUI.x + mx, windowUI.y + windowUI.height - 180 - 50, 280, 180,
+                windowUI, function()
+                windowUI.modal1:setVisible(false);
+                windowUI.modal1:removeFromUIManager();
+            end)
             modal:initialise();
             modal:addToUIManager();
             --if JoypadState.players[getPlayer()+1] then
-             --   setJoypadFocus(getPlayer(), modal)
+            --   setJoypadFocus(getPlayer(), modal)
             --end
         end
         windowUI:addFrameChild(buttonNewItem);

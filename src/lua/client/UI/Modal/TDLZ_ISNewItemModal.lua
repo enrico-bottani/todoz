@@ -38,7 +38,41 @@ function TDLZ_ISNewItemModal:destroy()
 	UIManager.setShowPausedMessage(true);
 	self:setVisible(false);
 	self:removeFromUIManager();
+    if self.onClose and self.onCloseS then
+        self.onClose(self.onCloseS)
+    end
 --	if UIManager.getSpeedControls() then
 --		UIManager.getSpeedControls():SetCurrentGameSpeed(1);
 --	end
+end
+
+--************************************************************************--
+--** TDLZ_ISNewItemModal:new
+--**
+--************************************************************************--
+function TDLZ_ISNewItemModal:new (x, y, width, height, onCloseS, onClose)
+	local o = {}
+	--o.data = {}
+	o = ISPanelJoypad:new(x, y, width, height);
+    setmetatable(o, self)
+    self.__index = self
+	o.x = x;
+	o.y = y;
+	o.background = true;
+	o.backgroundColor = {r=0, g=0, b=0, a=0.5};
+    o.borderColor = {r=0.4, g=0.4, b=0.4, a=1};
+    o.width = width;
+	o.height = height;
+	o.anchorLeft = true;
+	o.anchorRight = false;
+	o.anchorTop = true;
+	o.anchorBottom = false;
+    o.joypadButtons = {};
+    o.joypadIndex = 0;
+    o.joypadButtonsY = {};
+    o.joypadIndexY = 0;
+    o.moveWithMouse = false;
+    o.onCloseS = onCloseS
+    o.onClose = onClose
+   return o
 end

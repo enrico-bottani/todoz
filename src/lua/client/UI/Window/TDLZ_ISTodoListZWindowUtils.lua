@@ -71,12 +71,6 @@ function TDLZ_ISTodoListZWindowUtils._createPageNav(windowUI, titleBarHight)
     windowUI:addFrameChild(windowUI.pageLabel);
 end
 
-function TDLZ_ISTodoListZWindowUtils.setAmountAndGrab(target, button, obj, items, player)
-    if button.internal == "OK" then
-        print("Test")
-    end
-end
-
 function TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(windowUI, y)
     local buttonCheckOtherWidth = TDLZ_BTN_DEFAULT_H
     local buttonNewMarginLR = TDLZ_REM * 0.5
@@ -151,12 +145,19 @@ function TDLZ_ISTodoListZWindowUtils._createTodoListToolbar(windowUI, y)
             windowUI.modal1 = TDLZ_ISNewItemModalMask:new(windowUI.x, windowUI.y, windowUI.width, windowUI.height)
             windowUI.modal1:initialise();
             windowUI.modal1:addToUIManager();
-            local mx = (windowUI.width - 280) / 2
-            local modal = TDLZ_ISNewItemModal:new(windowUI.x + mx, windowUI.y + windowUI.height - 180 - 50, 280, 180,
+
+
+            local modalHeight = 350;
+            local modalWidth = 280;
+            local mx = (windowUI.width - modalWidth) / 2
+            local modal = TDLZ_ISNewItemModal:new(windowUI.x + mx, windowUI.y + windowUI.height - modalHeight - 50,
+                modalWidth,
+                modalHeight,
                 windowUI, function()
-                windowUI.modal1:setVisible(false);
-                windowUI.modal1:removeFromUIManager();
-            end)
+                    windowUI.modal1:setVisible(false);
+                    windowUI.modal1:removeFromUIManager();
+                end)
+            modal.backgroundColor.a = 0.9
             modal:initialise();
             modal:addToUIManager();
             --if JoypadState.players[getPlayer()+1] then
@@ -212,21 +213,22 @@ function TDLZ_ISTodoListZWindowUtils._createTodoList(windowUI, x, y, width, heig
     windowUI.listbox:setOnMouseClick(windowUI, TDLZ_ISTodoListZWindow.onOptionTicked);
 
     local page = windowUI.notebook.currentNotebook:seePage(windowUI.notebook.currentPage);
-    local lines = TDLZ_StringUtils.splitKeepingEmptyLines(page)
-    for lineNumber, lineString in ipairs(lines) do
-        windowUI.listbox:addItem(lineString:gsub(CK_BOX_FLEX_PATTERN, function(space)
-            return space
-        end, 1), {
-            isCheckbox = TDLZ_CheckboxUtils.containsCheckBox(lineString),
-            isChecked = TDLZ_CheckboxUtils.containsCheckedCheckBox(lineString),
-            pageNumber = windowUI.notebook.currentPage,
-            lineNumber = lineNumber,
-            lineString = lineString, -- test only (redundant)
-            lines = lines,           -- test only (redundant)
-            notebook = windowUI.notebook.currentNotebook
-        });
+    if page ~= "" then
+        local lines = TDLZ_StringUtils.splitKeepingEmptyLines(page)
+        for lineNumber, lineString in ipairs(lines) do
+            windowUI.listbox:addItem(lineString:gsub(CK_BOX_FLEX_PATTERN, function(space)
+                return space
+            end, 1), {
+                isCheckbox = TDLZ_CheckboxUtils.containsCheckBox(lineString),
+                isChecked = TDLZ_CheckboxUtils.containsCheckedCheckBox(lineString),
+                pageNumber = windowUI.notebook.currentPage,
+                lineNumber = lineNumber,
+                lineString = lineString, -- test only (redundant)
+                lines = lines,       -- test only (redundant)
+                notebook = windowUI.notebook.currentNotebook
+            });
+        end
     end
-
     if (previousState ~= nil) then
         windowUI.listbox:setYScroll(previousState.yScroll)
     end

@@ -42,12 +42,6 @@ TDLZ_ISTodoListTZWindowHandler.close = function()
     TDLZ_ISTodoListTZWindowHandler.instance:close();
     TDLZ_ISTodoListTZWindowHandler.instance = nil;
 end
-TDLZ_ISTodoListTZWindowHandler.getNotebookID = function()
-    if TDLZ_ISTodoListTZWindowHandler.instance == nil then
-        return -1
-    end
-    return TDLZ_ISTodoListTZWindowHandler.instance.notebookID;
-end
 function TDLZ_ISTodoListTZWindowHandler.setVisible()
     if TDLZ_ISTodoListTZWindowHandler.instance == nil then
         print("TDLZ_ISTodoListTZWindowHandler.setVisible - Error: instance is nil")
@@ -56,12 +50,19 @@ function TDLZ_ISTodoListTZWindowHandler.setVisible()
     TDLZ_ISTodoListTZWindowHandler.instance:setVisible(true);
     print("TDLZ_ISTodoListTZWindowHandler.setVisible - UI hidden: " .. tostring(not TDLZ_ISTodoListTZWindowHandler.instance:getIsVisible()))
 end
+TDLZ_ISTodoListTZWindowHandler.getNotebookID = function()
+    if TDLZ_ISTodoListTZWindowHandler.instance == nil then
+        return -1
+    end
+    return TDLZ_ISTodoListTZWindowHandler.instance.notebookID;
+end
 TDLZ_ISTodoListTZWindowHandler.setNotebookID = function(id)
     if TDLZ_ISTodoListTZWindowHandler.instance == nil then
         _newWindow();
     end
     TDLZ_ISTodoListTZWindowHandler.instance:setNotebookID(id)
 end
+
 TDLZ_ISTodoListTZWindowHandler.refreshContent = function()
     if TDLZ_ISTodoListTZWindowHandler.instance == nil then
         _newWindow();

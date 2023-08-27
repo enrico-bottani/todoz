@@ -11,7 +11,7 @@ local TEXT_RGBA = {
     a = 1
 }
 local original_onmouseup = TDLZ_MultiSelectScrollList.onMouseUp;
-function TDLZ_ISList:new(x, y, width, height, parent, previousState,onHighlight)
+function TDLZ_ISList:new(x, y, width, height, parent, previousState, onHighlight)
     local o = {}
     o = TDLZ_MultiSelectScrollList:new(x, y, width, height, onHighlight);
     setmetatable(o, self);
@@ -29,7 +29,7 @@ function TDLZ_ISList:new(x, y, width, height, parent, previousState,onHighlight)
     o.joypadParent = self;
     o.font = UIFont.NewSmall;
 
-    o.onmouseclick = nil
+    o.onCheckboxToggle = nil
     o.parent = parent;
 
     if previousState ~= nil then
@@ -45,8 +45,8 @@ function TDLZ_ISList:new(x, y, width, height, parent, previousState,onHighlight)
     return o
 end
 
-function TDLZ_ISList:setOnMouseClick(target, onmouseclick)
-    self.onmouseclick = onmouseclick;
+function TDLZ_ISList:setOnMouseClick(target, onCheckboxToggle)
+    self.onCheckboxToggle = onCheckboxToggle;
     self.target = target;
 end
 
@@ -63,33 +63,23 @@ function TDLZ_ISList:addItem(name, item)
     return i;
 end
 
---[[
 function TDLZ_ISList:onMouseUp(x, y)
     original_onmouseup(x, y)
-
-    if #self.items == 0 then
+    if #self.items == 0 then return end
+    local row = self:rowAt(x, y, "[onmousedown] ")
+    if row == nil then return end
+    if row > #self.items or row < 1 or not self.items[row].lineData.isCheckbox then
         return
     end
 
-    local row = self:rowAt(x, y)
-    if row > #self.items then
-        row = #self.items;
-    end
-    if row < 1 then
-        row = 1;
-    end
-
-    getSoundManager():playUISound("UISelectListItem")
-    if self.selected == row then
-        self.selected = row;
-        self.mouseoverselected = self:rowAt(x, y)
-        if self.onmouseclick then
-            self.onmouseclick(self.target, self.items[self.selected].lineData);
+    if self.marginLeft < x and x < self.marginLeft + BOX_SIZE then
+        getSoundManager():playUISound("UISelectListItem")
+        if self.onCheckboxToggle then
+            self.onCheckboxToggle(self.target, self.items[row].lineData);
         end
     end
 end
-]]
---
+
 function TDLZ_ISList._drawCheckboxBackground(uiSelf, y, item, alt)
     if alt then
         uiSelf:drawRect(0, y, uiSelf:getWidth(), uiSelf.itemheight, 0.08, uiSelf.borderColor.r, uiSelf.borderColor.g,
@@ -107,8 +97,6 @@ function TDLZ_ISList:doDrawItem(y, item, alt, k)
 
     TDLZ_ISList._drawCheckboxBackground(self, y, item, alt)
 
-    local borderOpacity = 1
-    -- DRAW CHECKBOX RECT
     if item.lineData.isCheckbox then
         if self.highlighted:contains(k) then
             self:drawRect(3, y - 1, self.width - 5, self.itemheight + 2, 1, 0.13,
@@ -147,4 +135,45 @@ function TDLZ_ISList:doDrawItem(y, item, alt, k)
         self:drawText(item.text, self.marginLeft + BOX_SIZE + MARGIN_BETWEEN, y + dy, 0.3, 0.3, 0.3, 1, UIFont.Small);
     end
     return y + self.itemheight;
+end
+
+function TDLZ_ISList:onMouseDown(x, y)
+    if #self.items == 0 then return end
+    local row = self:rowAt(x, y, "[onmousedown] ")
+    if row == nil then return end
+    if row > #self.items or row < 1 or not self.items[row].lineData.isCheckbox then
+        return
+    end
+
+    if self.marginLeft < x and x < self.marginLeft + BOX_SIZE then
+        return
+    end
+
+    getSoundManager():playUISound("UISelectListItem")
+    self.selected = row;
+
+    if isCtrlKeyDown() then
+        if self.highlighted:contains(row) then
+            self.highlighted:remove(row)
+            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
+        else
+            self.highlighted:add(row)
+            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
+        end
+    else
+        if self.highlighted:contains(row) and self.highlighted:size() == 1 then
+            -- remove highlight from choosen element only if one is highlighted
+            self.highlighted = TDLZ_NumSet:new();
+            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
+        else
+            -- wipe all and add highlight choosen element
+            self.highlighted = TDLZ_NumSet:new();
+            self.highlighted:add(row)
+            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
+        end
+    end
+    -- callback
+    if self.onmousedown then
+        self.onmousedown(self.target, self.items[self.selected].item);
+    end
 end

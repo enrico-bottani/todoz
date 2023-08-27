@@ -29,3 +29,10 @@ function TDLZ_StringUtils.splitKeepingEmptyLines(inputString)
     end
     return result
 end
+function TDLZ_StringUtils.endsWithChar(inputString, character)
+    if inputString == nil or character == nil then
+        return false
+    end
+    local lastChar = string.sub(inputString, -1);
+    return character == lastChar
+end

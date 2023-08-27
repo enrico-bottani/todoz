@@ -493,6 +493,7 @@ end
 
 function TDLZ_MultiSelectScrollList:onMouseDown(x, y)
 	if #self.items == 0 then return end
+	print(tostring(x) .. " "..  tostring(y) .." " .. "[no_of_items]:"..#self.items )
 	local row = self:rowAt(x, y, "[onmousedown] ")
 	if row == nil then return end
 	if row > #self.items then

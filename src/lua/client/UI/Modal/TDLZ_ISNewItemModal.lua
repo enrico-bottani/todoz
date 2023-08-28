@@ -26,6 +26,25 @@ function TDLZ_ISNewItemModal:initialise()
     self.textbox.font = UIFont.Small
     self.textbox:initialise();
     self.textbox:instantiate();
+
+    self.textbox.onTextChange = function(ctx)
+        local filteredItems = {};
+        local itemToFind = ctx.parent.textbox:getInternalText();
+        if string.len(itemToFind)<3 then
+            return
+        end
+        
+        for index, item in pairs(self.viewModel.allItems) do
+            if TDLZ_ItemsFinderService.filterName(itemToFind, item) then
+                table.insert(filteredItems, item)
+            end
+        end
+        print("-------------")
+        for index, item in pairs(filteredItems) do
+            print("i: " .. item:getName() .. " | " .. item:getDisplayName())
+        end
+    end
+
     --  self.entry:setMaxLines(self.maxLines)
     -- self.entry:setMultipleLine(self.multipleLine)
     self:addChild(self.textbox);
@@ -96,13 +115,13 @@ function TDLZ_ISNewItemModal:onClick(button)
         self:destroy();
         return
     elseif button.internal == "OK" then
-        local options = {type= TDLZ_ISNewItemModal.OPTION_TXT}
+        local options = { type = TDLZ_ISNewItemModal.OPTION_TXT }
         if self.viewModel.lineType == TDLZ_ISNewItemModal.CHECKBOX_OPTION then
             options = {
                 type = TDLZ_ISNewItemModal.CHECKBOX_OPTION,
                 isAnItem = self.ckboxOptions:isSelected(1),
                 resetDaily = self.ckboxOptions:isSelected(2),
-            }     
+            }
         end
 
         TDLZ_NotebooksService.appendLineToNotebook(
@@ -167,8 +186,19 @@ function TDLZ_ISNewItemModal:new(x, y, width, height, windowSelf, onClose)
     o.moveWithMouse = false;
     o.windowSelf = windowSelf
     o.onClose = onClose
+
+    local items = getAllItems()
+    local allItems = {}
+    for i = 0, items:size() - 1 do
+        local item = items:get(i);
+        if not item:getObsolete() and not item:isHidden() then
+            table.insert(allItems, item)
+        end
+    end
+
     o.viewModel = {
-        lineType = TDLZ_ISNewItemModal.CHECKBOX_OPTION
+        lineType = TDLZ_ISNewItemModal.CHECKBOX_OPTION,
+        allItems = allItems
     }
     return o
 end

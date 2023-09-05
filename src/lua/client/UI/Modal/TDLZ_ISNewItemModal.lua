@@ -1,3 +1,4 @@
+---@class TDLZ_ISNewItemModal
 TDLZ_ISNewItemModal = ISPanelJoypad:derive("TDLZ_ISNewItemModal");
 local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
 local FONT_HGT_MEDIUM = getTextManager():getFontHeight(UIFont.Medium)
@@ -24,31 +25,24 @@ function TDLZ_ISNewItemModal:initialise()
         self:getWidth() - lineTypeWidth - (FONT_HGT_SMALL * 0.75) * 2,
         height);
     self.textbox.font = UIFont.Small
-    self.textbox:initialise();
-    self.textbox:instantiate();
+    self.textbox:initialise()
+    self.textbox:instantiate()
+
+    self.contextMenu:setVisible(false)
+    self.contextMenu:initialise()
+    self.contextMenu:instantiate()
+    self.contextMenu:addToUIManager()
 
     self.textbox.onTextChange = function(ctx)
-        local filteredItems = {};
-        local itemToFind = ctx.parent.textbox:getInternalText();
-        if string.len(itemToFind)<3 then
-            return
-        end
-        
-        for index, item in pairs(self.viewModel.allItems) do
-            if TDLZ_ItemsFinderService.filterName(itemToFind, item) then
-                table.insert(filteredItems, item)
-            end
-        end
-        print("-------------")
-        for index, item in pairs(filteredItems) do
-            print("i: " .. item:getName() .. " | " .. item:getDisplayName())
-        end
+        local hashPostions = string.gmatch(ctx.parent.textbox,"#")
+        ctx.parent.textbox:getCursorPos()
+        local absX = ctx.parent.textbox:getAbsoluteX()
+        local absY = ctx.parent.textbox:getAbsoluteY() + ctx.parent.textbox.height
+        self.contextMenu:setX(absX)
+        self.contextMenu:setY(absY)
+        self.contextMenu:searchAndDisplayResults(ctx.parent.textbox:getInternalText())
     end
-
-    --  self.entry:setMaxLines(self.maxLines)
-    -- self.entry:setMultipleLine(self.multipleLine)
     self:addChild(self.textbox);
-
 
     self.lineType = ISComboBox:new(self.textbox.x + self.textbox.width,
         self.textbox.y,
@@ -59,23 +53,22 @@ function TDLZ_ISNewItemModal:initialise()
     self.lineType:addOption("Text")
     self:addChild(self.lineType)
 
-    self.ckboxOptions = ISTickBox:new(self.textbox.x, self.textbox.y + self.textbox.height, 10, 20, "", nil, nil);
-    self.ckboxOptions:initialise();
-    self.ckboxOptions:instantiate();
-    self.ckboxOptions:setAnchorLeft(true);
-    self.ckboxOptions:setAnchorRight(false);
-    self.ckboxOptions:setAnchorTop(true);
-    self.ckboxOptions:setAnchorBottom(false);
+    self.ckboxOptions = ISTickBox:new(self.textbox.x, self.textbox.y + self.textbox.height, 10, 20, "", nil, nil)
+    self.ckboxOptions:initialise()
+    self.ckboxOptions:instantiate()
+    self.ckboxOptions:setAnchorLeft(true)
+    self.ckboxOptions:setAnchorRight(false)
+    self.ckboxOptions:setAnchorTop(true)
+    self.ckboxOptions:setAnchorBottom(false)
     self.ckboxOptions.autoWidth = true
-    self:addChild(self.ckboxOptions);
-    self.ckboxOptions:addOption("Is an item");
-    self.ckboxOptions:addOption("Reset daily");
+    self:addChild(self.ckboxOptions)
+    self.ckboxOptions:addOption("Is an item")
+    self.ckboxOptions:addOption("Reset daily")
 
     local buttonWid1 = getTextManager():MeasureStringX(UIFont.Small, "Ok") + 12
     local buttonWid2 = getTextManager():MeasureStringX(UIFont.Small, "Cancel") + 12
     local buttonWid = math.max(math.max(buttonWid1, buttonWid2), 100)
     local buttonHgt = math.max(fontHgt + 6, 25)
-    local padBottom = 10
 
     self.yes = ISButton:new((self:getWidth() / 2) - 5 - buttonWid,
         self.ckboxOptions.y + self.ckboxOptions.height + FONT_HGT_SMALL * 0.75, buttonWid,
@@ -90,10 +83,10 @@ function TDLZ_ISNewItemModal:initialise()
         self.ckboxOptions.y + self.ckboxOptions.height + FONT_HGT_SMALL * 0.75, buttonWid, buttonHgt,
         getText("UI_Cancel"), self, TDLZ_ISNewItemModal.onClick);
     self.no.internal = "CLOSE";
-    self.no:initialise();
-    self.no:instantiate();
-    self.no.borderColor = { r = 1, g = 1, b = 1, a = 0.5 };
-    self:addChild(self.no);
+    self.no:initialise()
+    self.no:instantiate()
+    self.no.borderColor = { r = 1, g = 1, b = 1, a = 0.5 }
+    self:addChild(self.no)
     self:setHeight(self.no.y + self.no.height + FONT_HGT_SMALL * 0.75)
 end
 
@@ -137,15 +130,14 @@ function TDLZ_ISNewItemModal:onClick(button)
 end
 
 function TDLZ_ISNewItemModal:destroy()
-    UIManager.setShowPausedMessage(true);
     self:setVisible(false);
     self:removeFromUIManager();
+    if self.contextMenu ~= nil then
+        self.contextMenu:destroy()
+    end
     if self.onClose and self.windowSelf then
         self.onClose(self.windowSelf)
     end
-    --	if UIManager.getSpeedControls() then
-    --		UIManager.getSpeedControls():SetCurrentGameSpeed(1);
-    --	end
 end
 
 function TDLZ_ISNewItemModal:setHeight(h)
@@ -156,6 +148,10 @@ function TDLZ_ISNewItemModal:setHeight(h)
         self.javaObject:setHeight(h);
         self.javaObject:setY(self.y + deltaH);
     end
+end
+
+function TDLZ_ISNewItemModal:onContextualMenuClose(rtn)
+    print("on ctx menu close: " .. rtn)
 end
 
 --************************************************************************--
@@ -186,19 +182,10 @@ function TDLZ_ISNewItemModal:new(x, y, width, height, windowSelf, onClose)
     o.moveWithMouse = false;
     o.windowSelf = windowSelf
     o.onClose = onClose
-
-    local items = getAllItems()
-    local allItems = {}
-    for i = 0, items:size() - 1 do
-        local item = items:get(i);
-        if not item:getObsolete() and not item:isHidden() then
-            table.insert(allItems, item)
-        end
-    end
-
+    o.contextMenu = TDLZ_ISContextMenu:new(0, 0, 200, 200, o, TDLZ_ISNewItemModal.onContextualMenuClose)
+    o.contextMenu:setFont(UIFont.Small, 2)
     o.viewModel = {
         lineType = TDLZ_ISNewItemModal.CHECKBOX_OPTION,
-        allItems = allItems
     }
     return o
 end

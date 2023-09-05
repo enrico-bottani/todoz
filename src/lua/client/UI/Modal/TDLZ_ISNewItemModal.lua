@@ -34,13 +34,13 @@ function TDLZ_ISNewItemModal:initialise()
     self.contextMenu:addToUIManager()
 
     self.textbox.onTextChange = function(ctx)
-        local hashPostions = string.gmatch(ctx.parent.textbox,"#")
-        ctx.parent.textbox:getCursorPos()
+        local cursorPosition = ctx.parent.textbox:getCursorPos()
         local absX = ctx.parent.textbox:getAbsoluteX()
         local absY = ctx.parent.textbox:getAbsoluteY() + ctx.parent.textbox.height
         self.contextMenu:setX(absX)
         self.contextMenu:setY(absY)
-        self.contextMenu:searchAndDisplayResults(ctx.parent.textbox:getInternalText())
+        local hashFound = TDLZ_StringUtils.findHashTagName(ctx.parent.textbox:getInternalText(),cursorPosition)
+        self.contextMenu:searchAndDisplayResults(hashFound.text)
     end
     self:addChild(self.textbox);
 

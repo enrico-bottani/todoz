@@ -1,4 +1,5 @@
 ---@class TDLZ_ISNewItemModal
+---@field contextMenu TDLZ_ISContextMenu Modal textbox contextual menu
 TDLZ_ISNewItemModal = ISPanelJoypad:derive("TDLZ_ISNewItemModal");
 local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
 local FONT_HGT_MEDIUM = getTextManager():getFontHeight(UIFont.Medium)
@@ -39,8 +40,8 @@ function TDLZ_ISNewItemModal:initialise()
         local absY = ctx.parent.textbox:getAbsoluteY() + ctx.parent.textbox.height
         self.contextMenu:setX(absX)
         self.contextMenu:setY(absY)
-        local hashFound = TDLZ_StringUtils.findHashTagName(ctx.parent.textbox:getInternalText(),cursorPosition)
-        self.contextMenu:searchAndDisplayResults(hashFound.text)
+        local hashFound = TDLZ_StringUtils.findHashTagName(ctx.parent.textbox:getInternalText(), cursorPosition)
+        self.contextMenu:searchAndDisplayResults(hashFound)
     end
     self:addChild(self.textbox);
 
@@ -151,7 +152,12 @@ function TDLZ_ISNewItemModal:setHeight(h)
 end
 
 function TDLZ_ISNewItemModal:onContextualMenuClose(rtn)
-    print("on ctx menu close: " .. rtn)
+    local internalText = self.textbox:getInternalText()
+    local firstChunk = string.sub(internalText, 0, rtn.startIndex);
+    local lastChunk = string.sub(internalText, rtn.endIndex + 1);
+    self.textbox:setText(firstChunk .. rtn.text .. lastChunk)
+    self.textbox:focus()
+    self.textbox:setCursorPos(#firstChunk + #rtn.text)
 end
 
 --************************************************************************--
@@ -182,7 +188,8 @@ function TDLZ_ISNewItemModal:new(x, y, width, height, windowSelf, onClose)
     o.moveWithMouse = false;
     o.windowSelf = windowSelf
     o.onClose = onClose
-    o.contextMenu = TDLZ_ISContextMenu:new(0, 0, 200, 200, o, TDLZ_ISNewItemModal.onContextualMenuClose)
+    o.contextMenu = TDLZ_ISContextMenu:new(0, 0, 200, 200)
+    o.contextMenu:setOnCloseCallback(o, TDLZ_ISNewItemModal.onContextualMenuClose)
     o.contextMenu:setFont(UIFont.Small, 2)
     o.viewModel = {
         lineType = TDLZ_ISNewItemModal.CHECKBOX_OPTION,

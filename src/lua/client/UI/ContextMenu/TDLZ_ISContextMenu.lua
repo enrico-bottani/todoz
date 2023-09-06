@@ -1,9 +1,13 @@
+---@class TDLZ_ISContextMenu
 TDLZ_ISContextMenu = ISScrollingListBox:derive("TDLZ_ISNewItemModal");
 local instance = nil
 local FONT_HGT_MEDIUM = getTextManager():getFontHeight(UIFont.Medium)
-function TDLZ_ISContextMenu:searchAndDisplayResults(itemToFind)
+function TDLZ_ISContextMenu:searchAndDisplayResults(hashFound)
+    self.startIndex = hashFound.startIndex
+    self.endIndex = hashFound.endIndex
+
     local filteredItems = {};
-    if string.len(itemToFind) < 3 then
+    if string.len(hashFound.text) < 3 then
         self:setVisible(false)
         return
     end
@@ -11,7 +15,7 @@ function TDLZ_ISContextMenu:searchAndDisplayResults(itemToFind)
     self:setVisible(true)
     self:setAlwaysOnTop(true)
     for index, item in pairs(self.viewModel.allItems) do
-        if TDLZ_ItemsFinderService.hasIcon(item) and TDLZ_ItemsFinderService.filterName(itemToFind, item) then
+        if TDLZ_ItemsFinderService.hasIcon(item) and TDLZ_ItemsFinderService.filterName(hashFound.text, item) then
             table.insert(filteredItems, item)
         end
     end
@@ -65,8 +69,17 @@ function TDLZ_ISContextMenu:onMouseDown(x, y)
         return
     end
     ISScrollingListBox.onMouseDown(self, x, y)
-    if self.onCloseCTX ~= nil and self.onCloseCallback ~= nil then
-        self.onCloseCallback(self.onCloseCTX, "PLACEHOLDER ")
+end
+
+function TDLZ_ISContextMenu:onMouseDoubleClick(x, y)
+    if self.items[self.selected] ~= nil and self.onCloseCTX ~= nil and self.onCloseCallback ~= nil then
+        self.onCloseCallback(self.onCloseCTX,
+            {
+                text = self.items[self.selected].item:getName(),
+                startIndex = self.startIndex,
+                endIndex = self.endIndex
+            })
+        self:setVisible(false)
     end
 end
 
@@ -84,7 +97,7 @@ end
 --** TDLZ_ISNewItemModal:new
 --**
 --************************************************************************--
-function TDLZ_ISContextMenu:new(x, y, width, height, onCloseCTX, onCloseCallback)
+function TDLZ_ISContextMenu:new(x, y, width, height)
     local o = {}
     --o.data = {}
     o = ISScrollingListBox:new(x, y, width, height);
@@ -109,8 +122,8 @@ function TDLZ_ISContextMenu:new(x, y, width, height, onCloseCTX, onCloseCallback
     o.joypadButtonsY = {};
     o.joypadIndexY = 0;
     o.moveWithMouse = false;
-    o.onCloseCTX = onCloseCTX
-    o.onCloseCallback = onCloseCallback
+    o.onCloseCTX = nil
+    o.onCloseCallback = nil
 
     local items = getAllItems()
     local allItems = {}
@@ -120,11 +133,21 @@ function TDLZ_ISContextMenu:new(x, y, width, height, onCloseCTX, onCloseCallback
             table.insert(allItems, item)
         end
     end
-
     o.viewModel = {
         allItems = allItems
     }
 
+    o.startIndex = -1
+    o.endIndex = -1
+
     instance = o
     return o
+end
+
+---Set callback on context menu close
+---@param onCloseCTX any
+---@param onCloseCallback fun(ctx : any,item: { text: string, startIndex: number, endIndex: number })
+function TDLZ_ISContextMenu:setOnCloseCallback(onCloseCTX, onCloseCallback)
+    self.onCloseCTX = onCloseCTX
+    self.onCloseCallback = onCloseCallback
 end

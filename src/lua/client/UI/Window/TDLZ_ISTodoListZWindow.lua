@@ -61,6 +61,8 @@ end
 
 -- Frame functions
 ------------------
+
+---@private
 ---Add a child inside the Window frame
 ---@param child any UI Element
 function TDLZ_ISTodoListZWindow:addFrameChild(child)
@@ -68,6 +70,7 @@ function TDLZ_ISTodoListZWindow:addFrameChild(child)
     table.insert(self.frameChildren, child)
 end
 
+---@private
 function TDLZ_ISTodoListZWindow:clearFrameChildren()
     for index, c in pairs(self.frameChildren) do
         self:removeChild(c)
@@ -129,6 +132,7 @@ function TDLZ_ISTodoListZWindow:new()
     return o;
 end
 
+---@private
 function TDLZ_ISTodoListZWindow._setFormattedTitle(obj, id)
     local todoText = getText("IGUI_TDLZ_window_title")
     obj.title = tostring(id) .. " " .. todoText
@@ -142,35 +146,6 @@ end
 function TDLZ_ISTodoListZWindow:onMouseMoveOutside(dx, dy)
     ISCollapsableWindow.onMouseMoveOutside(self, dx, dy);
     getPlayer():setIgnoreAimingInput(false);
-end
-
-function TDLZ_ISTodoListZWindow:onClick(button)
-    if button.internal == "NEXTPAGE" then
-        self.notebook.currentPage = self.notebook.currentPage + 1;
-    elseif button.internal == "PREVIOUSPAGE" then
-        self.notebook.currentPage = self.notebook.currentPage - 1;
-    elseif button.internal == "DELETEPAGE" then
-        self.entry:setText("");
-        self.entry.javaObject:setCursorLine(0);
-    elseif button.internal == "LOCKBOOK" then
-        self.lockButton:setImage(getTexture("media/ui/lock.png"));
-        self.lockButton.internal = "UNLOCKBOOK";
-        self.notebook:setLockedBy(self.character:getUsername());
-        self.title:setEditable(false);
-        self.entry:setEditable(false);
-        self.lockButton:setTooltip("Allow the journal to be edited");
-        self:setJoypadButtons(self.joyfocus)
-    elseif button.internal == "UNLOCKBOOK" then
-        self.lockButton:setImage(getTexture("media/ui/lockOpen.png"));
-        self.lockButton.internal = "LOCKBOOK";
-        self.notebook:setLockedBy(nil);
-        self.title:setEditable(true);
-        self.entry:setEditable(true);
-        self.lockButton:setTooltip("Prevent the journal from being edited");
-        self:setJoypadButtons(self.joyfocus)
-    end
-
-    self:refreshUIElements()
 end
 
 function TDLZ_ISTodoListZWindow:refreshUIElements()
@@ -202,17 +177,28 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
 
         -- Create tibox
         local rh = self.resizable and self:resizeWidgetHeight() or 0
-        local tbh = self:titleBarHeight()
+        local titleBarHeight = self:titleBarHeight()
+  
+        ----------------------------
+        -- Building PageNav
+        local y = titleBarHeight
+        local pageNav = TDLZ_PageNav:new(0, y, self.width, TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM)
+        pageNav:initialise()
+        pageNav:createPageNav(
+            self.notebook.currentPage, self.notebook.numberOfPages,
+            self, TDLZ_TodoListZWindowController.onClick)
+        self:addFrameChild(pageNav)
 
-        local y = tbh
-        TDLZ_ISTodoListZWindow._createPageNav(self, y)
-
-        y = tbh + TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM
-        local h = self.height - rh - tbh - TDLZ_BTN_DEFAULT_H * 2 - TDLZ_BTN_MV * 2 * 2;
+        ---------------------------
+        -- Building TodoList
+        y = titleBarHeight + TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM
+        local h = self.height - rh - titleBarHeight - TDLZ_BTN_DEFAULT_H * 2 - TDLZ_BTN_MV * 2 * 2;
         TDLZ_ISTodoListZWindow._createTodoList(self, 0, y, self.width, h, previousState)
 
+        ---------------------------
+        -- Building TodoListToolbar
         y = self.listbox.y + self.listbox.height + TDLZ_BTN_MV
-        TDLZ_ISTodoListZWindow._createTodoListToolbar(self, y)
+        TDLZ_TodoListToolbar._createTodoListToolbar(self, y)
     end
     -- save changes
     TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(), self.notebookID);
@@ -230,10 +216,12 @@ function TDLZ_ISTodoListZWindow:initialise()
     self:refreshUIElements();
 end
 
+---@private
 function TDLZ_ISTodoListZWindow:prerender()
     ISCollapsableWindow.prerender(self);
 end
 
+---@private
 function TDLZ_ISTodoListZWindow:render()
     ISCollapsableWindow.render(self);
 end
@@ -252,203 +240,6 @@ function TDLZ_ISTodoListZWindow:close()
     -- Callback
     if self.onClose then
         self:onClose()
-    end
-end
-
-function TDLZ_ISTodoListZWindow._createPageNav(windowUI, titleBarHight)
-    local y = titleBarHight + TDLZ_BTN_MV
-    local buttonDelete = ISButton:new(TDLZ_REM * 0.25, y, TDLZ_REM * 1.5, TDLZ_BTN_DEFAULT_H, "")
-    buttonDelete.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-    buttonDelete:setImage(getTexture("media/ui/trashIcon.png"));
-    buttonDelete:setTooltip(getText("Tooltip_Journal_Erase"));
-    buttonDelete.anchorBottom = false
-    buttonDelete.anchorLeft = true
-    buttonDelete.anchorRight = false
-    buttonDelete.anchorTop = true
-    windowUI:addFrameChild(buttonDelete);
-
-    local buttonLock = ISButton:new(TDLZ_REM * 0.25 + buttonDelete.width + TDLZ_REM * 0.125, y, TDLZ_REM * 1.5,
-        TDLZ_BTN_DEFAULT_H, "")
-    buttonLock.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-    buttonLock.anchorBottom = false
-    buttonLock.anchorLeft = true
-    buttonLock.anchorRight = false
-    buttonLock.anchorTop = true
-    buttonLock:setImage(getTexture("media/ui/lockOpen.png"));
-    buttonLock:setTooltip(getText("Tooltip_Journal_Lock"));
-    windowUI:addFrameChild(buttonLock);
-
-    windowUI.previousPage = ISButton:new(buttonLock.x + buttonLock.width + 0.5 * TDLZ_REM, y, TDLZ_BTN_DEFAULT_H,
-        TDLZ_BTN_DEFAULT_H, "<",
-        windowUI, TDLZ_ISTodoListZWindow.onClick);
-    windowUI.previousPage.internal = "PREVIOUSPAGE";
-    windowUI.previousPage.anchorLeft = true
-    windowUI.previousPage.anchorRight = false
-    --windowUI.previousPage.borderColorEnabled = BTN_DEFAULT_BORDER_COLOR;
-    -- windowUI.previousPage.borderColor = BTN_ERROR_BORDER_COLOR;
-    windowUI.previousPage:initialise();
-    windowUI.previousPage:instantiate();
-    if windowUI.notebook.currentPage == 1 then
-        windowUI.previousPage:setEnable(false);
-    else
-        windowUI.previousPage:setEnable(true);
-    end
-    windowUI:addFrameChild(windowUI.previousPage);
-
-    windowUI.nextPage = ISButton:new(windowUI.previousPage.x + windowUI.previousPage.width + 0.125 * TDLZ_REM, y,
-        TDLZ_BTN_DEFAULT_H,
-        TDLZ_BTN_DEFAULT_H, ">", windowUI, TDLZ_ISTodoListZWindow.onClick);
-    windowUI.nextPage.internal = "NEXTPAGE";
-    windowUI.nextPage.anchorLeft = true
-    windowUI.nextPage.anchorRight = false
-    -- windowUI.nextPage.borderColorEnabled = BTN_DEFAULT_BORDER_COLOR;
-    -- windowUI.nextPage.borderColor = BTN_ERROR_BORDER_COLOR;
-    windowUI.nextPage:initialise();
-    windowUI.nextPage:instantiate();
-    if windowUI.notebook.currentPage == windowUI.notebook.numberOfPages then
-        windowUI.nextPage:setEnable(false);
-    else
-        windowUI.nextPage:setEnable(true);
-    end
-    windowUI:addFrameChild(windowUI.nextPage);
-
-    if windowUI.pageLabel ~= nil then
-        windowUI:removeChild(windowUI.pageLabel)
-    end
-    windowUI.pageLabel = ISLabel:new(windowUI.nextPage.x + windowUI.nextPage.width + 0.5 * TDLZ_REM, y,
-        TDLZ_BTN_DEFAULT_H, getText(
-            "IGUI_Pages") .. windowUI.notebook.currentPage .. "/" .. windowUI.notebook.numberOfPages, 1, 1, 1, 1,
-        UIFont.Small, true);
-    windowUI.pageLabel.anchorRight = false
-    windowUI.pageLabel.anchorLeft = true
-    windowUI.pageLabel:initialise();
-    windowUI.pageLabel:instantiate();
-    windowUI:addFrameChild(windowUI.pageLabel);
-end
-
-function TDLZ_ISTodoListZWindow._createTodoListToolbar(windowUI, y)
-    local buttonCheckOtherWidth = TDLZ_BTN_DEFAULT_H
-    local buttonNewMarginLR = TDLZ_REM * 0.5
-    local marginBetween = TDLZ_REM * 0.25
-    if windowUI.listbox.highlighted:size() > 0 then
-        local buttonCheckWidth = 140
-        local buttonBack = ISButton:new(buttonNewMarginLR, y, TDLZ_BTN_DEFAULT_H,
-            TDLZ_BTN_DEFAULT_H,
-            "")
-        buttonBack:setImage(getTexture("media/ui/arrow-small-left.png"));
-        buttonBack.borderColor = {
-            r = 0.5,
-            g = 0.5,
-            b = 0.5,
-            a = 0
-        };
-        buttonBack.anchorBottom = true
-        buttonBack.anchorLeft = true
-        buttonBack.anchorRight = false
-        buttonBack.anchorTop = false
-        buttonBack.onclick = function()
-            windowUI.listbox.highlighted = TDLZ_NumSet:new();
-            TDLZ_ISTodoListTZWindowHandler.refreshContent();
-        end
-        windowUI:addFrameChild(buttonBack);
-
-
-
-        local buttonUncheck = ISButton:new(buttonBack.x + buttonBack.width + TDLZ_REM * 0.5, y, 100,
-            TDLZ_BTN_DEFAULT_H, "Review")
-        --buttonCheck:setImage(getTexture("media/ui/trashIcon.png"));
-        buttonUncheck.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        buttonUncheck.anchorBottom = true
-        buttonUncheck.anchorLeft = true
-        buttonUncheck.anchorRight = false
-        buttonUncheck.anchorTop = false
-        windowUI:addFrameChild(buttonUncheck);
-
-        local btnExecute = ISButton:new(buttonUncheck.x + buttonUncheck.width, y, TDLZ_BTN_DEFAULT_H,
-            TDLZ_BTN_DEFAULT_H, "", windowUI, TDLZ_TodoListZWindowController.onExecuteClick)
-        btnExecute:setImage(getTexture("media/ui/execute.png"));
-        btnExecute.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        btnExecute.anchorBottom = true
-        btnExecute.anchorLeft = true
-        btnExecute.anchorRight = false
-        btnExecute.anchorTop = false
-        windowUI:addFrameChild(btnExecute);
-
-        local taskLabel = ISLabel:new(btnExecute.x + btnExecute.width + 0.5 * TDLZ_REM, y,
-            TDLZ_BTN_DEFAULT_H, windowUI.listbox.highlighted:size() .. " Tasks", 1, 1, 1, 1,
-            UIFont.Small, true);
-        taskLabel.anchorBottom = true
-        taskLabel.anchorRight = false
-        taskLabel.anchorLeft = true
-        taskLabel.anchorTop = false
-        taskLabel:initialise();
-        taskLabel:instantiate();
-
-        windowUI:addFrameChild(taskLabel);
-    else
-        local buttonCheckWidth = 140
-        local buttonNewItem = ISButton:new(buttonNewMarginLR, y,
-            windowUI.width - marginBetween - buttonCheckWidth - buttonCheckOtherWidth - buttonNewMarginLR * 2,
-            TDLZ_BTN_DEFAULT_H,
-            "+ New...")
-        buttonNewItem.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        buttonNewItem.anchorBottom = true
-        buttonNewItem.anchorLeft = true
-        buttonNewItem.anchorRight = true
-        buttonNewItem.anchorTop = false
-        buttonNewItem.onclick = function()
-            windowUI.modal1 = TDLZ_ISNewItemModalMask:new(windowUI.x, windowUI.y, windowUI.width, windowUI.height)
-            windowUI.modal1:initialise();
-            windowUI.modal1:addToUIManager();
-
-
-            local modalHeight = 350;
-            local modalWidth = 280;
-            local mx = (windowUI.width - modalWidth) / 2
-            local modal = TDLZ_ISNewItemModal:new(windowUI.x + mx, windowUI.y + windowUI.height - modalHeight - 50,
-                modalWidth,
-                modalHeight,
-                windowUI, function()
-                    windowUI.modal1:setVisible(false);
-                    windowUI.modal1:removeFromUIManager();
-                end)
-            modal.backgroundColor.a = 0.9
-            modal:initialise();
-            modal:addToUIManager();
-            --if JoypadState.players[getPlayer()+1] then
-            --   setJoypadFocus(getPlayer(), modal)
-            --end
-        end
-        windowUI:addFrameChild(buttonNewItem);
-
-        local btnSelectAll = ISButton:new(buttonNewItem.x + buttonNewItem.width + TDLZ_REM * 0.25, y, buttonCheckWidth,
-            TDLZ_BTN_DEFAULT_H, "Select all")
-        --buttonCheck:setImage(getTexture("media/ui/trashIcon.png"));
-        btnSelectAll.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        btnSelectAll.anchorBottom = true
-        btnSelectAll.anchorLeft = false
-        btnSelectAll.anchorRight = true
-        btnSelectAll.anchorTop = false
-        btnSelectAll.onclick = function()
-            for key, value in pairs(windowUI.listbox:getItems()) do
-                if value.lineData.isCheckbox then
-                    windowUI.listbox.highlighted:add(key)
-                end
-            end
-            windowUI:refreshUIElements()
-        end
-        windowUI:addFrameChild(btnSelectAll);
-
-        local buttonCheckOthers = ISButton:new(btnSelectAll.x + btnSelectAll.width, y, buttonCheckOtherWidth,
-            TDLZ_BTN_DEFAULT_H,
-            "")
-        buttonCheckOthers:setImage(getTexture("media/ui/menu-dots-vertical.png"));
-        buttonCheckOthers.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        buttonCheckOthers.anchorBottom = true
-        buttonCheckOthers.anchorLeft = false
-        buttonCheckOthers.anchorRight = true
-        buttonCheckOthers.anchorTop = false
-        windowUI:addFrameChild(buttonCheckOthers);
     end
 end
 
@@ -478,7 +269,7 @@ function TDLZ_ISTodoListZWindow._createItemDataModel(windowUI, lineString, lineN
         :build()
 end
 
----comment
+---@private
 ---@param windowUI TDLZ_ISTodoListZWindow
 ---@param x number list x position
 ---@param y number list y position

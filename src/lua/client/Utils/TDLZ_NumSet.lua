@@ -1,9 +1,6 @@
 require 'src.lua.client.Utils.TDLZ_Set'
-
+--- @class TDLZ_NumSet:TDLZ_Set
 TDLZ_NumSet = TDLZ_Set:derive("TDLZ_NumSet")
-local oAdd = TDLZ_Set.add;
-local oRemove = TDLZ_Set.remove;
-local oContains = TDLZ_Set.contains;
 local notNumberMessage = "Element is not a number"
 function TDLZ_NumSet:new()
     local o = TDLZ_Set:new()
@@ -12,22 +9,26 @@ function TDLZ_NumSet:new()
     return o
 end
 
-function TDLZ_NumSet:add(element)
-    if type(element) ~= "number" then
+---Add element to set
+---@param number number to add 
+function TDLZ_NumSet:add(number)
+    if type(number) ~= "number" then
         error(notNumberMessage)
     end
-    TDLZ_Set.add(self, element)
+    TDLZ_Set.add(self, number)
+end
+---Remove element from set
+---@param number number to remove from set
+function TDLZ_NumSet:remove(number)
+    if type(number) ~= "number" then
+        error(notNumberMessage)
+    end
+    TDLZ_Set.remove(self, number)
 end
 
-function TDLZ_NumSet:remove(element)
-    if type(element) ~= "number" then
-        error(notNumberMessage)
-    end
-    oRemove(self, element)
-end
 function TDLZ_NumSet:contains(element)
     if type(element) ~= "number" then
         error(notNumberMessage)
     end
-    return oContains(self, element)
+    return TDLZ_Set.contains(self, element)
 end

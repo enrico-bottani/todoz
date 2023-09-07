@@ -99,7 +99,6 @@ end
 --************************************************************************--
 function TDLZ_ISContextMenu:new(x, y, width, height)
     local o = {}
-    --o.data = {}
     o = ISScrollingListBox:new(x, y, width, height);
     setmetatable(o, self)
     self.__index = self

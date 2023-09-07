@@ -1,4 +1,10 @@
 require "UI/Element/TDLZ_MultiSelectScrollList"
+--- @class TDLZ_ISList:TDLZ_MultiSelectScrollList
+--- @field highlighted TDLZ_NumSet
+--- @field items table<number, TDLZ_ISListItemViewModel>
+--- @field marginLeft number
+--- @field itemheight number
+--- @field width number
 TDLZ_ISList = TDLZ_MultiSelectScrollList:derive("TDLZ_ISList")
 local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
 local MARGIN_TOP_BOTTOM = FONT_HGT_SMALL / 4;
@@ -13,15 +19,15 @@ local TEXT_RGBA = {
 local original_onmouseup = TDLZ_MultiSelectScrollList.onMouseUp;
 function TDLZ_ISList:new(x, y, width, height, parent, previousState, onHighlight)
     local o = {}
-    o = TDLZ_MultiSelectScrollList:new(x, y, width, height, onHighlight);
-    setmetatable(o, self);
-    self.__index = self;
+    o = TDLZ_MultiSelectScrollList:new(x, y, width, height, onHighlight)
+    setmetatable(o, self)
+    self.__index = self
 
     o.itemheight = FONT_HGT_SMALL + MARGIN_TOP_BOTTOM * 2
-    o:setAnchorLeft(true);
-    o:setAnchorRight(true);
-    o:setAnchorTop(true);
-    o:setAnchorBottom(true);
+    o:setAnchorLeft(true)
+    o:setAnchorRight(true)
+    o:setAnchorTop(true)
+    o:setAnchorBottom(true)
     o.drawBorder = true
     o.tickTexture = getTexture("Quest_Succeed");
     -- o.doDrawItem = TDLZ_ISList.doDrawItem
@@ -37,8 +43,8 @@ function TDLZ_ISList:new(x, y, width, height, parent, previousState, onHighlight
         o.highlighted = previousState.highlighted
     end
 
-    o:initialise();
-    o:instantiate();
+    o:initialise()
+    o:instantiate()
 
     o.marginLeft = FONT_HGT_SMALL / 2
 
@@ -50,16 +56,14 @@ function TDLZ_ISList:setOnMouseClick(target, onCheckboxToggle)
     self.target = target;
 end
 
-function TDLZ_ISList:addItem(name, item)
-    local i = {}
-    i.text = name;
-    i.lineData = item;
-    i.tooltip = nil;
-    i.itemindex = self.count + 1;
-    i.height = self.itemheight
-    table.insert(self.items, i);
-    self.count = self.count + 1;
-    self:setScrollHeight(self:getScrollHeight() + i.height);
+---commented
+---@param item TDLZ_ISListItemModel
+---@return TDLZ_ISListItemViewModel
+function TDLZ_ISList:addItem(item)
+    local i = TDLZ_ISListItemViewModel:new(item.label, item.data, nil, self.count + 1, self.itemheight)
+    table.insert(self.items, i)
+    self.count = self.count + 1
+    self:setScrollHeight(self:getScrollHeight() + i.height)
     return i;
 end
 
@@ -116,10 +120,8 @@ function TDLZ_ISList:doDrawItem(y, item, alt, k)
                     0.1);
             end
         end
-
         self:drawRectBorder(self.marginLeft, y + (self.itemheight / 2 - BOX_SIZE / 2), BOX_SIZE, BOX_SIZE, 1.0, 0.3,
             0.3, 0.3);
-
         if item.lineData.isChecked then
             self:drawTexture(self.tickTexture, self.marginLeft + 3, y + (self.itemheight / 2 - BOX_SIZE / 2) + 2, 1, 1,
                 1, 1);
@@ -176,4 +178,11 @@ function TDLZ_ISList:onMouseDown(x, y)
     if self.onmousedown then
         self.onmousedown(self.target, self.items[self.selected].item);
     end
+end
+
+---Get item from list
+---@param row number row where the item is located
+---@return TDLZ_ISListItemDataModel
+function TDLZ_ISList:getItem(row)
+    return self.items[row].lineData
 end

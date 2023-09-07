@@ -1,3 +1,5 @@
+--- @class TDLZ_Set
+--- @field _table table
 TDLZ_Set = {}
 TDLZ_Set.Type = "TDLZ_Set";
 
@@ -88,4 +90,12 @@ function TDLZ_Set:_updateMin(sortedKeys)
         return
     end
     self._min = sortedKeys[1]
+end
+
+function TDLZ_Set:toList()
+    local rtn = {}
+    for k, v in pairs(self._table) do
+        table.insert(rtn, k)
+    end
+    return rtn
 end

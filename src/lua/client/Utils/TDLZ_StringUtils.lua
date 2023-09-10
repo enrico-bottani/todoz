@@ -66,3 +66,23 @@ function TDLZ_StringUtils.findHashTagName(inputString, position)
     end
     return { text = inputString:sub(startIndex, endIndex), startIndex = startIndex, endIndex = endIndex }
 end
+
+---@param inputString string
+---@return table tag
+function TDLZ_StringUtils.findAllHashTagName(inputString)
+    local rtn = {}
+    if inputString == nil or #inputString == 0 then
+        return rtn
+    end
+    local cursor = 0
+    while cursor < #inputString do
+        local c = TDLZ_StringUtils.findHashTagName(inputString, cursor)
+        if c.startIndex == -1 then
+            cursor = cursor + 1
+        else
+            table.insert(rtn, c)
+            cursor = c.endIndex
+        end
+    end
+    return rtn
+end

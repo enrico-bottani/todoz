@@ -79,7 +79,7 @@ end
 TDLZ_Menu.onRefreshInventoryWindowContainers = function(inventorySelfInstance, state)
     if state == "begin" then
         local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
-        if not TDLZ_Map.containsKey(notebookMap, TDLZ_ISTodoListTZWindowHandler.getNotebookID()) then
+        if not notebookMap:containsKey(TDLZ_ISTodoListTZWindowHandler.getNotebookID()) then
             TDLZ_ISTodoListTZWindowHandler.close();
         end
     end

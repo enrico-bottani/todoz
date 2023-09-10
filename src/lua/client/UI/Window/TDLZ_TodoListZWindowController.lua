@@ -9,7 +9,17 @@ function TDLZ_TodoListZWindowController.onExecuteClick(winCtx)
 
     for key, value in pairs(highlightedList) do
         local item = winCtx.listbox:getItem(value)
+        --TDLZ_OwnedItemService.findByName(item.lineString)
         print(item.lineNumber .. ". " .. item.lineString)
+        local hashList = TDLZ_StringUtils.findAllHashTagName(item.lineString)
+        for index, value in pairs(hashList) do
+            -- Remove #
+            local t = string.sub(value.text, 2)
+            local itemFound = TDLZ_OwnedItemService.findByName(t)
+            if itemFound:size() > 0 then
+                TDLZ_TodoListZWindowController.onOptionTicked(winCtx, item)
+            end
+        end
     end
 end
 
@@ -38,10 +48,11 @@ function TDLZ_TodoListZWindowController.onClick(winCtx, button)
         winCtx.lockButton:setTooltip("Prevent the journal from being edited");
         winCtx:setJoypadButtons(winCtx.joyfocus)
     end
-
+    
     winCtx:refreshUIElements()
 end
 
+--- Toggle item state
 ---@param winCtx TDLZ_ISTodoListZWindow Window Context
 ---@param itemData TDLZ_ISListItemDataModel Ticked item data
 function TDLZ_TodoListZWindowController.onOptionTicked(winCtx, itemData)

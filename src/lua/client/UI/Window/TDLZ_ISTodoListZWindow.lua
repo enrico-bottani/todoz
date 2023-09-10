@@ -23,59 +23,26 @@ TDLZ_BTN_DEFAULT_BORDER_COLOR = {
     b = 0.5,
     a = 1
 }
+local WIN_BACKGROUND_COLOR = {
+    r = 0,
+    g = 0,
+    b = 0,
+    a = 0.8
+}
+local WIN_BORDER_COLOR = {
+    r = 0.4,
+    g = 0.4,
+    b = 0.4,
+    a = 1
+}
 
 function TDLZ_ISTodoListZWindow:getBookID() return self.notebookID end
 
----@param o TDLZ_ISTodoListZWindow
+---Set notebook id and refresh UI Elements
 ---@param notebookID number
-local function _setNotebookID(o, notebookID)
-    if (notebookID == nil) then
-        o.notebookID = -1
-    else
-        o.notebookID = notebookID
-    end
-
-    local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
-    local nb = TDLZ_Map.get(notebookMap, o.notebookID)
-    if nb == nil then o.notebookID = -1 end
-    if o.notebookID == -1 then
-        TDLZ_ISTodoListZWindow._setFormattedTitle(o, o.notebookID)
-        o.notebook = {
-            currentNotebook = {},
-            currentPage = -1,
-            numberOfPages = -1
-        }
-    else
-        TDLZ_ISTodoListZWindow._setFormattedTitle(o, nb:getName())
-        o.notebook = {
-            currentNotebook = nb,
-            currentPage = 1,
-            numberOfPages = nb:getPageToWrite()
-        }
-    end
-end
 function TDLZ_ISTodoListZWindow:setNotebookID(notebookID)
-    _setNotebookID(self, notebookID)
+    TDLZ_ISTodoListZWindow:_setNotebookID(self, notebookID)
     self:refreshUIElements()
-end
-
--- Frame functions
-------------------
-
----@private
----Add a child inside the Window frame
----@param child any UI Element
-function TDLZ_ISTodoListZWindow:addFrameChild(child)
-    self:addChild(child)
-    table.insert(self.frameChildren, child)
-end
-
----@private
-function TDLZ_ISTodoListZWindow:clearFrameChildren()
-    for index, c in pairs(self.frameChildren) do
-        self:removeChild(c)
-    end
-    self.frameChildren = {}
 end
 
 function TDLZ_ISTodoListZWindow:new()
@@ -90,9 +57,9 @@ function TDLZ_ISTodoListZWindow:new()
     o.pin = mD.panelSettings.pin
 
     if mD.todoListData == nil or mD.todoListData.notebookID == nil then
-        _setNotebookID(o, -1)
+        TDLZ_ISTodoListZWindow:_setNotebookID(o, -1)
     else
-        _setNotebookID(o, mD.todoListData.notebookID)
+        TDLZ_ISTodoListZWindow:_setNotebookID(o, mD.todoListData.notebookID)
     end
 
     -- Window notebook status
@@ -106,23 +73,14 @@ function TDLZ_ISTodoListZWindow:new()
     o.drawFrame = true;
     o.moveWithMouse = true;
 
-    o.borderColor = {
-        r = 0.4,
-        g = 0.4,
-        b = 0.4,
-        a = 1
-    };
-    o.backgroundColor = {
-        r = 0,
-        g = 0,
-        b = 0,
-        a = 0.8
-    };
+    o.borderColor = WIN_BORDER_COLOR
+    o.backgroundColor = WIN_BACKGROUND_COLOR
 
     o.listbox = nil
 
-    o:initialise();
     -- This will call the instantiate method
+    o:initialise();
+        
     o:addToUIManager();
     if o.pin then
         ISCollapsableWindow.pin(o)
@@ -130,12 +88,6 @@ function TDLZ_ISTodoListZWindow:new()
         ISCollapsableWindow.collapse(o)
     end
     return o;
-end
-
----@private
-function TDLZ_ISTodoListZWindow._setFormattedTitle(obj, id)
-    local todoText = getText("IGUI_TDLZ_window_title")
-    obj.title = tostring(id) .. " " .. todoText
 end
 
 function TDLZ_ISTodoListZWindow:onMouseMove(dx, dy)
@@ -201,29 +153,6 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
     self.resizeWidget:bringToTop()
 end
 
--- ************************************************************************--
--- ** TodoListZManagerUI - base
--- ************************************************************************--
-function TDLZ_ISTodoListZWindow:initialise()
-    ISCollapsableWindow.initialise(self);
-
-    self.closingWindow = false
-    self:refreshUIElements();
-end
-
----@private
-function TDLZ_ISTodoListZWindow:prerender()
-    ISCollapsableWindow.prerender(self);
-end
-
----@private
-function TDLZ_ISTodoListZWindow:render()
-    ISCollapsableWindow.render(self);
-end
-
--- ************************************************************************--
--- ** TodoListZManagerUI - actions and radio data processing
--- ************************************************************************--
 function TDLZ_ISTodoListZWindow:close()
     self.closingWindow = true
     getPlayer():setIgnoreAimingInput(false);
@@ -246,6 +175,43 @@ function TDLZ_ISTodoListZWindow.onHighlightChange(windowUI, int)
     error("Callback ok")
 end
 
+--- **********************************************************************
+--- PRIVATE FUNCTIONS
+--- **********************************************************************
+
+function TDLZ_ISTodoListZWindow:initialise()
+    ISCollapsableWindow.initialise(self);
+
+    self.closingWindow = false
+    self:refreshUIElements();
+end
+
+---@private
+function TDLZ_ISTodoListZWindow:prerender()
+    ISCollapsableWindow.prerender(self);
+end
+
+---@private
+function TDLZ_ISTodoListZWindow:render()
+    ISCollapsableWindow.render(self);
+end
+
+---@private
+---Add a child inside the Window frame
+---@param child any UI Element
+function TDLZ_ISTodoListZWindow:addFrameChild(child)
+    self:addChild(child)
+    table.insert(self.frameChildren, child)
+end
+
+---@private
+function TDLZ_ISTodoListZWindow:clearFrameChildren()
+    for index, c in pairs(self.frameChildren) do
+        self:removeChild(c)
+    end
+    self.frameChildren = {}
+end
+
 ---@private
 ---@param windowUI TDLZ_ISTodoListZWindow
 ---@param lineString string
@@ -262,6 +228,42 @@ function TDLZ_ISTodoListZWindow._createItemDataModel(windowUI, lineString, lineN
         :lines(lines)
         :notebook(windowUI.notebook.currentNotebook)
         :build()
+end
+
+---@private
+---@param o TDLZ_ISTodoListZWindow
+---@param notebookID number
+function TDLZ_ISTodoListZWindow:_setNotebookID(o, notebookID)
+    if (notebookID == nil) then
+        o.notebookID = -1
+    else
+        o.notebookID = notebookID
+    end
+
+    local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
+    local nb = notebookMap:get(o.notebookID)
+    if nb == nil then o.notebookID = -1 end
+    if o.notebookID == -1 then
+        TDLZ_ISTodoListZWindow._setFormattedTitle(o, o.notebookID)
+        o.notebook = {
+            currentNotebook = {},
+            currentPage = -1,
+            numberOfPages = -1
+        }
+    else
+        TDLZ_ISTodoListZWindow._setFormattedTitle(o, nb:getName())
+        o.notebook = {
+            currentNotebook = nb,
+            currentPage = 1,
+            numberOfPages = nb:getPageToWrite()
+        }
+    end
+end
+
+---@private
+function TDLZ_ISTodoListZWindow._setFormattedTitle(obj, id)
+    local todoText = getText("IGUI_TDLZ_window_title")
+    obj.title = tostring(id) .. " " .. todoText
 end
 
 ---@private

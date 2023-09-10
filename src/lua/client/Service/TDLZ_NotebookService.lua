@@ -1,13 +1,13 @@
 TDLZ_NotebooksService = {}
 function TDLZ_NotebooksService.saveTextToNotebookPage(notebookID, page, text)
     local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
-    local notebook = TDLZ_Map.get(notebookMap, notebookID)
+    local notebook = notebookMap:get(notebookID)
     if notebook ~= nil then notebook:addPage(page, text) end
 end
 
 function TDLZ_NotebooksService.getTextFromNotebookPage(notebookID, page)
     local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
-    local notebook = TDLZ_Map.get(notebookMap, notebookID)
+    local notebook = notebookMap:get(notebookID)
     if notebook ~= nil then
         local text = notebook:seePage(page)
         if text == nil then return "" end

@@ -41,9 +41,8 @@ function TDLZ_ISListItemDataModel.builder()
     return TDLZ_ISListItemDataModelBuilder:new()
 end
 
--------------
--- BUILDER --
--------------
+---------------
+--- BUILDER ---
 
 --- @class TDLZ_ISListItemModelBuilder
 --- @field listItemModel TDLZ_ISListItemDataModel

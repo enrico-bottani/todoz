@@ -156,9 +156,8 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
         -- ---------
         TDLZ_ISTodoListZWindow._setFormattedTitle(self, self.notebook.currentNotebook:getName())
 
+        ----------------------------
         -- Set Checkboxes
-        -- ---------------
-        local selectedIndex = -1;
         local previousState = nil
         if self.listbox ~= nil then
             previousState = {
@@ -169,16 +168,12 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
             self.listbox:clear()
             self:removeChild(self.listbox)
         end
-
         self:clearFrameChildren()
 
-        -- Save pages
-        self.newPage = {}
-
         -- Create tibox
-        local rh = self.resizable and self:resizeWidgetHeight() or 0
+        local resizeBarHeight = self.resizable and self:resizeWidgetHeight() or 0
         local titleBarHeight = self:titleBarHeight()
-  
+
         ----------------------------
         -- Building PageNav
         local y = titleBarHeight
@@ -189,13 +184,13 @@ function TDLZ_ISTodoListZWindow:refreshUIElements()
             self, TDLZ_TodoListZWindowController.onClick)
         self:addFrameChild(pageNav)
 
-        ---------------------------
+        ----------------------------
         -- Building TodoList
         y = titleBarHeight + TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM
-        local h = self.height - rh - titleBarHeight - TDLZ_BTN_DEFAULT_H * 2 - TDLZ_BTN_MV * 2 * 2;
+        local h = self.height - resizeBarHeight - titleBarHeight - TDLZ_BTN_DEFAULT_H * 2 - TDLZ_BTN_MV * 2 * 2;
         TDLZ_ISTodoListZWindow._createTodoList(self, 0, y, self.width, h, previousState)
 
-        ---------------------------
+        ----------------------------
         -- Building TodoListToolbar
         y = self.listbox.y + self.listbox.height + TDLZ_BTN_MV
         TDLZ_TodoListToolbar._createTodoListToolbar(self, y)

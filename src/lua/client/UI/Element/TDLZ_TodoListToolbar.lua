@@ -3,7 +3,7 @@ TDLZ_TodoListToolbar = {}
 local TDLZ_BTN_DEFAULT_BORDER_COLOR = { r = 0.5, g = 0.5, b = 0.5, a = 1 }
 
 ---@private
----@param windowUI TDLZ_ISTodoListZWindow
+---@param windowUI TDLZ_TodoListZWindow
 ---@param y number
 function TDLZ_TodoListToolbar._createTodoListToolbar(windowUI, y)
     local buttonCheckOtherWidth = TDLZ_BTN_DEFAULT_H

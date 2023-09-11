@@ -13,7 +13,7 @@ end
 
 ---@param currentPage number
 ---@param numberOfPages number
----@param windowUI TDLZ_ISTodoListZWindow
+---@param windowUI TDLZ_TodoListZWindow
 function TDLZ_PageNav:createPageNav(currentPage, numberOfPages, windowUI, onBtnClick)
     self.frameChildren = {}
     self.borderColor = { r = 0, g = 0, b = 0, a = 1 }

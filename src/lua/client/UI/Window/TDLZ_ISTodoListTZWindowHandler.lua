@@ -1,5 +1,5 @@
 require 'Utils/TDLZ_Map'
-require 'UI/Window/TDLZ_ISTodoListZWindow'
+require 'UI/Window/TDLZ_TodoListZWindow'
 
 TDLZ_ISTodoListTZWindowHandler = {}
 -- ************************************************************************--
@@ -12,7 +12,7 @@ local function _removeFromController()
 end
 local function _newWindow()
     if TDLZ_ISTodoListTZWindowHandler.instance == nil then
-        TDLZ_ISTodoListTZWindowHandler.instance = TDLZ_ISTodoListZWindow:new();
+        TDLZ_ISTodoListTZWindowHandler.instance = TDLZ_TodoListZWindow:new();
         TDLZ_ISTodoListTZWindowHandler.instance:initialise()
         TDLZ_ISTodoListTZWindowHandler.instance:addToUIManager()
         TDLZ_ISTodoListTZWindowHandler.instance.onClose = _removeFromController

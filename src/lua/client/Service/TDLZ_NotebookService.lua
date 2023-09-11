@@ -16,19 +16,17 @@ function TDLZ_NotebooksService.getTextFromNotebookPage(notebookID, page)
     return ""
 end
 
-function TDLZ_NotebooksService.appendLineToNotebook(notebookID,currentPage,lineStr,options)
+function TDLZ_NotebooksService.appendLineToNotebook(notebookID, currentPage, lineStr, options)
     local pageText = TDLZ_NotebooksService.getTextFromNotebookPage(notebookID, currentPage)
     local sep = ""
     if pageText ~= "" then
         sep = "\n"
     end
     local prepend = ""
-    print("options.type ".. options.type)
     if options.type == TDLZ_ISNewItemModal.CHECKBOX_OPTION then
         prepend = "[_]"
     end
-    
-    
+
     local append = " "
     if TDLZ_StringUtils.endsWithChar(lineStr, " ") then
         append = ""
@@ -42,7 +40,7 @@ function TDLZ_NotebooksService.appendLineToNotebook(notebookID,currentPage,lineS
         end
         append = append .. ":daily"
     end
-    if append==" " then
+    if append == " " then
         append = ""
     end
     TDLZ_NotebooksService.saveTextToNotebookPage(notebookID, currentPage,

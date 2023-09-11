@@ -261,22 +261,42 @@ function TDLZ_ISTodoListZWindow._createTodoList(windowUI, x, y, width, height, p
     });
     windowUI.listbox:setOnMouseClick(windowUI, TDLZ_TodoListZWindowController.onOptionTicked);
 
-    local page = windowUI.notebook.currentNotebook:seePage(windowUI.notebook.currentPage);
-    if page ~= "" then
-        local lines = TDLZ_StringUtils.splitKeepingEmptyLines(page)
+    local pageText = windowUI.notebook.currentNotebook:seePage(windowUI.notebook.currentPage);
+    if pageText ~= "" then
+        local lines = TDLZ_StringUtils.splitKeepingEmptyLines(pageText)
         for lineNumber, lineString in ipairs(lines) do
             local listItemText = lineString:gsub(CK_BOX_FLEX_PATTERN, function(space)
                 return space
             end, 1)
             windowUI.listbox:addItem(
                 TDLZ_ISListItemModel:new(
-                    listItemText,
+                    TDLZ_ISTodoListZWindow.createLabel(listItemText),
                     TDLZ_ISTodoListZWindow._createItemDataModel(windowUI, lineString, lineNumber, lines)
                 ));
         end
     end
+
     if (previousState ~= nil) then
         windowUI.listbox:setYScroll(previousState.yScroll)
     end
     windowUI:addChild(windowUI.listbox);
+end
+
+--- @private
+function TDLZ_ISTodoListZWindow.createLabel(label)
+    local allHash = TDLZ_StringUtils.findAllHashTagName(label)
+
+    local cursorIndex = 0
+    local text = ""
+    for key, value in pairs(allHash) do
+        text = text .. string.sub(label, cursorIndex, value.startIndex - 1)
+        local hashtagName = TDLZ_ItemsFinderService.filterName2(string.sub(
+        string.sub(label, value.startIndex, value.endIndex), 2))
+        if hashtagName ~= nil then
+            text = text .. hashtagName:getDisplayName()
+        end
+        cursorIndex = value.endIndex + 1
+    end
+    text = text .. string.sub(label, cursorIndex)
+    return text
 end

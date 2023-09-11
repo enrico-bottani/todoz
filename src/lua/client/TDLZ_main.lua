@@ -18,7 +18,6 @@ function ISUIWriteJournal:onClick(button)
     original_ISUIOnClick(self, button)
 
     if button.internal == "OK" then
-        print("OK clicked")
         -- update todolist
         local editedNotebook = button.parent.notebook;
         local notebookTitleNew = button.parent.title:getText();
@@ -28,7 +27,6 @@ function ISUIWriteJournal:onClick(button)
             TDLZ_ISTodoListTZWindowHandler.refreshContent();
             return
         end
-        print("Notebook not assigned as Todo. Nothing to refresh")
     end
 end
 

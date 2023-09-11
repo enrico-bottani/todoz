@@ -1,30 +1,29 @@
 TDLZ_TodoListZWindowController = {}
 
+---On execute button click
 ---@param winCtx TDLZ_ISTodoListZWindow Window Context
 function TDLZ_TodoListZWindowController.onExecuteClick(winCtx)
-    local highlightedList = winCtx.listbox.highlighted:toList()
-    table.sort(highlightedList, function(a, b)
+    local hlist = winCtx.listbox.highlighted:toList()
+    table.sort(hlist, function(a, b)
         return a < b
     end)
-
-    for key, value in pairs(highlightedList) do
-        local item = winCtx.listbox:getItem(value)
-        --TDLZ_OwnedItemService.findByName(item.lineString)
-        print(item.lineNumber .. ". " .. item.lineString)
-        local hashList = TDLZ_StringUtils.findAllHashTagName(item.lineString)
-        for index, value in pairs(hashList) do
+    local allItemsInListbox = winCtx.listbox:getItems()
+    -- DEBUG
+    for rowNumber, rowValue in pairs(hlist) do
+        local itemToCheck = allItemsInListbox[rowValue]
+        local hashList = TDLZ_StringUtils.findAllHashTagName(itemToCheck.lineString)
+        for k, hashname in pairs(hashList) do
             -- Remove #
-            local t = string.sub(value.text, 2)
-            local itemFound = TDLZ_OwnedItemService.findByName(t)
+            local cleanedHashname = string.sub(hashname.text, 2)
+            local itemFound = TDLZ_OwnedItemService.findByName(cleanedHashname)
             if itemFound:size() > 0 then
-                item.isChecked = true
-                TDLZ_TodoListZWindowController.saveItemData(winCtx, item)
+                itemToCheck.isChecked = true
             else
-                item.isChecked = false
-                TDLZ_TodoListZWindowController.saveItemData(winCtx, item)
+                itemToCheck.isChecked = false
             end
         end
     end
+    TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, allItemsInListbox)
 end
 
 function TDLZ_TodoListZWindowController.onClick(winCtx, button)
@@ -56,20 +55,31 @@ function TDLZ_TodoListZWindowController.onClick(winCtx, button)
     winCtx:refreshUIElements()
 end
 
+local run = 0
 --- Toggle item state
 ---@param winCtx TDLZ_ISTodoListZWindow Window Context
 ---@param itemData TDLZ_ISListItemDataModel Ticked item data
 function TDLZ_TodoListZWindowController.onOptionTicked(winCtx, itemData)
+    run = run + 1
+    print("On ticked " .. run .. " " .. itemData.lineString .. " " .. itemData.lineNumber)
     itemData.isChecked = not itemData.isChecked
-    TDLZ_TodoListZWindowController.saveItemData(winCtx, itemData)
+    TDLZ_TodoListZWindowController.saveJournalData(winCtx, itemData)
     -- Refresh the UI (and the list accordingly)
     winCtx:refreshUIElements();
 end
 
-function TDLZ_TodoListZWindowController.saveItemData(winCtx, itemData)
+---comment
+---@param winCtx any
+---@param itemData TDLZ_ISListItemDataModel
+---@return string
+function TDLZ_TodoListZWindowController.saveJournalData(winCtx, itemData)
+    print("----------------------------------------------------")
+    print("START TDLZ_TodoListZWindowController.saveJournalData")
+    print("BEFORE:\n")
+    for ln, lnString in pairs(itemData.lines) do print(lnString) end
     -- In this function, an "x" is removed or inserted between the square brackets of the ticked element
     local toWrite = ""
-    for ln, s in pairs(itemData.lines) do
+    for ln, lnString in pairs(itemData.lines) do
         local sep = "\n"
         if ln == 1 then
             sep = "";
@@ -77,20 +87,59 @@ function TDLZ_TodoListZWindowController.saveItemData(winCtx, itemData)
         if ln == itemData.lineNumber then
             if itemData.isChecked then
                 -- add x
-                s = s:gsub(CK_BOX_CHECKED_R_PATTERN, function(space)
+                lnString = lnString:gsub(CK_BOX_CHECKED_R_PATTERN, function(space)
                     return space .. "[x]"
                 end, 1)
+                print("+Adding X to " .. lnString)
             else
                 -- remove
-                s = s:gsub(CK_BOX_CHECKED_PATTERN, function(space)
+                lnString = lnString:gsub(CK_BOX_CHECKED_PATTERN, function(space)
                     return space .. "[_]"
                 end, 1)
+                print("Removing X to " .. lnString)
             end
-            toWrite = toWrite .. sep .. s
+            toWrite = toWrite .. sep .. lnString
         else
-            toWrite = toWrite .. sep .. s
+            toWrite = toWrite .. sep .. lnString
         end
     end
     -- Save modified text
     itemData.notebook:addPage(itemData.pageNumber, toWrite);
+    print("AFTER:\n" .. toWrite)
+    print(" END   TDLZ_TodoListZWindowController.saveJournalData\n")
+    return toWrite;
+end
+
+---commented
+---@param winCtx TDLZ_ISTodoListZWindow
+---@param allItemsInListbox table<number, TDLZ_ISListItemDataModel>
+function TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, allItemsInListbox)
+    local toWrite = ""
+    for ln, itemData in pairs(allItemsInListbox) do
+        local textLine = itemData.lineString
+
+        local sep = "\n"
+        if ln == 1 then
+            sep = "";
+        end
+
+        if itemData.isCheckbox then
+            if itemData.isChecked then
+                -- add x
+                textLine = textLine:gsub(CK_BOX_CHECKED_R_PATTERN, function(space)
+                    return space .. "[x]"
+                end, 1)
+            else
+                -- remove
+                textLine = textLine:gsub(CK_BOX_CHECKED_PATTERN, function(space)
+                    return space .. "[_]"
+                end, 1)
+            end
+            toWrite = toWrite .. sep .. textLine
+        else
+            toWrite = toWrite .. sep .. textLine
+        end
+    end
+    winCtx.notebook.currentNotebook:addPage(winCtx.notebook.currentPage, toWrite);
+    return toWrite;
 end

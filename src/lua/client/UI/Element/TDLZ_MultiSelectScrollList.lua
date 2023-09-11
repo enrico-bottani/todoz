@@ -82,14 +82,11 @@ function TDLZ_MultiSelectScrollList:instantiate()
 	self:addScrollBars();
 end
 
-function TDLZ_MultiSelectScrollList:rowAt(x, y, debug)
+function TDLZ_MultiSelectScrollList:rowAt(x, y)
 	local y0 = 0
 	for i, v in ipairs(self.items) do
 		if not v.height then v.height = self.itemheight end -- compatibililty
 		if y >= y0 and y < y0 + v.height then
-			if debug ~= nil and debug ~= "" then
-				print(debug .. " i: " .. i)
-			end
 			return i
 		end
 		y0 = y0 + v.height
@@ -469,7 +466,6 @@ function TDLZ_MultiSelectScrollList:prerender()
 	self:updateTooltip()
 
 	if #self.columns > 0 then
-		--		print(self:getScrollHeight())
 		self:drawRectBorderStatic(0, 0 - self.itemheight, self.width, self.itemheight - 1, 1, self.borderColor.r,
 			self.borderColor.g, self.borderColor.b);
 		self:drawRectStatic(0, 0 - self.itemheight - 1, self.width, self.itemheight - 2, self.listHeaderColor.a,
@@ -495,7 +491,6 @@ end
 
 function TDLZ_MultiSelectScrollList:onMouseDown(x, y)
 	if #self.items == 0 then return end
-	print(tostring(x) .. " "..  tostring(y) .." " .. "[no_of_items]:"..#self.items )
 	local row = self:rowAt(x, y, "[onmousedown] ")
 	if row == nil then return end
 	if row > #self.items then
@@ -518,7 +513,6 @@ function TDLZ_MultiSelectScrollList:onMouseDown(x, y)
 	else
 		if self.highlighted:contains(row) and self.highlighted:size() == 1 then
 			-- remove highlight from choosen element only if one is highlighted
-			print("remove highlight from choosen element")
 			self.highlighted = TDLZ_NumSet:new();
 			self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
 		else
@@ -576,7 +570,7 @@ function TDLZ_MultiSelectScrollList:ensureVisible(index)
 		end
 		y = y + v.height
 	end
-	--	print('y='..y..' top='..self:getYScroll()..' bottom='..(self:getYScroll() + self.height))
+
 	if not self.smoothScrollTargetY then self.smoothScrollY = self:getYScroll() end
 	if y < 0 - self:getYScroll() then
 		self.smoothScrollTargetY = 0 - y

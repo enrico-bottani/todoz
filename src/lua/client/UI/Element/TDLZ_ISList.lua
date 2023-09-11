@@ -127,15 +127,15 @@ function TDLZ_ISList:doDrawItem(y, item, alt, k)
                 1, 1);
         end
     end
-
     local dy = (self.itemheight - FONT_HGT_SMALL) / 2
-    if item.lineData.isCheckbox or not item.lineData.isTitle then
-        self:drawText(item.text, self.marginLeft + BOX_SIZE + MARGIN_BETWEEN, y + dy, TEXT_RGBA.r, TEXT_RGBA.g,
-            TEXT_RGBA.b, TEXT_RGBA.a, UIFont.Small);
-    else
-        -- Not a checkbox, write text
-        self:drawText(item.text, self.marginLeft + BOX_SIZE + MARGIN_BETWEEN, y + dy, 0.3, 0.3, 0.3, 1, UIFont.Small);
-    end
+
+    local text = item.text
+    self:drawText(text, self.marginLeft + BOX_SIZE + MARGIN_BETWEEN, y + dy, TEXT_RGBA.r, TEXT_RGBA.g,
+        TEXT_RGBA.b, TEXT_RGBA.a, UIFont.Small);
+
+    -- Not a checkbox, write text
+    --  self:drawText(item.text, self.marginLeft + BOX_SIZE + MARGIN_BETWEEN, y + dy, 0.3, 0.3, 0.3, 1, UIFont.Small);
+
     return y + self.itemheight;
 end
 
@@ -185,4 +185,14 @@ end
 ---@return TDLZ_ISListItemDataModel
 function TDLZ_ISList:getItem(row)
     return self.items[row].lineData
+end
+
+---Get all items from list
+---@return table<number, TDLZ_ISListItemDataModel>
+function TDLZ_ISList:getItems()
+    local rtnTable = {}
+    for index, value in pairs(self.items) do
+        table.insert(rtnTable,value.lineData)
+    end
+    return rtnTable
 end

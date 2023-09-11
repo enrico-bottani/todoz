@@ -26,7 +26,6 @@ TDLZ_OwnedItemService.recFindItemByName = function(itemMap, it, name)
     for i = 0, it:size() - 1 do
         local item = it:get(i)
         local scriptItem = item:getScriptItem()
-        print("item:getName(): " .. scriptItem:getName())
         if scriptItem:getName() == name then
             itemMap:add(item:getID(), item)
         else

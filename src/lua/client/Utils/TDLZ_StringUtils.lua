@@ -75,14 +75,16 @@ function TDLZ_StringUtils.findAllHashTagName(inputString)
         return rtn
     end
     local cursor = 0
+    local loopBreaker = 0
     while cursor < #inputString do
-        local c = TDLZ_StringUtils.findHashTagName(inputString, cursor)
-        if c.startIndex == -1 then
+        local hashTagName = TDLZ_StringUtils.findHashTagName(inputString, cursor)
+        if hashTagName.startIndex == -1 then
             cursor = cursor + 1
         else
-            table.insert(rtn, c)
-            cursor = c.endIndex
+            table.insert(rtn, hashTagName)
+            cursor = hashTagName.endIndex + 1
         end
+        loopBreaker = loopBreaker + 1
     end
     return rtn
 end

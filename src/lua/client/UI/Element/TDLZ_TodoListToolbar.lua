@@ -15,12 +15,7 @@ function TDLZ_TodoListToolbar._createTodoListToolbar(windowUI, y)
             TDLZ_BTN_DEFAULT_H,
             "")
         buttonBack:setImage(getTexture("media/ui/arrow-small-left.png"));
-        buttonBack.borderColor = {
-            r = 0.5,
-            g = 0.5,
-            b = 0.5,
-            a = 0
-        };
+        buttonBack.borderColor = { r = 0.5, g = 0.5, b = 0.5, a = 0 }
         buttonBack.anchorBottom = true
         buttonBack.anchorLeft = true
         buttonBack.anchorRight = false
@@ -109,8 +104,8 @@ function TDLZ_TodoListToolbar._createTodoListToolbar(windowUI, y)
         btnSelectAll.anchorRight = true
         btnSelectAll.anchorTop = false
         btnSelectAll.onclick = function()
-            for key, value in pairs(windowUI.listbox:getItems()) do
-                if value.lineData.isCheckbox then
+            for key, lineData in pairs(windowUI.listbox:getItems()) do
+                if lineData.isCheckbox then
                     windowUI.listbox.highlighted:add(key)
                 end
             end

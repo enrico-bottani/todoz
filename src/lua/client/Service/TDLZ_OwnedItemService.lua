@@ -8,15 +8,16 @@ function TDLZ_OwnedItemService.findByName(name)
     -- local playerObj = getSpecificPlayer(player)
 
     local notebooksIDS = TDLZ_Map:new()
-    local container = playerObj:getInventory()
-    TDLZ_OwnedItemService.recFindItemByName(notebooksIDS, container:getItems(), name)
+    -- inventory: zombie.inventory.ItemContainer
+    local inventory = playerObj:getInventory()
+    TDLZ_OwnedItemService.recFindItemByName(notebooksIDS, inventory:getItems(), name)
     return notebooksIDS;
 end
 
 ---comment
 --- @private
 ---@param itemMap TDLZ_Map
----@param it any
+---@param it any ArrayList<InventoryItem>
 ---@param name string
 TDLZ_OwnedItemService.recFindItemByName = function(itemMap, it, name)
     if it == nil then
@@ -24,7 +25,9 @@ TDLZ_OwnedItemService.recFindItemByName = function(itemMap, it, name)
     end
     for i = 0, it:size() - 1 do
         local item = it:get(i)
-        if item:getName() == name then
+        local scriptItem = item:getScriptItem()
+        print("item:getName(): " .. scriptItem:getName())
+        if scriptItem:getName() == name then
             itemMap:add(item:getID(), item)
         else
             if item:getCategory() == "Container" then

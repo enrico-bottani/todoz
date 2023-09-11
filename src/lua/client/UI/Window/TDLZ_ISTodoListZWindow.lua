@@ -8,33 +8,14 @@ require 'Utils/TDLZ_CheckboxUtils'
 --- @field height number
 --- @field width number
 TDLZ_ISTodoListZWindow = ISCollapsableWindow:derive("TDLZ_ISTodoListZWindow")
--- ************************************************************************--
--- ** TodoListZManagerUI:new
--- **
--- ************************************************************************--
+
 CK_BOX_CHECKED_PATTERN = "^(%s-)%[([Xx])%]"
 CK_BOX_CHECKED_R_PATTERN = "^(%s-)%[([ _])%]"
 TDLZ_REM = getTextManager():getFontHeight(UIFont.Small)
 TDLZ_BTN_MV = 0.25 * TDLZ_REM
 TDLZ_BTN_DEFAULT_H = TDLZ_REM * 1.25
-TDLZ_BTN_DEFAULT_BORDER_COLOR = {
-    r = 0.5,
-    g = 0.5,
-    b = 0.5,
-    a = 1
-}
-local WIN_BACKGROUND_COLOR = {
-    r = 0,
-    g = 0,
-    b = 0,
-    a = 0.8
-}
-local WIN_BORDER_COLOR = {
-    r = 0.4,
-    g = 0.4,
-    b = 0.4,
-    a = 1
-}
+local WIN_BACKGROUND_COLOR = { r = 0, g = 0, b = 0, a = 0.8 }
+local WIN_BORDER_COLOR = { r = 0.4, g = 0.4, b = 0.4, a = 1 }
 
 function TDLZ_ISTodoListZWindow:getBookID() return self.notebookID end
 
@@ -80,7 +61,7 @@ function TDLZ_ISTodoListZWindow:new()
 
     -- This will call the instantiate method
     o:initialise();
-        
+
     o:addToUIManager();
     if o.pin then
         ISCollapsableWindow.pin(o)

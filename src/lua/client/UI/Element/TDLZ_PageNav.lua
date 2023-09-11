@@ -1,6 +1,8 @@
 --- @class TDLZ_PageNav
 TDLZ_PageNav = ISPanel:derive("TDLZ_PageNav");
 
+local TDLZ_BTN_DEFAULT_BORDER_COLOR = { r = 0.5, g = 0.5, b = 0.5, a = 1 }
+
 ---@private
 ---Add a child inside the Window frame
 ---@param child any UI Element

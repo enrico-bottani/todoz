@@ -17,7 +17,11 @@ function TDLZ_TodoListZWindowController.onExecuteClick(winCtx)
             local t = string.sub(value.text, 2)
             local itemFound = TDLZ_OwnedItemService.findByName(t)
             if itemFound:size() > 0 then
-                TDLZ_TodoListZWindowController.onOptionTicked(winCtx, item)
+                item.isChecked = true
+                TDLZ_TodoListZWindowController.saveItemData(winCtx, item)
+            else
+                item.isChecked = false
+                TDLZ_TodoListZWindowController.saveItemData(winCtx, item)
             end
         end
     end
@@ -48,7 +52,7 @@ function TDLZ_TodoListZWindowController.onClick(winCtx, button)
         winCtx.lockButton:setTooltip("Prevent the journal from being edited");
         winCtx:setJoypadButtons(winCtx.joyfocus)
     end
-    
+
     winCtx:refreshUIElements()
 end
 
@@ -56,6 +60,13 @@ end
 ---@param winCtx TDLZ_ISTodoListZWindow Window Context
 ---@param itemData TDLZ_ISListItemDataModel Ticked item data
 function TDLZ_TodoListZWindowController.onOptionTicked(winCtx, itemData)
+    itemData.isChecked = not itemData.isChecked
+    TDLZ_TodoListZWindowController.saveItemData(winCtx, itemData)
+    -- Refresh the UI (and the list accordingly)
+    winCtx:refreshUIElements();
+end
+
+function TDLZ_TodoListZWindowController.saveItemData(winCtx, itemData)
     -- In this function, an "x" is removed or inserted between the square brackets of the ticked element
     local toWrite = ""
     for ln, s in pairs(itemData.lines) do
@@ -64,7 +75,7 @@ function TDLZ_TodoListZWindowController.onOptionTicked(winCtx, itemData)
             sep = "";
         end
         if ln == itemData.lineNumber then
-            if not itemData.isChecked then
+            if itemData.isChecked then
                 -- add x
                 s = s:gsub(CK_BOX_CHECKED_R_PATTERN, function(space)
                     return space .. "[x]"
@@ -82,6 +93,4 @@ function TDLZ_TodoListZWindowController.onOptionTicked(winCtx, itemData)
     end
     -- Save modified text
     itemData.notebook:addPage(itemData.pageNumber, toWrite);
-    -- Refresh the UI (and the list accordingly)
-    winCtx:refreshUIElements();
 end

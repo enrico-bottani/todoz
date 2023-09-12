@@ -24,20 +24,23 @@ function TDLZ_TodoListZWindowController.onExecuteClick(winCtx)
         end
     end
     TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, allItemsInListbox)
+    winCtx:refreshUIElements();
 end
 
+---@param winCtx TDLZ_TodoListZWindow
+---@param button any
 function TDLZ_TodoListZWindowController.onClick(winCtx, button)
     if button.internal == "NEXTPAGE" then
-        winCtx.notebook.currentPage = winCtx.notebook.currentPage + 1;
+        winCtx.model.notebook.currentPage = winCtx.model.notebook.currentPage + 1;
     elseif button.internal == "PREVIOUSPAGE" then
-        winCtx.notebook.currentPage = winCtx.notebook.currentPage - 1;
+        winCtx.model.notebook.currentPage = winCtx.model.notebook.currentPage - 1;
     elseif button.internal == "DELETEPAGE" then
         winCtx.entry:setText("");
         winCtx.entry.javaObject:setCursorLine(0);
     elseif button.internal == "LOCKBOOK" then
         winCtx.lockButton:setImage(getTexture("media/ui/lock.png"));
         winCtx.lockButton.internal = "UNLOCKBOOK";
-        winCtx.notebook:setLockedBy(winCtx.character:getUsername());
+        winCtx.model.notebook:setLockedBy(winCtx.character:getUsername());
         winCtx.title:setEditable(false);
         winCtx.entry:setEditable(false);
         winCtx.lockButton:setTooltip("Allow the journal to be edited");
@@ -45,7 +48,7 @@ function TDLZ_TodoListZWindowController.onClick(winCtx, button)
     elseif button.internal == "UNLOCKBOOK" then
         winCtx.lockButton:setImage(getTexture("media/ui/lockOpen.png"));
         winCtx.lockButton.internal = "LOCKBOOK";
-        winCtx.notebook:setLockedBy(nil);
+        winCtx.model.notebook:setLockedBy(nil);
         winCtx.title:setEditable(true);
         winCtx.entry:setEditable(true);
         winCtx.lockButton:setTooltip("Prevent the journal from being edited");
@@ -73,10 +76,7 @@ end
 ---@param itemData TDLZ_ISListItemDataModel
 ---@return string
 function TDLZ_TodoListZWindowController.saveJournalData(winCtx, itemData)
-    print("----------------------------------------------------")
-    print("START TDLZ_TodoListZWindowController.saveJournalData")
-    print("BEFORE:\n")
-    for ln, lnString in pairs(itemData.lines) do print(lnString) end
+    -- for ln, lnString in pairs(itemData.lines) do print(lnString) end
     -- In this function, an "x" is removed or inserted between the square brackets of the ticked element
     local toWrite = ""
     for ln, lnString in pairs(itemData.lines) do
@@ -103,8 +103,7 @@ function TDLZ_TodoListZWindowController.saveJournalData(winCtx, itemData)
     end
     -- Save modified text
     itemData.notebook:addPage(itemData.pageNumber, toWrite);
-    print("AFTER:\n" .. toWrite)
-    print(" END   TDLZ_TodoListZWindowController.saveJournalData\n")
+    TDLZ_TodoListZWindowController.refreshHashnames(winCtx)
     return toWrite;
 end
 
@@ -138,6 +137,35 @@ function TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, allItemsInLis
             toWrite = toWrite .. sep .. textLine
         end
     end
-    winCtx.notebook.currentNotebook:addPage(winCtx.notebook.currentPage, toWrite);
+    winCtx.model.notebook.currentNotebook:addPage(winCtx.model.notebook.currentPage, toWrite)
+    TDLZ_TodoListZWindowController.refreshHashnames(winCtx)
     return toWrite;
+end
+
+---@param winCtx TDLZ_TodoListZWindow
+---@return table<number,any>
+function TDLZ_TodoListZWindowController.refreshHashnames(winCtx)
+    local text = ""
+    for i = 1, winCtx.model.notebook.numberOfPages, 1 do
+        if winCtx.model.notebook.currentNotebook:seePage(i) ~= nil then
+            text = text .. winCtx.model.notebook.currentNotebook:seePage(i) .. " "
+        end
+    end
+    local pageHashnames = TDLZ_StringUtils.findAllHashTagName(text)
+    pageHashnames = TDLZ_StringUtils.removeAllHash(pageHashnames)
+    local items = getAllItems()
+    local rtnItems = {}
+    for i = 0, items:size() - 1 do
+        local item = items:get(i);
+        if not item:getObsolete() and not item:isHidden() then
+            --print("i-> " .. item:getName())
+            for key, value in pairs(pageHashnames) do
+                if value == item:getName() then
+                    table.insert(rtnItems, item)
+                    break
+                end
+            end
+        end
+    end
+    return rtnItems
 end

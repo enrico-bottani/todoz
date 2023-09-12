@@ -50,7 +50,7 @@ function TDLZ_StringUtils.findHashTagName(inputString, position)
             return { text = "", startIndex = -1, endIndex = -1 }
         end
         local c = inputString:sub(startIndex, startIndex)
-        if c == " " then return { text = "", startIndex = -1, endIndex = -1 } end
+        if string.find(c, "%s") ~= nil then return { text = "", startIndex = -1, endIndex = -1 } end
         if c == "#" then break end
         startIndex = startIndex - 1
     end
@@ -59,7 +59,7 @@ function TDLZ_StringUtils.findHashTagName(inputString, position)
         if endIndex == #inputString then break end
         endIndex = endIndex + 1
         local c = inputString:sub(endIndex, endIndex)
-        if c == " " then
+        if string.find(c, "%s") ~= nil then
             endIndex = endIndex - 1
             break
         end
@@ -68,7 +68,7 @@ function TDLZ_StringUtils.findHashTagName(inputString, position)
 end
 
 ---@param inputString string
----@return table tag
+---@return table<number,string>
 function TDLZ_StringUtils.findAllHashTagName(inputString)
     local rtn = {}
     if inputString == nil or #inputString == 0 then
@@ -87,4 +87,15 @@ function TDLZ_StringUtils.findAllHashTagName(inputString)
         loopBreaker = loopBreaker + 1
     end
     return rtn
+end
+
+---@param strList table<number,any>
+---@return table<number,string>
+function TDLZ_StringUtils.removeAllHash(strList)
+    local t = {}
+    for key, value in pairs(strList) do
+        local s = string.gsub(value.text, "#", "")
+        table.insert(t, s)
+    end
+    return t;
 end

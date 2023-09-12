@@ -1,6 +1,8 @@
 require 'Utils/TDLZ_Map'
 require 'UI/Window/TDLZ_TodoListZWindow'
 
+---@class TDLZ_ISTodoListTZWindowHandler
+---@field instance TDLZ_TodoListZWindow
 TDLZ_ISTodoListTZWindowHandler = {}
 -- ************************************************************************--
 -- ** TodoListZManagerUI - toggle handler
@@ -28,7 +30,7 @@ TDLZ_ISTodoListTZWindowHandler.toggle = function()
     end
 end
 TDLZ_ISTodoListTZWindowHandler.create = function()
-    print("Creating new TodoListZManagerWindow")
+    print("[TDLZ] Creating new TodoListZManagerWindow")
     if TDLZ_ISTodoListTZWindowHandler.instance == nil then
         _newWindow();
     end
@@ -54,7 +56,7 @@ TDLZ_ISTodoListTZWindowHandler.getNotebookID = function()
     if TDLZ_ISTodoListTZWindowHandler.instance == nil then
         return -1
     end
-    return TDLZ_ISTodoListTZWindowHandler.instance.notebookID;
+    return TDLZ_ISTodoListTZWindowHandler.instance.model.notebook.notebookID;
 end
 TDLZ_ISTodoListTZWindowHandler.setNotebookID = function(id)
     if TDLZ_ISTodoListTZWindowHandler.instance == nil then
@@ -67,7 +69,7 @@ TDLZ_ISTodoListTZWindowHandler.refreshContent = function()
     if TDLZ_ISTodoListTZWindowHandler.instance == nil then
         _newWindow();
     end
-    TDLZ_ISTodoListTZWindowHandler.instance:setNotebookID(TDLZ_ISTodoListTZWindowHandler.instance.notebookID)
+    TDLZ_ISTodoListTZWindowHandler.instance:setNotebookID(TDLZ_ISTodoListTZWindowHandler.instance.model.notebook.notebookID)
 end
 
 Events.OnCreateUI.Add(TDLZ_ISTodoListTZWindowHandler.create)

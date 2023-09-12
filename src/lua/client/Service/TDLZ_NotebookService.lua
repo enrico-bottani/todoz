@@ -2,7 +2,9 @@ TDLZ_NotebooksService = {}
 function TDLZ_NotebooksService.saveTextToNotebookPage(notebookID, page, text)
     local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
     local notebook = notebookMap:get(notebookID)
-    if notebook ~= nil then notebook:addPage(page, text) end
+    if notebook ~= nil then 
+        notebook:addPage(page, text) 
+    end
 end
 
 function TDLZ_NotebooksService.getTextFromNotebookPage(notebookID, page)

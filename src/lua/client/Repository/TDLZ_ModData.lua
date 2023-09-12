@@ -15,6 +15,7 @@ TDLZ_ModData = {
     }
 }
 
+
 function TDLZ_ModData.loadModData()
     local player = getPlayer();
     if player then
@@ -23,7 +24,7 @@ function TDLZ_ModData.loadModData()
         if modData.todoListZMod == nil or reset == true then
             modData.todoListZMod = TDLZ_ModData.defaultData
         end
-        return modData.todoListZMod;
+        return modData.todoListZMod
     end
     print("ERROR: failed to load player and mod data.");
     return TDLZ_ModData.modData;

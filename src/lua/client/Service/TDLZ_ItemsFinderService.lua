@@ -7,14 +7,9 @@ function TDLZ_ItemsFinderService.filterName(filterTxt, scriptItem)
     return checkStringPattern(filterTxt) and string.match(txtToCheck, filterTxt)
 end
 
-function TDLZ_ItemsFinderService.filterName2(filterTxt)
-    local items = getAllItems()
-    local allItems = {}
-    for i = 0, items:size() - 1 do
-        local item = items:get(i);
-        if not item:getObsolete() and not item:isHidden() then
-            table.insert(allItems, item)
-        end
+function TDLZ_ItemsFinderService.filterName2(filterTxt, allItems)
+    if allItems==nil then
+        return nil
     end
     filterTxt = string.lower(filterTxt:gsub('[%p%c%s%-]', ''))
     for key, value in pairs(allItems) do

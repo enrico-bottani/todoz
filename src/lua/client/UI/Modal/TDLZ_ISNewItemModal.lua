@@ -1,5 +1,6 @@
 ---@class TDLZ_ISNewItemModal
 ---@field contextMenu TDLZ_ISContextMenu Modal textbox contextual menu
+---@field windowSelf TDLZ_TodoListZWindow
 TDLZ_ISNewItemModal = ISPanelJoypad:derive("TDLZ_ISNewItemModal");
 local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
 local FONT_HGT_MEDIUM = getTextManager():getFontHeight(UIFont.Medium)
@@ -119,11 +120,12 @@ function TDLZ_ISNewItemModal:onClick(button)
         end
 
         TDLZ_NotebooksService.appendLineToNotebook(
-            self.windowSelf.notebookID,
-            self.windowSelf.notebook.currentPage,
+            self.windowSelf.model.notebook.notebookID,
+            self.windowSelf.model.notebook.currentPage,
             self.textbox:getText(),
             options
         )
+        TDLZ_TodoListZWindowController.refreshHashnames(self.windowSelf)
         self.windowSelf:refreshUIElements()
         self:destroy();
         return

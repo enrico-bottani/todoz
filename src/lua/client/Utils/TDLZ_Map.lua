@@ -3,6 +3,8 @@
 --- @field _table table
 TDLZ_Map = {}
 
+
+---@return TDLZ_Map
 function TDLZ_Map:new()
     local o = {}
     setmetatable(o, self)
@@ -36,4 +38,13 @@ end
 
 function TDLZ_Map:size()
     return self._size
+end
+
+---@return table<number,TDLZ_TodoListZWindow>
+function TDLZ_Map:toList()
+    local rtn = {}
+    for k, v in pairs(self._table) do
+        table.insert(rtn, v)
+    end
+    return rtn
 end

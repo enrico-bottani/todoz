@@ -9,13 +9,16 @@ require 'Utils/TDLZ_CheckboxUtils'
 --- @field width number
 TDLZ_TodoListZWindow = ISCollapsableWindow:derive("TDLZ_TodoListZWindow")
 
+TDLZ_TodoListZWindow.UI_MAP = TDLZ_Map:new()
+
+
 function TDLZ_TodoListZWindow:getBookID() return self.model.notebook.notebookID end
 
 ---Set notebook id and refresh UI Elements
 ---@param notebookID number
 function TDLZ_TodoListZWindow:setNotebookID(notebookID)
     self.model:setNotebook(TDLZ_TodoListZWindow._getNotebookData(notebookID))
-    local itemList = TDLZ_TodoListZWindowController.refreshHashnames(self)
+    local itemList = TDLZ_TodoListZWindowController.getHashnames(self)
     self.model:setHashnames(itemList)
     self:refreshUIElements()
 end
@@ -42,25 +45,26 @@ function TDLZ_TodoListZWindow:new()
     local notebookData = nil
     if mD.todoListData == nil or mD.todoListData.notebookID == nil then
         notebookData = TDLZ_TodoListZWindow._getNotebookData(-1)
+        o.model = TDLZ_TodoListZWindowViewModel:new(notebookData, {})
     else
         notebookData = TDLZ_TodoListZWindow._getNotebookData(mD.todoListData.notebookID)
+        local itemList = TDLZ_TodoListZWindowController.getHashnames2(notebookData.currentNotebook)
+        o.model = TDLZ_TodoListZWindowViewModel:new(notebookData, itemList)
     end
-    o.model = TDLZ_TodoListZWindowViewModel:new(notebookData, {})
 
     o.listbox = nil
 
-
-
     -- This will call the instantiate method
-    o:initialise();
+    o:initialise()
+    o:addToUIManager()
 
-    o:addToUIManager();
     if o.pin then
         ISCollapsableWindow.pin(o)
     else
         ISCollapsableWindow.collapse(o)
     end
 
+    TDLZ_TodoListZWindow.UI_MAP:add(o.ID, o)
     return o;
 end
 
@@ -142,6 +146,8 @@ function TDLZ_TodoListZWindow:close()
     if self.onClose then
         self:onClose()
     end
+
+    TDLZ_TodoListZWindow.UI_MAP:remove(self.ID)
 end
 
 function TDLZ_TodoListZWindow.onHighlightChange(windowUI, int)
@@ -242,7 +248,8 @@ function TDLZ_TodoListZWindow._createTodoList(windowUI, x, y, width, height, pre
     windowUI.listbox = TDLZ_ISList:new(x, y, width, height, windowUI, previousState, {
         o = windowUI,
         f = TDLZ_TodoListZWindow.onHighlightChange
-    });
+    })
+    windowUI.listbox.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
     windowUI.listbox:setOnMouseClick(windowUI, TDLZ_TodoListZWindowController.onOptionTicked)
 
     local pageText = windowUI.model.notebook.currentNotebook:seePage(windowUI.model.notebook.currentPage)

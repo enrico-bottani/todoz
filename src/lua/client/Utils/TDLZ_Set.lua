@@ -12,6 +12,8 @@ function TDLZ_Set.isEmpty(tbl)
     return true
 end
 
+
+---@return TDLZ_Set
 function TDLZ_Set:new()
     local o = {}
     setmetatable(o, self)

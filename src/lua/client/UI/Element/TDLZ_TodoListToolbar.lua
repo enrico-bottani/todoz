@@ -22,7 +22,7 @@ function TDLZ_TodoListToolbar._createTodoListToolbar(windowUI, y)
         buttonBack.anchorTop = false
         buttonBack.onclick = function()
             windowUI.listbox.highlighted = TDLZ_NumSet:new();
-            TDLZ_ISTodoListTZWindowHandler.refreshContent();
+            windowUI:refreshUIElements()
         end
         windowUI:addFrameChild(buttonBack);
 

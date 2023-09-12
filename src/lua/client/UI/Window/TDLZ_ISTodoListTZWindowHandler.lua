@@ -7,69 +7,76 @@ TDLZ_ISTodoListTZWindowHandler = {}
 -- ************************************************************************--
 -- ** TodoListZManagerUI - toggle handler
 -- ************************************************************************--
-TDLZ_ISTodoListTZWindowHandler.instance = nil;
-local function _removeFromController()
-    TDLZ_ISTodoListTZWindowHandler.instance:removeFromUIManager()
-    TDLZ_ISTodoListTZWindowHandler.instance = nil;
-end
-local function _newWindow()
-    if TDLZ_ISTodoListTZWindowHandler.instance == nil then
-        TDLZ_ISTodoListTZWindowHandler.instance = TDLZ_TodoListZWindow:new();
-        TDLZ_ISTodoListTZWindowHandler.instance:initialise()
-        TDLZ_ISTodoListTZWindowHandler.instance:addToUIManager()
-        TDLZ_ISTodoListTZWindowHandler.instance.onClose = _removeFromController
-    end
-end
-TDLZ_ISTodoListTZWindowHandler.toggle = function()
-    if TDLZ_ISTodoListTZWindowHandler.instance == nil then
-        _newWindow();
-    else
-        print("TodoListZManagerWindow - window exists - close");
-        TDLZ_ISTodoListTZWindowHandler.close()
-        TDLZ_ISTodoListTZWindowHandler.instance = nil;
-    end
-end
-TDLZ_ISTodoListTZWindowHandler.create = function()
-    print("[TDLZ] Creating new TodoListZManagerWindow")
-    if TDLZ_ISTodoListTZWindowHandler.instance == nil then
-        _newWindow();
-    end
-end
-TDLZ_ISTodoListTZWindowHandler.close = function()
-    print("Closing TDLZ_ISTodoListTZWindowHandler")
-    if TDLZ_ISTodoListTZWindowHandler.instance == nil then
-        return
-    end
 
-    TDLZ_ISTodoListTZWindowHandler.instance:close();
-    TDLZ_ISTodoListTZWindowHandler.instance = nil;
+---@private
+---@return TDLZ_TodoListZWindow
+function TDLZ_ISTodoListTZWindowHandler._createWindow()
+    return TDLZ_TodoListZWindow:new()
 end
-function TDLZ_ISTodoListTZWindowHandler.setVisible()
-    if TDLZ_ISTodoListTZWindowHandler.instance == nil then
-        print("TDLZ_ISTodoListTZWindowHandler.setVisible - Error: instance is nil")
-        return
+
+---@return TDLZ_TodoListZWindow|nil
+function TDLZ_ISTodoListTZWindowHandler.create()
+    if TDLZ_TodoListZWindow.UI_MAP:size() == 0 then
+        return TDLZ_ISTodoListTZWindowHandler._createWindow()
     end
-    TDLZ_ISTodoListTZWindowHandler.instance:setVisible(true);
-    print("TDLZ_ISTodoListTZWindowHandler.setVisible - UI hidden: " .. tostring(not TDLZ_ISTodoListTZWindowHandler.instance:getIsVisible()))
+    return nil
 end
+
+---Close **all** todo list windows
+function TDLZ_ISTodoListTZWindowHandler.close()
+    for key, window in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
+        window:close()
+    end
+end
+
+---@param ownedNotebooks TDLZ_Map
+function TDLZ_ISTodoListTZWindowHandler.closeExcept(ownedNotebooks)
+    for key, window in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
+        if not ownedNotebooks:containsKey(window:getBookID()) then
+            window:close()
+        end
+    end
+end
+
 TDLZ_ISTodoListTZWindowHandler.getNotebookID = function()
     if TDLZ_ISTodoListTZWindowHandler.instance == nil then
         return -1
     end
     return TDLZ_ISTodoListTZWindowHandler.instance.model.notebook.notebookID;
 end
-TDLZ_ISTodoListTZWindowHandler.setNotebookID = function(id)
-    if TDLZ_ISTodoListTZWindowHandler.instance == nil then
-        _newWindow();
+
+---@param notebookID number
+TDLZ_ISTodoListTZWindowHandler.isOpen = function(notebookID)
+    for key, value in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
+        if value:getBookID() == notebookID then
+            return true
+        end
     end
-    TDLZ_ISTodoListTZWindowHandler.instance:setNotebookID(id)
+    return false
 end
 
-TDLZ_ISTodoListTZWindowHandler.refreshContent = function()
-    if TDLZ_ISTodoListTZWindowHandler.instance == nil then
-        _newWindow();
+---@param notebookID number
+---@return TDLZ_TodoListZWindow|nil
+function TDLZ_ISTodoListTZWindowHandler.getInstance(notebookID)
+    for key, value in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
+        if value:getBookID() == notebookID then
+            return value
+        end
     end
-    TDLZ_ISTodoListTZWindowHandler.instance:setNotebookID(TDLZ_ISTodoListTZWindowHandler.instance.model.notebook.notebookID)
+    return nil
+end
+
+---@param notebookID number
+---@return TDLZ_TodoListZWindow
+function TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(notebookID)
+    for key, window in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
+        if window:getBookID() == notebookID then
+            return window
+        end
+    end
+    local newWindow = TDLZ_ISTodoListTZWindowHandler._createWindow()
+    newWindow:setNotebookID(notebookID)
+    return newWindow
 end
 
 Events.OnCreateUI.Add(TDLZ_ISTodoListTZWindowHandler.create)

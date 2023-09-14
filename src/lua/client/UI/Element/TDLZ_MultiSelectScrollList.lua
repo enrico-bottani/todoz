@@ -474,7 +474,7 @@ function TDLZ_MultiSelectScrollList:prerender()
 		for i, v in ipairs(self.columns) do
 			self:drawRectStatic(v.size, 0 - self.itemheight, 1,
 				self.itemheight + math.min(self.height, self.itemheight * #self.items - 1), 1, self.borderColor.r,
-				self.borderColor.g, self.borderColor.b);
+				self.borderColor.g, self.borderColor.b)
 			if v.name then
 				self:drawText(v.name, v.size + 10, 0 - self.itemheight - 1 + dyText - self:getYScroll(), 1, 1, 1, 1,
 					UIFont.Small);

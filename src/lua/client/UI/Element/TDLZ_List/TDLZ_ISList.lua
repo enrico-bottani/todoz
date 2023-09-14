@@ -6,16 +6,13 @@ require "UI/Element/TDLZ_MultiSelectScrollList"
 --- @field itemheight number
 --- @field width number
 TDLZ_ISList = TDLZ_MultiSelectScrollList:derive("TDLZ_ISList")
+--- @type number
 local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
-local MARGIN_TOP_BOTTOM = FONT_HGT_SMALL / 4;
-local MARGIN_BETWEEN = FONT_HGT_SMALL / 4;
-local BOX_SIZE = 16;
-local TEXT_RGBA = {
-    r = 0.8,
-    g = 0.8,
-    b = 0.8,
-    a = 1
-}
+--- @type number
+local MARGIN_TOP_BOTTOM = FONT_HGT_SMALL / 4
+--- @type number
+local MARGIN_BETWEEN = FONT_HGT_SMALL / 4
+
 local original_onmouseup = TDLZ_MultiSelectScrollList.onMouseUp;
 function TDLZ_ISList:new(x, y, width, height, parent, previousState, onHighlight)
     local o = {}
@@ -99,40 +96,47 @@ function TDLZ_ISList:doDrawItem(y, item, alt, k)
 
     TDLZ_ISList._drawCheckboxBackground(self, y, item, alt)
 
-    if item.lineData.isCheckbox then
-        if self.highlighted:contains(k) then
-            self:drawRect(3, y - 1, self.width - 5, self.itemheight + 2, 1, 0.13,
-                0.13, 0.13);
-            self:drawRectBorder(1, y - 1, 2, self.itemheight + 2, 1, 0.6, 0.6, 0.3);
-        end
-        local isMouseOver = self.mouseoverselected == item.index and not self:isMouseOverScrollBar()
-        if isMouseOver then
-            if self.marginLeft < self:getMouseX() and self:getMouseX() < self.marginLeft + BOX_SIZE then
-                local ckBoxY = y + (self.itemheight / 2 - BOX_SIZE / 2)
-                self:drawRect(self.marginLeft, ckBoxY, BOX_SIZE, BOX_SIZE, 1.0, 0.3,
-                    0.3,
-                    0.3);
-            elseif not self.highlighted:contains(k) then
-                self:drawRect(0, y, self:getWidth(), self.itemheight, 1.0, 0.1,
-                    0.1,
-                    0.1);
-            end
-        end
-        self:drawRectBorder(self.marginLeft, y + (self.itemheight / 2 - BOX_SIZE / 2), BOX_SIZE, BOX_SIZE, 1.0, 0.3,
-            0.3, 0.3);
-        if item.lineData.isChecked then
-            self:drawTexture(self.tickTexture, self.marginLeft + 3, y + (self.itemheight / 2 - BOX_SIZE / 2) + 2, 1, 1,
-                1, 1);
+
+
+    local checkBoxY = y + (self.itemheight / 2 - BOX_SIZE / 2)
+    local isMouseOver = self.mouseoverselected == item.index and not self:isMouseOverScrollBar()
+    if not self.highlighted:contains(k) and isMouseOver then
+        --- Mouse over list item
+        TDLZ_Draw.drawRect(self, 0, y, self:getWidth(), self.itemheight, TDLZ_Colors.GRAY_130)
+    elseif self.highlighted:contains(k) and item.lineData.isCheckbox then
+        --- Item is highlighted
+        TDLZ_Draw.drawRect(self, 3, y - 1, self.width - 5, self.itemheight + 2, TDLZ_Colors.GRAY_130)
+        TDLZ_Draw.drawRectBorder(self, 1, y - 1, 2, self.itemheight + 2, TDLZ_Colors.YELLOW);
+    end
+    if isMouseOver then
+        if item.lineData.isCheckbox and self.marginLeft < self:getMouseX()
+            and self:getMouseX() < self.marginLeft + BOX_SIZE then
+            --- Mouse over on checkbox
+            TDLZ_Draw.drawRect(self, self.marginLeft, checkBoxY, BOX_SIZE, BOX_SIZE, TDLZ_Colors.GRAY_300)
+        elseif self:getWidth() - (self.marginLeft + BOX_SIZE + 3) < self:getMouseX() then
+            TDLZ_Draw.drawTexture(self, getTexture("media/ui/erase.png"),
+                self:getWidth() - (self.marginLeft + BOX_SIZE + 3),
+                y + self.itemheight / 2 - 9, TDLZ_Colors.WHITE)
+        else
+            TDLZ_Draw.drawTexture(self, getTexture("media/ui/erase.png"),
+                self:getWidth() - (self.marginLeft + BOX_SIZE + 3),
+                y + self.itemheight / 2 - 9, TDLZ_Colors.GRAY_700)
         end
     end
+    if item.lineData.isCheckbox then
+        if item.lineData.isChecked then
+            --- Draw tick texture
+            TDLZ_Draw.drawTexture(self, self.tickTexture, self.marginLeft + 3,
+                checkBoxY + 2, TDLZ_Colors.WHITE)
+        end
+        TDLZ_Draw.drawRectBorder(self, self.marginLeft, checkBoxY, BOX_SIZE, BOX_SIZE, TDLZ_Colors.GRAY_300)
+    end
+
+
     local dy = (self.itemheight - FONT_HGT_SMALL) / 2
-
-    local text = item.text
-    self:drawText(text, self.marginLeft + BOX_SIZE + MARGIN_BETWEEN, y + dy, TEXT_RGBA.r, TEXT_RGBA.g,
-        TEXT_RGBA.b, TEXT_RGBA.a, UIFont.Small);
-
-    -- Not a checkbox, write text
-    --  self:drawText(item.text, self.marginLeft + BOX_SIZE + MARGIN_BETWEEN, y + dy, 0.3, 0.3, 0.3, 1, UIFont.Small);
+    TDLZ_Draw.drawText(self, item.text,
+        self.marginLeft + BOX_SIZE + MARGIN_BETWEEN, y + dy,
+        TDLZ_Colors.GRAY_800, UIFont.Small)
 
     return y + self.itemheight;
 end
@@ -190,7 +194,7 @@ end
 function TDLZ_ISList:getItems()
     local rtnTable = {}
     for index, value in pairs(self.items) do
-        table.insert(rtnTable,value.lineData)
+        table.insert(rtnTable, value.lineData)
     end
     return rtnTable
 end

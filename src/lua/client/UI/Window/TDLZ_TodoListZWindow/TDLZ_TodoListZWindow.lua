@@ -200,9 +200,9 @@ end
 ---@param lineString string
 ---@param lineNumber number
 ---@param lines table
----@return TDLZ_ISListItemDataModel
+---@return TDLZ_BookLineModel
 function TDLZ_TodoListZWindow._createItemDataModel(windowUI, lineString, lineNumber, lines)
-    return TDLZ_ISListItemDataModel.builder()
+    return TDLZ_BookLineModel.builder()
         :isCheckbox(TDLZ_CheckboxUtils.containsCheckBox(lineString))
         :isChecked(TDLZ_CheckboxUtils.containsCheckedCheckBox(lineString))
         :pageNumber(windowUI.model.notebook.currentPage)
@@ -259,9 +259,9 @@ function TDLZ_TodoListZWindow._createTodoList(windowUI, x, y, width, height, pre
             local listItemText = lineString:gsub(CK_BOX_FLEX_PATTERN, function(space)
                 return space
             end, 1)
-            windowUI.listbox:addItem(TDLZ_ISListItemModel:new(
+            windowUI.listbox:addItem(
                 windowUI:createLabel(listItemText),
-                TDLZ_TodoListZWindow._createItemDataModel(windowUI, lineString, lineNumber, lines)))
+                TDLZ_TodoListZWindow._createItemDataModel(windowUI, lineString, lineNumber, lines))
         end
     end
 

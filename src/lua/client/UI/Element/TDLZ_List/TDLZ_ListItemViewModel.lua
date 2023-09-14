@@ -1,8 +1,8 @@
---- @class TDLZ_ISListItemViewModel
+--- @class TDLZ_ListItemViewModel
 --- @field text string
---- @field lineData TDLZ_ISListItemDataModel
-TDLZ_ISListItemViewModel = {}
-function TDLZ_ISListItemViewModel:new(label, data, tooltip, itemindex, height)
+--- @field data TDLZ_BookLineModel
+TDLZ_ListItemViewModel = {}
+function TDLZ_ListItemViewModel:new(label, data, tooltip, itemindex, height)
     local o = {}
     setmetatable(o, self)
     self.__index = self

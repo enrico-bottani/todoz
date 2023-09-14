@@ -1,7 +1,7 @@
 require "UI/Element/TDLZ_MultiSelectScrollList"
 --- @class TDLZ_ISList:TDLZ_MultiSelectScrollList
 --- @field highlighted TDLZ_NumSet
---- @field items table<number, TDLZ_ISListItemViewModel>
+--- @field items table<number, TDLZ_ListItemViewModel>
 --- @field marginLeft number
 --- @field itemheight number
 --- @field width number
@@ -56,15 +56,13 @@ function TDLZ_ISList:setOnMouseClick(target, onCheckboxToggle)
     self.target = target;
 end
 
----commented
----@param item TDLZ_ISListItemModel
----@return TDLZ_ISListItemViewModel
-function TDLZ_ISList:addItem(item)
-    local i = TDLZ_ISListItemViewModel:new(item.label, item.data, nil, self.count + 1, self.itemheight)
-    table.insert(self.items, i)
+---@param label string
+---@param item TDLZ_BookLineModel
+function TDLZ_ISList:addItem(label, item)
+    local listItemViewModel = TDLZ_ListItemViewModel:new(label, item, nil, self.count + 1, self.itemheight)
+    table.insert(self.items, listItemViewModel)
     self.count = self.count + 1
-    self:setScrollHeight(self:getScrollHeight() + i.height)
-    return i;
+    self:setScrollHeight(self:getScrollHeight() + listItemViewModel.height)
 end
 
 function TDLZ_ISList:onMouseUp(x, y)
@@ -182,13 +180,13 @@ end
 
 ---Get item from list
 ---@param row number row where the item is located
----@return TDLZ_ISListItemDataModel
+---@return TDLZ_BookLineModel
 function TDLZ_ISList:getItem(row)
     return self.items[row].lineData
 end
 
 ---Get all items from list
----@return table<number, TDLZ_ISListItemDataModel>
+---@return table<number, TDLZ_BookLineModel>
 function TDLZ_ISList:getItems()
     local rtnTable = {}
     for index, value in pairs(self.items) do

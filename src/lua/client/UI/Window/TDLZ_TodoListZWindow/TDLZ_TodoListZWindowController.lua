@@ -61,7 +61,7 @@ end
 local run = 0
 --- Toggle item state
 ---@param winCtx TDLZ_TodoListZWindow Window Context
----@param itemData TDLZ_ISListItemDataModel Ticked item data
+---@param itemData TDLZ_BookLineModel Ticked item data
 function TDLZ_TodoListZWindowController.onOptionTicked(winCtx, itemData)
     run = run + 1
     print("On ticked " .. run .. " " .. itemData.lineString .. " " .. itemData.lineNumber)
@@ -73,7 +73,7 @@ end
 
 ---comment
 ---@param winCtx TDLZ_TodoListZWindow
----@param itemData TDLZ_ISListItemDataModel
+---@param itemData TDLZ_BookLineModel
 ---@return string
 function TDLZ_TodoListZWindowController.saveJournalData(winCtx, itemData)
     -- for ln, lnString in pairs(itemData.lines) do print(lnString) end
@@ -109,7 +109,7 @@ end
 
 ---commented
 ---@param winCtx TDLZ_TodoListZWindow
----@param allItemsInListbox table<number, TDLZ_ISListItemDataModel>
+---@param allItemsInListbox table<number, TDLZ_BookLineModel>
 function TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, allItemsInListbox)
     local toWrite = ""
     for ln, itemData in pairs(allItemsInListbox) do

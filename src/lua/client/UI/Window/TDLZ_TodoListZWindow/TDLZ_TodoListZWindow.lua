@@ -18,7 +18,7 @@ function TDLZ_TodoListZWindow:getBookID() return self.model.notebook.notebookID 
 ---@param notebookID number
 function TDLZ_TodoListZWindow:setNotebookID(notebookID)
     self.model:setNotebook(TDLZ_TodoListZWindow._getNotebookData(notebookID))
-    local itemList = TDLZ_TodoListZWindowController.getHashnames(self)
+    local itemList = TDLZ_TodoListZWindowController.getHashnames(self.model.notebook.currentNotebook)
     self.model:setHashnames(itemList)
     self:refreshUIElements()
 end
@@ -48,7 +48,7 @@ function TDLZ_TodoListZWindow:new()
         o.model = TDLZ_TodoListZWindowViewModel:new(notebookData, {})
     else
         notebookData = TDLZ_TodoListZWindow._getNotebookData(mD.todoListData.notebookID)
-        local itemList = TDLZ_TodoListZWindowController.getHashnames2(notebookData.currentNotebook)
+        local itemList = TDLZ_TodoListZWindowController.getHashnames(notebookData.currentNotebook)
         o.model = TDLZ_TodoListZWindowViewModel:new(notebookData, itemList)
     end
 

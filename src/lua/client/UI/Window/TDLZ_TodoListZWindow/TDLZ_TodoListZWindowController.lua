@@ -72,7 +72,7 @@ function TDLZ_TodoListZWindowController.onOptionTicked(winCtx, itemData)
 end
 
 ---comment
----@param winCtx any
+---@param winCtx TDLZ_TodoListZWindow
 ---@param itemData TDLZ_ISListItemDataModel
 ---@return string
 function TDLZ_TodoListZWindowController.saveJournalData(winCtx, itemData)
@@ -103,7 +103,7 @@ function TDLZ_TodoListZWindowController.saveJournalData(winCtx, itemData)
     end
     -- Save modified text
     itemData.notebook:addPage(itemData.pageNumber, toWrite);
-    TDLZ_TodoListZWindowController.getHashnames(winCtx)
+    TDLZ_TodoListZWindowController.getHashnames(winCtx.model.notebook.currentNotebook)
     return toWrite;
 end
 
@@ -138,42 +138,12 @@ function TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, allItemsInLis
         end
     end
     winCtx.model.notebook.currentNotebook:addPage(winCtx.model.notebook.currentPage, toWrite)
-    TDLZ_TodoListZWindowController.getHashnames(winCtx)
+    TDLZ_TodoListZWindowController.getHashnames(winCtx.model.notebook.currentNotebook)
     return toWrite;
 end
 
----@deprecated
----@param winCtx TDLZ_TodoListZWindow
 ---@return table<number,any>
-function TDLZ_TodoListZWindowController.getHashnames(winCtx)
-    local text = ""
-    for i = 1, winCtx.model.notebook.numberOfPages, 1 do
-        if winCtx.model.notebook.currentNotebook:seePage(i) ~= nil then
-            text = text .. winCtx.model.notebook.currentNotebook:seePage(i) .. " "
-        end
-    end
-    local pageHashnames = TDLZ_StringUtils.findAllHashTagName(text)
-    pageHashnames = TDLZ_StringUtils.removeAllHash(pageHashnames)
-    local items = getAllItems()
-    local rtnItems = {}
-    for i = 0, items:size() - 1 do
-        local item = items:get(i);
-        if not item:getObsolete() and not item:isHidden() then
-            --print("i-> " .. item:getName())
-            for key, value in pairs(pageHashnames) do
-                if value == item:getName() then
-                    table.insert(rtnItems, item)
-                    break
-                end
-            end
-        end
-    end
-    return rtnItems
-end
-
-
----@return table<number,any>
-function TDLZ_TodoListZWindowController.getHashnames2(currentNotebook)
+function TDLZ_TodoListZWindowController.getHashnames(currentNotebook)
     local text = ""
     for i = 1, currentNotebook:getCustomPages():size(), 1 do
         if currentNotebook:seePage(i) ~= nil then
@@ -187,7 +157,6 @@ function TDLZ_TodoListZWindowController.getHashnames2(currentNotebook)
     for i = 0, items:size() - 1 do
         local item = items:get(i);
         if not item:getObsolete() and not item:isHidden() then
-            --print("i-> " .. item:getName())
             for key, value in pairs(pageHashnames) do
                 if value == item:getName() then
                     table.insert(rtnItems, item)

@@ -125,7 +125,7 @@ function TDLZ_ISNewItemModal:onClick(button)
             self.textbox:getText(),
             options
         )
-        local itemList = TDLZ_TodoListZWindowController.getHashnames(self.windowSelf)
+        local itemList = TDLZ_TodoListZWindowController.getHashnames(self.windowSelf.model.notebook.currentNotebook)
         self.windowSelf.model:setHashnames(itemList)
         self.windowSelf:refreshUIElements()
         self:destroy();

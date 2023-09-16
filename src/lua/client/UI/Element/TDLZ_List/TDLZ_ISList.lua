@@ -40,10 +40,10 @@ function TDLZ_ISList:new(x, y, width, height, previousState, onHighlight)
         o.highlighted = previousState.highlighted
     end
 
-    o:initialise()
-    o:instantiate()
-
     o.marginLeft = FONT_HGT_SMALL / 2
+    
+    o.onEditItem = nil 
+    o.editItemTarget = nil
 
     return o
 end
@@ -56,6 +56,11 @@ end
 function TDLZ_ISList:setOnEraseItem(target, onEraseItem)
     self.onEraseItem = onEraseItem;
     self.target = target;
+end
+
+function TDLZ_ISList:setOnEditItem(target, onEditItem)
+    self.onEditItem = onEditItem;
+    self.editItemTarget = target;
 end
 
 ---@param label string
@@ -72,7 +77,7 @@ function TDLZ_ISList:onMouseUp(x, y)
     if #self.items == 0 then return end
     local row = self:rowAt(x, y, "[onmousedown] ")
     if row == nil then return end
-    if row > #self.items or row < 1  then
+    if row > #self.items or row < 1 then
         return
     end
 
@@ -80,6 +85,10 @@ function TDLZ_ISList:onMouseUp(x, y)
         getSoundManager():playUISound("UISelectListItem")
         if self.onCheckboxToggle then
             self.onCheckboxToggle(self.target, self.items[row].lineData);
+        end
+    elseif self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + 3) < x and x < self:getWidth() - (self.marginLeft + BOX_SIZE + 3) then
+        if self.onEditItem ~= nil and self.editItemTarget ~= nil then
+            self.onEditItem(self.editItemTarget, self.items[row].lineData)
         end
     elseif self:getWidth() - (self.marginLeft + BOX_SIZE + 3) < x then
         if self.onEraseItem then

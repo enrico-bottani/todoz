@@ -239,10 +239,11 @@ function TDLZ_TodoListZWindow._createTodoList(windowUI, x, y, width, height, pre
         o = windowUI,
         f = TDLZ_TodoListZWindow.onHighlightChange
     })
+    windowUI.listbox:initialise()
     windowUI.listbox.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
     windowUI.listbox:setOnMouseClick(windowUI, TDLZ_TodoListZWindowController.onOptionTicked)
     windowUI.listbox:setOnEraseItem(windowUI, TDLZ_TodoListZWindowController.onEraseItem)
-
+    windowUI.listbox:setOnEditItem(windowUI, TDLZ_TodoListZWindowController.onEditItem)
     local pageText = windowUI.model.notebook.currentNotebook:seePage(windowUI.model.notebook.currentPage)
     if pageText ~= "" then
         local lines = TDLZ_StringUtils.splitKeepingEmptyLines(pageText)

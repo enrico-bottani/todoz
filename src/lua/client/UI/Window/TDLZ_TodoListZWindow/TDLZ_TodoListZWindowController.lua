@@ -74,7 +74,6 @@ end
 ---@param winCtx TDLZ_TodoListZWindow Window Context
 ---@param itemData TDLZ_BookLineModel Ticked item data
 function TDLZ_TodoListZWindowController.onEraseItem(winCtx, itemData)
-    print("On erase")
     run = run + 1
     itemData.lineString = ""
     itemData.isCheckbox = false
@@ -84,13 +83,42 @@ function TDLZ_TodoListZWindowController.onEraseItem(winCtx, itemData)
     winCtx:refreshUIElements();
 end
 
----commented
 ---@param winCtx TDLZ_TodoListZWindow
----@param allItemsInListbox table<number, TDLZ_BookLineModel>
-function TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, allItemsInListbox)
+function TDLZ_TodoListZWindowController.onModalClose(winCtx)
+    winCtx.modal1:setVisible(false);
+    winCtx.modal1:removeFromUIManager();
+end
+
+---@param winCtx TDLZ_TodoListZWindow
+---@param listItem TDLZ_BookLineModel
+function TDLZ_TodoListZWindowController.onEditItem(winCtx, listItem)
+    winCtx.modal1 = TDLZ_ISNewItemModalMask:new(winCtx.x, winCtx.y, winCtx.width, winCtx.height)
+    winCtx.modal1:initialise();
+    winCtx.modal1:addToUIManager();
+
+
+    local modalHeight = 350;
+    local modalWidth = 280;
+    local mx = (winCtx.width - modalWidth) / 2
+
+    local editItemModal = TDLZ_ISNewItemModal:new(winCtx.x + mx, winCtx.y + winCtx.height - modalHeight - 50,
+        modalWidth,
+        modalHeight,
+        winCtx,
+        listItem,
+        TDLZ_TodoListZWindowController.onModalClose)
+    editItemModal.backgroundColor.a = 0.9
+    TDLZ_ISNewItemModal.initialise(editItemModal)
+    editItemModal:addToUIManager()
+end
+
+---Save data into Notebook
+---@param winCtx TDLZ_TodoListZWindow
+---@param bookLines table<number, TDLZ_BookLineModel>
+function TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, bookLines)
     local toWrite = ""
     local insertedLines = 0
-    for ln, itemData in pairs(allItemsInListbox) do
+    for ln, itemData in pairs(bookLines) do
         local textLine = itemData.lineString
 
         local sep = "\n"

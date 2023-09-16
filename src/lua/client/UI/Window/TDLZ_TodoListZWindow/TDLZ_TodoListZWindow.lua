@@ -5,8 +5,11 @@ require 'Utils/TDLZ_CheckboxUtils'
 --- @class TDLZ_TodoListZWindow
 --- @field listbox TDLZ_ISList
 --- @field model TDLZ_TodoListZWindowViewModel
+--- @field x number
+--- @field y number
 --- @field height number
 --- @field width number
+--- @field modal1 any
 TDLZ_TodoListZWindow = ISCollapsableWindow:derive("TDLZ_TodoListZWindow")
 
 TDLZ_TodoListZWindow.UI_MAP = TDLZ_Map:new()

@@ -56,6 +56,7 @@ function TDLZ_BookLineModelBuilder:pageNumber(value)
     return self
 end
 
+---@param value number
 ---@return TDLZ_ListItemViewModelBuilder
 function TDLZ_BookLineModelBuilder:lineNumber(value)
     self.listItemModel.lineNumber = value

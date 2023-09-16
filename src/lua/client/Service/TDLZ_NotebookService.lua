@@ -17,24 +17,19 @@ function TDLZ_NotebooksService.getTextFromNotebookPage(notebookID, page)
     end
     return ""
 end
-
-function TDLZ_NotebooksService.appendLineToNotebook(notebookID, currentPage, lineStr, options)
-    local pageText = TDLZ_NotebooksService.getTextFromNotebookPage(notebookID, currentPage)
-    local sep = ""
-    if pageText ~= "" then
-        sep = "\n"
-    end
+---@param listItem TDLZ_BookLineModel
+---@param lineStr any
+---@param options any
+function TDLZ_NotebooksService.appendLineToNotebook(listItem, lineStr, options)
     local prepend = ""
     if options.type == TDLZ_ISNewItemModal.CHECKBOX_OPTION then
         prepend = "[_]"
+        listItem.isCheckbox = true
     end
 
     local append = " "
     if TDLZ_StringUtils.endsWithChar(lineStr, " ") then
         append = ""
-    end
-    if options.isAnItem then
-        append = append .. ":item"
     end
     if options.resetDaily then
         if not TDLZ_StringUtils.endsWithChar(append, " ") then
@@ -45,6 +40,5 @@ function TDLZ_NotebooksService.appendLineToNotebook(notebookID, currentPage, lin
     if append == " " then
         append = ""
     end
-    TDLZ_NotebooksService.saveTextToNotebookPage(notebookID, currentPage,
-        pageText .. sep .. prepend .. lineStr .. append)
+    listItem.lineString = prepend .. lineStr .. append
 end

@@ -1,95 +1,101 @@
 ---@class TDLZ_ISNewItemModal
 ---@field contextMenu TDLZ_ISContextMenu Modal textbox contextual menu
----@field windowSelf TDLZ_TodoListZWindow
+---@field winCtx TDLZ_TodoListZWindow
+---@field onCloseCallback function
+---@field viewModel TDLZ_ISNewItemModalViewModel
+---@field listItem TDLZ_BookLineModel
 TDLZ_ISNewItemModal = ISPanelJoypad:derive("TDLZ_ISNewItemModal");
 local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
 local FONT_HGT_MEDIUM = getTextManager():getFontHeight(UIFont.Medium)
 
 TDLZ_ISNewItemModal.CHECKBOX_OPTION = 1
 TDLZ_ISNewItemModal.OPTION_TXT = 2
-function TDLZ_ISNewItemModal:initialise()
-    ISPanelJoypad.initialise(self);
+
+---@param o TDLZ_ISNewItemModal
+---@return TDLZ_ISNewItemModal
+function TDLZ_ISNewItemModal.initialise(o)
+    ISPanelJoypad.initialise(o)
 
     local fontHgt = FONT_HGT_SMALL
     local lWidth = getTextManager():MeasureStringX(UIFont.Medium, "Add new row")
-    local label = ISLabel:new((self:getWidth() - lWidth) / 2, FONT_HGT_SMALL, FONT_HGT_MEDIUM, "Add new row", 1, 1, 1, 1,
+    local label = ISLabel:new((o:getWidth() - lWidth) / 2, FONT_HGT_SMALL, FONT_HGT_MEDIUM, "Add new row", 1, 1, 1, 1,
         UIFont.Medium, true)
     label:initialise()
-    self:addChild(label)
+    o:addChild(label)
 
-    self.fontHgt = FONT_HGT_SMALL
+    o.fontHgt = FONT_HGT_SMALL
     local inset = 2
     local numOfLines = 1
-    local height = inset + self.fontHgt * numOfLines + inset
+    local height = inset + o.fontHgt * numOfLines + inset
     local lineTypeWidth = 100
-    self.textbox = ISTextEntryBox:new("", FONT_HGT_SMALL * 0.75,
+    o.textbox = ISTextEntryBox:new(o.listItem.lineString, FONT_HGT_SMALL * 0.75,
         label.y + label.height + FONT_HGT_SMALL * 0.5,
-        self:getWidth() - lineTypeWidth - (FONT_HGT_SMALL * 0.75) * 2,
+        o:getWidth() - lineTypeWidth - (FONT_HGT_SMALL * 0.75) * 2,
         height);
-    self.textbox.font = UIFont.Small
-    self.textbox:initialise()
-    self.textbox:instantiate()
+    o.textbox.font = UIFont.Small
+    o.textbox:initialise()
+    o.textbox:instantiate()
 
-    self.contextMenu:setVisible(false)
-    self.contextMenu:initialise()
-    self.contextMenu:instantiate()
-    self.contextMenu:addToUIManager()
+    o.contextMenu:setVisible(false)
+    o.contextMenu:initialise()
+    o.contextMenu:instantiate()
+    o.contextMenu:addToUIManager()
 
-    self.textbox.onTextChange = function(ctx)
+    o.textbox.onTextChange = function(ctx)
         local cursorPosition = ctx.parent.textbox:getCursorPos()
         local absX = ctx.parent.textbox:getAbsoluteX()
         local absY = ctx.parent.textbox:getAbsoluteY() + ctx.parent.textbox.height
-        self.contextMenu:setX(absX)
-        self.contextMenu:setY(absY)
+        o.contextMenu:setX(absX)
+        o.contextMenu:setY(absY)
         local hashFound = TDLZ_StringUtils.findHashTagName(ctx.parent.textbox:getInternalText(), cursorPosition)
-        self.contextMenu:searchAndDisplayResults(hashFound)
+        o.contextMenu:searchAndDisplayResults(hashFound)
     end
-    self:addChild(self.textbox);
+    o:addChild(o.textbox);
 
-    self.lineType = ISComboBox:new(self.textbox.x + self.textbox.width,
-        self.textbox.y,
+    o.lineType = ISComboBox:new(o.textbox.x + o.textbox.width,
+        o.textbox.y,
         lineTypeWidth,
-        height, self, self.onLineTypeChange)
-    self.lineType:initialise()
-    self.lineType:addOption("Checkbox")
-    self.lineType:addOption("Text")
-    self:addChild(self.lineType)
+        height, o, o.onLineTypeChange)
+    o.lineType:initialise()
+    o.lineType:addOption("Checkbox")
+    o.lineType:addOption("Text")
+    o:addChild(o.lineType)
 
-    self.ckboxOptions = ISTickBox:new(self.textbox.x, self.textbox.y + self.textbox.height, 10, 20, "", nil, nil)
-    self.ckboxOptions:initialise()
-    self.ckboxOptions:instantiate()
-    self.ckboxOptions:setAnchorLeft(true)
-    self.ckboxOptions:setAnchorRight(false)
-    self.ckboxOptions:setAnchorTop(true)
-    self.ckboxOptions:setAnchorBottom(false)
-    self.ckboxOptions.autoWidth = true
-    self:addChild(self.ckboxOptions)
-    self.ckboxOptions:addOption("Is an item")
-    self.ckboxOptions:addOption("Reset daily")
+    o.ckboxOptions = ISTickBox:new(o.textbox.x, o.textbox.y + o.textbox.height, 10, 20, "", nil, nil)
+    o.ckboxOptions:initialise()
+    o.ckboxOptions:instantiate()
+    o.ckboxOptions:setAnchorLeft(true)
+    o.ckboxOptions:setAnchorRight(false)
+    o.ckboxOptions:setAnchorTop(true)
+    o.ckboxOptions:setAnchorBottom(false)
+    o.ckboxOptions.autoWidth = true
+    o:addChild(o.ckboxOptions)
+    o.ckboxOptions:addOption("Reset daily")
 
     local buttonWid1 = getTextManager():MeasureStringX(UIFont.Small, "Ok") + 12
     local buttonWid2 = getTextManager():MeasureStringX(UIFont.Small, "Cancel") + 12
     local buttonWid = math.max(math.max(buttonWid1, buttonWid2), 100)
     local buttonHgt = math.max(fontHgt + 6, 25)
 
-    self.yes = ISButton:new((self:getWidth() / 2) - 5 - buttonWid,
-        self.ckboxOptions.y + self.ckboxOptions.height + FONT_HGT_SMALL * 0.75, buttonWid,
-        buttonHgt, "Add", self, TDLZ_ISNewItemModal.onClick);
-    self.yes.internal = "OK";
-    self.yes:initialise();
-    self.yes:instantiate();
-    self.yes.borderColor = { r = 1, g = 1, b = 1, a = 0.5 };
-    self:addChild(self.yes);
+    o.yes = ISButton:new((o:getWidth() / 2) - 5 - buttonWid,
+        o.ckboxOptions.y + o.ckboxOptions.height + FONT_HGT_SMALL * 0.75, buttonWid,
+        buttonHgt, "Add", o, TDLZ_ISNewItemModal.onClick);
+    o.yes.internal = "OK";
+    o.yes:initialise();
+    o.yes:instantiate();
+    o.yes.borderColor = { r = 1, g = 1, b = 1, a = 0.5 };
+    o:addChild(o.yes);
 
-    self.no = ISButton:new((self:getWidth() / 2) + 5,
-        self.ckboxOptions.y + self.ckboxOptions.height + FONT_HGT_SMALL * 0.75, buttonWid, buttonHgt,
-        getText("UI_Cancel"), self, TDLZ_ISNewItemModal.onClick);
-    self.no.internal = "CLOSE";
-    self.no:initialise()
-    self.no:instantiate()
-    self.no.borderColor = { r = 1, g = 1, b = 1, a = 0.5 }
-    self:addChild(self.no)
-    self:setHeight(self.no.y + self.no.height + FONT_HGT_SMALL * 0.75)
+    o.no = ISButton:new((o:getWidth() / 2) + 5,
+        o.ckboxOptions.y + o.ckboxOptions.height + FONT_HGT_SMALL * 0.75, buttonWid, buttonHgt,
+        getText("UI_Cancel"), o, TDLZ_ISNewItemModal.onClick);
+    o.no.internal = "CLOSE";
+    o.no:initialise()
+    o.no:instantiate()
+    o.no.borderColor = { r = 1, g = 1, b = 1, a = 0.5 }
+    o:addChild(o.no)
+    o:setHeight(o.no.y + o.no.height + FONT_HGT_SMALL * 0.75)
+    return o
 end
 
 function TDLZ_ISNewItemModal:onLineTypeChange(button)
@@ -114,21 +120,29 @@ function TDLZ_ISNewItemModal:onClick(button)
         if self.viewModel.lineType == TDLZ_ISNewItemModal.CHECKBOX_OPTION then
             options = {
                 type = TDLZ_ISNewItemModal.CHECKBOX_OPTION,
-                isAnItem = self.ckboxOptions:isSelected(1),
-                resetDaily = self.ckboxOptions:isSelected(2),
+                resetDaily = self.ckboxOptions:isSelected(1),
             }
         end
+        local notebookItems = self.winCtx.listbox:getItems()
+        if self.listItem.lineNumber == -1 then
+            self.listItem.lineNumber = #self.winCtx.model.notebook:getPageLines() + 1
+            TDLZ_NotebooksService.appendLineToNotebook(
+                self.listItem,
+                self.textbox:getText(),
+                options)
+            table.insert(notebookItems, self.listItem)
+        else
+            TDLZ_NotebooksService.appendLineToNotebook(
+                self.listItem,
+                self.textbox:getText(),
+                options)
+        end
 
-        TDLZ_NotebooksService.appendLineToNotebook(
-            self.windowSelf.model.notebook.notebookID,
-            self.windowSelf.model.notebook.currentPage,
-            self.textbox:getText(),
-            options
-        )
-        local itemList = TDLZ_TodoListZWindowController.getHashnames(self.windowSelf.model.notebook.currentNotebook)
-        self.windowSelf.model:setHashnames(itemList)
-        self.windowSelf:refreshUIElements()
-        self:destroy();
+
+        TDLZ_TodoListZWindowController.saveAllJournalData(self.winCtx, notebookItems)
+        TDLZ_TodoListZWindow.reloadModel(self.winCtx, self.winCtx.model.notebook.notebookID)
+        self.winCtx:refreshUIElements()
+        self:destroy()
         return
     end
 end
@@ -139,8 +153,8 @@ function TDLZ_ISNewItemModal:destroy()
     if self.contextMenu ~= nil then
         self.contextMenu:destroy()
     end
-    if self.onClose and self.windowSelf then
-        self.onClose(self.windowSelf)
+    if self.onCloseCallback and self.winCtx then
+        self.onCloseCallback(self.winCtx)
     end
 end
 
@@ -163,11 +177,16 @@ function TDLZ_ISNewItemModal:onContextualMenuClose(rtn)
     self.textbox:setCursorPos(#firstChunk + #rtn.text)
 end
 
---************************************************************************--
---** TDLZ_ISNewItemModal:new
---**
---************************************************************************--
-function TDLZ_ISNewItemModal:new(x, y, width, height, windowSelf, onClose)
+---comment
+---@param x number
+---@param y number
+---@param width number
+---@param height number
+---@param winCtx any
+---@param onCloseCallback function
+---@param listItem TDLZ_BookLineModel
+---@return table
+function TDLZ_ISNewItemModal:new(x, y, width, height, winCtx, listItem, onCloseCallback)
     local o = {}
     --o.data = {}
     o = ISPanelJoypad:new(x, y, width, height);
@@ -189,8 +208,9 @@ function TDLZ_ISNewItemModal:new(x, y, width, height, windowSelf, onClose)
     o.joypadButtonsY = {};
     o.joypadIndexY = 0;
     o.moveWithMouse = false;
-    o.windowSelf = windowSelf
-    o.onClose = onClose
+    o.winCtx = winCtx
+    o.onCloseCallback = onCloseCallback
+    o.listItem = listItem
     o.contextMenu = TDLZ_ISContextMenu:new(0, 0, 200, 200)
     o.contextMenu:setOnCloseCallback(o, TDLZ_ISNewItemModal.onContextualMenuClose)
     o.contextMenu:setFont(UIFont.Small, 2)
@@ -199,3 +219,7 @@ function TDLZ_ISNewItemModal:new(x, y, width, height, windowSelf, onClose)
     }
     return o
 end
+
+---@class TDLZ_ISNewItemModalViewModel
+---@field lineType number
+TDLZ_ISNewItemModalViewModel = { lineType = TDLZ_ISNewItemModal.CHECKBOX_OPTION }

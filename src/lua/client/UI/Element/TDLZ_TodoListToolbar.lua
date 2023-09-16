@@ -71,27 +71,11 @@ function TDLZ_TodoListToolbar._createTodoListToolbar(windowUI, y)
         buttonNewItem.anchorRight = true
         buttonNewItem.anchorTop = false
         buttonNewItem.onclick = function()
-            windowUI.modal1 = TDLZ_ISNewItemModalMask:new(windowUI.x, windowUI.y, windowUI.width, windowUI.height)
-            windowUI.modal1:initialise();
-            windowUI.modal1:addToUIManager();
-
-
-            local modalHeight = 350;
-            local modalWidth = 280;
-            local mx = (windowUI.width - modalWidth) / 2
-            local modal = TDLZ_ISNewItemModal:new(windowUI.x + mx, windowUI.y + windowUI.height - modalHeight - 50,
-                modalWidth,
-                modalHeight,
-                windowUI, function()
-                    windowUI.modal1:setVisible(false);
-                    windowUI.modal1:removeFromUIManager();
-                end)
-            modal.backgroundColor.a = 0.9
-            modal:initialise();
-            modal:addToUIManager();
-            --if JoypadState.players[getPlayer()+1] then
-            --   setJoypadFocus(getPlayer(), modal)
-            --end
+            TDLZ_TodoListZWindowController.onEditItem(windowUI,
+                TDLZ_BookLineModel.builder()
+                :lineNumber(-1) -- -1: new Item
+                :lineString("")
+                :notebook(windowUI.model.notebook):build())
         end
         windowUI:addFrameChild(buttonNewItem);
 
@@ -122,6 +106,6 @@ function TDLZ_TodoListToolbar._createTodoListToolbar(windowUI, y)
         buttonCheckOthers.anchorLeft = false
         buttonCheckOthers.anchorRight = true
         buttonCheckOthers.anchorTop = false
-        windowUI:addFrameChild(buttonCheckOthers);
+        windowUI:addFrameChild(buttonCheckOthers)
     end
 end

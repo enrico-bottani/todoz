@@ -17,9 +17,7 @@ function TDLZ_TodoListZWindow:getBookID() return self.model.notebook.notebookID 
 ---Set notebook id and refresh UI Elements
 ---@param notebookID number
 function TDLZ_TodoListZWindow:setNotebookID(notebookID)
-    self.model:setNotebook(TDLZ_TodoListZWindow._getNotebookData(notebookID))
-    local itemList = TDLZ_TodoListZWindowController.getHashnames(self.model.notebook.currentNotebook)
-    self.model:setHashnames(itemList)
+    TDLZ_TodoListZWindow.reloadModel(self, notebookID)
     self:refreshUIElements()
 end
 
@@ -41,16 +39,7 @@ function TDLZ_TodoListZWindow:new()
     o.multiSelectMode = true
     o.frameChildren = {}
 
-
-    local notebookData = nil
-    if mD.todoListData == nil or mD.todoListData.notebookID == nil then
-        notebookData = TDLZ_TodoListZWindow._getNotebookData(-1)
-        o.model = TDLZ_TodoListZWindowViewModel:new(notebookData, {})
-    else
-        notebookData = TDLZ_TodoListZWindow._getNotebookData(mD.todoListData.notebookID)
-        local itemList = TDLZ_TodoListZWindowController.getHashnames(notebookData.currentNotebook)
-        o.model = TDLZ_TodoListZWindowViewModel:new(notebookData, itemList)
-    end
+    TDLZ_TodoListZWindow.reloadModel(o, mD.todoListData.notebookID)
 
     o.listbox = nil
 
@@ -79,7 +68,6 @@ function TDLZ_TodoListZWindow:onMouseMoveOutside(dx, dy)
 end
 
 function TDLZ_TodoListZWindow:refreshUIElements()
-    print("- refreshUIElements: " .. self.model.notebook.notebookID)
     if self.model.notebook.notebookID == -1 then
         TDLZ_TodoListZWindow._setFormattedTitle(self, self.model.notebook.notebookID)
     else
@@ -138,8 +126,8 @@ function TDLZ_TodoListZWindow:close()
     getPlayer():setIgnoreAimingInput(false);
     self:setVisible(false)
     TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(),
-        self.model.notebook.notebookID);
-    ISCollapsableWindow.close(self);
+        self.model.notebook.notebookID)
+    ISCollapsableWindow.close(self)
     self:removeFromUIManager();
 
     -- Callback
@@ -208,7 +196,6 @@ function TDLZ_TodoListZWindow._createItemDataModel(windowUI, lineString, lineNum
         :pageNumber(windowUI.model.notebook.currentPage)
         :lineNumber(lineNumber)
         :lineString(lineString)
-        :lines(lines)
         :notebook(windowUI.model.notebook.currentNotebook)
         :build()
 end
@@ -221,13 +208,13 @@ function TDLZ_TodoListZWindow._getNotebookData(notebookID)
     local nb = notebookMap:get(notebookID)
     if nb == nil then
         print("no page 1")
-        return TDLZ_NotebookModel:new({}, -1, -1, -1)
+        return TDLZ_NotebookModel:new({}, -1, "", -1, -1)
     end
     if notebookID == nil or notebookID == -1 then
         print("no page 2")
-        return TDLZ_NotebookModel:new({}, -1, -1, -1)
+        return TDLZ_NotebookModel:new({}, -1, "", -1, -1)
     else
-        return TDLZ_NotebookModel:new(nb, notebookID, 1, nb:getPageToWrite())
+        return TDLZ_NotebookModel:new(nb, notebookID, nb:seePage(1), 1, nb:getPageToWrite())
     end
 end
 
@@ -245,12 +232,13 @@ end
 ---@param height number list height
 ---@param previousState any
 function TDLZ_TodoListZWindow._createTodoList(windowUI, x, y, width, height, previousState)
-    windowUI.listbox = TDLZ_ISList:new(x, y, width, height, windowUI, previousState, {
+    windowUI.listbox = TDLZ_ISList:new(x, y, width, height, previousState, {
         o = windowUI,
         f = TDLZ_TodoListZWindow.onHighlightChange
     })
     windowUI.listbox.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
     windowUI.listbox:setOnMouseClick(windowUI, TDLZ_TodoListZWindowController.onOptionTicked)
+    windowUI.listbox:setOnEraseItem(windowUI, TDLZ_TodoListZWindowController.onEraseItem)
 
     local pageText = windowUI.model.notebook.currentNotebook:seePage(windowUI.model.notebook.currentPage)
     if pageText ~= "" then
@@ -289,4 +277,17 @@ function TDLZ_TodoListZWindow:createLabel(label)
 
     text = text .. string.sub(label, cursorIndex)
     return text
+end
+
+--- @private
+function TDLZ_TodoListZWindow.reloadModel(o, notebookID)
+    local notebookData = nil
+    if notebookID == nil then
+        notebookData = TDLZ_TodoListZWindow._getNotebookData(-1)
+        o.model = TDLZ_TodoListZWindowViewModel:new(notebookData, {})
+    else
+        notebookData = TDLZ_TodoListZWindow._getNotebookData(notebookID)
+        local itemList = TDLZ_TodoListZWindowController.getHashnames(notebookData.currentNotebook)
+        o.model = TDLZ_TodoListZWindowViewModel:new(notebookData, itemList)
+    end
 end

@@ -1,6 +1,6 @@
 --- @class TDLZ_ListItemViewModel
 --- @field text string
---- @field data TDLZ_BookLineModel
+--- @field lineData TDLZ_BookLineModel
 TDLZ_ListItemViewModel = {}
 function TDLZ_ListItemViewModel:new(label, data, tooltip, itemindex, height)
     local o = {}

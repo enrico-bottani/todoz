@@ -1,6 +1,6 @@
 --- @class TDLZ_Map
 --- @field _size number
---- @field _table table
+--- @field _table table<number, any>
 TDLZ_Map = {}
 
 

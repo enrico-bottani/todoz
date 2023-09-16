@@ -64,47 +64,24 @@ local run = 0
 ---@param itemData TDLZ_BookLineModel Ticked item data
 function TDLZ_TodoListZWindowController.onOptionTicked(winCtx, itemData)
     run = run + 1
-    print("On ticked " .. run .. " " .. itemData.lineString .. " " .. itemData.lineNumber)
     itemData.isChecked = not itemData.isChecked
-    TDLZ_TodoListZWindowController.saveJournalData(winCtx, itemData)
+    local allItemsInListbox = winCtx.listbox:getItems()
+    TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, allItemsInListbox)
     -- Refresh the UI (and the list accordingly)
     winCtx:refreshUIElements();
 end
 
----comment
----@param winCtx TDLZ_TodoListZWindow
----@param itemData TDLZ_BookLineModel
----@return string
-function TDLZ_TodoListZWindowController.saveJournalData(winCtx, itemData)
-    -- for ln, lnString in pairs(itemData.lines) do print(lnString) end
-    -- In this function, an "x" is removed or inserted between the square brackets of the ticked element
-    local toWrite = ""
-    for ln, lnString in pairs(itemData.lines) do
-        local sep = "\n"
-        if ln == 1 then
-            sep = "";
-        end
-        if ln == itemData.lineNumber then
-            if itemData.isChecked then
-                -- add x
-                lnString = lnString:gsub(CK_BOX_CHECKED_R_PATTERN, function(space)
-                    return space .. "[x]"
-                end, 1)
-            else
-                -- remove
-                lnString = lnString:gsub(CK_BOX_CHECKED_PATTERN, function(space)
-                    return space .. "[_]"
-                end, 1)
-            end
-            toWrite = toWrite .. sep .. lnString
-        else
-            toWrite = toWrite .. sep .. lnString
-        end
-    end
-    -- Save modified text
-    itemData.notebook:addPage(itemData.pageNumber, toWrite);
-    TDLZ_TodoListZWindowController.getHashnames(winCtx.model.notebook.currentNotebook)
-    return toWrite;
+---@param winCtx TDLZ_TodoListZWindow Window Context
+---@param itemData TDLZ_BookLineModel Ticked item data
+function TDLZ_TodoListZWindowController.onEraseItem(winCtx, itemData)
+    print("On erase")
+    run = run + 1
+    itemData.lineString = ""
+    itemData.isCheckbox = false
+    local allItemsInListbox = winCtx.listbox:getItems()
+    TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, allItemsInListbox)
+    -- Refresh the UI (and the list accordingly)
+    winCtx:refreshUIElements();
 end
 
 ---commented
@@ -112,11 +89,12 @@ end
 ---@param allItemsInListbox table<number, TDLZ_BookLineModel>
 function TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, allItemsInListbox)
     local toWrite = ""
+    local insertedLines = 0
     for ln, itemData in pairs(allItemsInListbox) do
         local textLine = itemData.lineString
 
         local sep = "\n"
-        if ln == 1 then
+        if insertedLines == 0 then
             sep = "";
         end
 
@@ -132,13 +110,15 @@ function TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, allItemsInLis
                     return space .. "[_]"
                 end, 1)
             end
+            insertedLines = insertedLines + 1
             toWrite = toWrite .. sep .. textLine
-        else
+        elseif textLine ~= "" then
+            insertedLines = insertedLines + 1
             toWrite = toWrite .. sep .. textLine
         end
     end
     winCtx.model.notebook.currentNotebook:addPage(winCtx.model.notebook.currentPage, toWrite)
-    TDLZ_TodoListZWindowController.getHashnames(winCtx.model.notebook.currentNotebook)
+    TDLZ_TodoListZWindow.reloadModel(winCtx, winCtx.model.notebook.notebookID)
     return toWrite;
 end
 

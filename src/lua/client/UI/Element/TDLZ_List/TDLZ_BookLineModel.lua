@@ -4,7 +4,6 @@
 --- @field pageNumber number
 --- @field lineNumber number
 --- @field lineString string
---- @field lines table
 --- @field notebook any
 TDLZ_BookLineModel = {}
 
@@ -17,8 +16,7 @@ function TDLZ_BookLineModel:new()
     o.isChecked = false
     o.pageNumber = 0
     o.lineNumber = 0
-    o.lineString = "" -- test only (redundant)
-    o.lines = 0       -- test only (redundant)
+    o.lineString = ""
     o.notebook = nil
     return o
 end
@@ -67,12 +65,6 @@ end
 ---@return TDLZ_ListItemViewModelBuilder
 function TDLZ_BookLineModelBuilder:lineString(value)
     self.listItemModel.lineString = value
-    return self
-end
-
----@return TDLZ_ListItemViewModelBuilder
-function TDLZ_BookLineModelBuilder:lines(value)
-    self.listItemModel.lines = value
     return self
 end
 

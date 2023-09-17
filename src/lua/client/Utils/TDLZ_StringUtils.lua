@@ -99,3 +99,12 @@ function TDLZ_StringUtils.removeAllHash(strList)
     end
     return t;
 end
+
+---@param lineString string
+---@return string
+function TDLZ_StringUtils.removeCheckboxSquareBrackets(lineString)
+   local s,l =  lineString:gsub(CK_BOX_FLEX_PATTERN, function(space)
+        return space
+    end, 1)
+    return s
+end

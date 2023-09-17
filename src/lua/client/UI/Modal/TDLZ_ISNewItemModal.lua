@@ -28,8 +28,9 @@ function TDLZ_ISNewItemModal.initialise(o)
     local numOfLines = 1
     local height = inset + o.fontHgt * numOfLines + inset
     local lineTypeWidth = 100
-    o.textbox = ISTextEntryBox:new(o.listItem.lineString, FONT_HGT_SMALL * 0.75,
-        label.y + label.height + FONT_HGT_SMALL * 0.5,
+    -- Remove [_] before
+    o.textbox = ISTextEntryBox:new(TDLZ_StringUtils.removeCheckboxSquareBrackets(o.listItem.lineString),
+        FONT_HGT_SMALL * 0.75, label.y + label.height + FONT_HGT_SMALL * 0.5,
         o:getWidth() - lineTypeWidth - (FONT_HGT_SMALL * 0.75) * 2,
         height);
     o.textbox.font = UIFont.Small
@@ -77,9 +78,14 @@ function TDLZ_ISNewItemModal.initialise(o)
     local buttonWid = math.max(math.max(buttonWid1, buttonWid2), 100)
     local buttonHgt = math.max(fontHgt + 6, 25)
 
+    local addOrEdit = "Save"
+    if o.listItem.lineNumber == -1 then
+        addOrEdit = "Add"
+    end
+
     o.yes = ISButton:new((o:getWidth() / 2) - 5 - buttonWid,
         o.ckboxOptions.y + o.ckboxOptions.height + FONT_HGT_SMALL * 0.75, buttonWid,
-        buttonHgt, "Add", o, TDLZ_ISNewItemModal.onClick);
+        buttonHgt, addOrEdit, o, TDLZ_ISNewItemModal.onClick);
     o.yes.internal = "OK";
     o.yes:initialise();
     o.yes:instantiate();

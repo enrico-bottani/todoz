@@ -248,9 +248,7 @@ function TDLZ_TodoListZWindow._createTodoList(windowUI, x, y, width, height, pre
     if pageText ~= "" then
         local lines = TDLZ_StringUtils.splitKeepingEmptyLines(pageText)
         for lineNumber, lineString in ipairs(lines) do
-            local listItemText = lineString:gsub(CK_BOX_FLEX_PATTERN, function(space)
-                return space
-            end, 1)
+            local listItemText = TDLZ_StringUtils.removeCheckboxSquareBrackets(lineString)
             windowUI.listbox:addItem(
                 windowUI:createLabel(listItemText),
                 TDLZ_TodoListZWindow._createItemDataModel(windowUI, lineString, lineNumber, lines))

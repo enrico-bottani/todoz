@@ -41,8 +41,8 @@ function TDLZ_ISList:new(x, y, width, height, previousState, onHighlight)
     end
 
     o.marginLeft = FONT_HGT_SMALL / 2
-    
-    o.onEditItem = nil 
+
+    o.onEditItem = nil
     o.editItemTarget = nil
 
     return o
@@ -131,13 +131,35 @@ function TDLZ_ISList:doDrawItem(y, item, alt, k)
             and self:getMouseX() < self.marginLeft + BOX_SIZE then
             --- Mouse over on checkbox
             TDLZ_Draw.drawRect(self, self.marginLeft, checkBoxY, BOX_SIZE, BOX_SIZE, TDLZ_Colors.GRAY_300)
-        elseif self:getWidth() - (self.marginLeft + BOX_SIZE + 3) < self:getMouseX() then
+        end
+        local eraseX = self:getWidth() - (self.marginLeft + BOX_SIZE + 3)
+        if eraseX < self:getMouseX() then
             TDLZ_Draw.drawTexture(self, getTexture("media/ui/erase.png"),
                 self:getWidth() - (self.marginLeft + BOX_SIZE + 3),
                 y + self.itemheight / 2 - 9, TDLZ_Colors.WHITE)
         else
             TDLZ_Draw.drawTexture(self, getTexture("media/ui/erase.png"),
                 self:getWidth() - (self.marginLeft + BOX_SIZE + 3),
+                y + self.itemheight / 2 - 9, TDLZ_Colors.GRAY_700)
+        end
+        local editLineX = self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + 3)
+        if editLineX < self:getMouseX() and self:getMouseX() < eraseX then
+            TDLZ_Draw.drawTexture(self, getTexture("media/ui/edit-line.png"),
+                self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + 3),
+                y + self.itemheight / 2 - 9, TDLZ_Colors.WHITE)
+        else
+            TDLZ_Draw.drawTexture(self, getTexture("media/ui/edit-line.png"),
+                self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + 3),
+                y + self.itemheight / 2 - 9, TDLZ_Colors.GRAY_700)
+        end
+        local moveX = self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + BOX_SIZE + 3)
+        if moveX < self:getMouseX() and self:getMouseX() < editLineX then
+            TDLZ_Draw.drawTexture(self, getTexture("media/ui/move.png"),
+                self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + BOX_SIZE + 3),
+                y + self.itemheight / 2 - 9, TDLZ_Colors.WHITE)
+        else
+            TDLZ_Draw.drawTexture(self, getTexture("media/ui/move.png"),
+                self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + BOX_SIZE + 3),
                 y + self.itemheight / 2 - 9, TDLZ_Colors.GRAY_700)
         end
     end

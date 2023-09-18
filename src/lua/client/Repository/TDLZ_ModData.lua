@@ -26,7 +26,7 @@ function TDLZ_ModData.loadModData()
         end
         return modData.todoListZMod
     end
-    print("ERROR: failed to load player and mod data.");
+    -- failed to load player and mod data
     return TDLZ_ModData.modData;
 end
 

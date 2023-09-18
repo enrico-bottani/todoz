@@ -68,7 +68,6 @@ end
 ---@param context ISContextMenu
 ---@param items table
 function TDLZ_ContextMenu.handleShowTodoListContextMenu(player, context, items)
-    print("TDLZ_ContextMenu.handleShowTodoListContextMenu")
     local notebooks = TDLZ_ContextMenu.getNotebooks(items);
 
     if type(notebooks) == 'table' and #notebooks > 0 then
@@ -76,7 +75,6 @@ function TDLZ_ContextMenu.handleShowTodoListContextMenu(player, context, items)
         local instance = TDLZ_ISTodoListTZWindowHandler.getInstance(notebookID)
         if instance ~= nil then
             if instance:getIsVisible() then
-                print("TDLZ_ContextMenu.handleShowTodoListContextMenu - don't do anything")
                 -- TodoZ UI is open and visible, don't do anything.
                 return
             end

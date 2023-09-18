@@ -210,11 +210,9 @@ function TDLZ_TodoListZWindow._getNotebookData(notebookID)
     local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
     local nb = notebookMap:get(notebookID)
     if nb == nil then
-        print("no page 1")
         return TDLZ_NotebookModel:new({}, -1, "", -1, -1)
     end
     if notebookID == nil or notebookID == -1 then
-        print("no page 2")
         return TDLZ_NotebookModel:new({}, -1, "", -1, -1)
     else
         return TDLZ_NotebookModel:new(nb, notebookID, nb:seePage(1), 1, nb:getPageToWrite())

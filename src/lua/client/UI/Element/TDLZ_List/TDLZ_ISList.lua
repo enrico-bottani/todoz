@@ -1,10 +1,15 @@
 require "UI/Element/TDLZ_MultiSelectScrollList"
+require 'src.lua.client.Utils.TDLZ_Vars'
+require 'src.lua.client.UI.Element.TDLZ_ListItemOptionButton'
 --- @class TDLZ_ISList:TDLZ_MultiSelectScrollList
 --- @field highlighted TDLZ_NumSet
 --- @field items table<number, TDLZ_ListItemViewModel>
 --- @field marginLeft number
 --- @field itemheight number
 --- @field width number
+--- @field buttons table<number,TDLZ_ListItemOptionButton>
+--- @field eraseButton TDLZ_ListItemOptionButton
+--- @field editButton TDLZ_ListItemOptionButton
 TDLZ_ISList = TDLZ_MultiSelectScrollList:derive("TDLZ_ISList")
 --- @type number
 local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
@@ -13,7 +18,6 @@ local MARGIN_TOP_BOTTOM = FONT_HGT_SMALL / 4
 --- @type number
 local MARGIN_BETWEEN = FONT_HGT_SMALL / 4
 
-local original_onmouseup = TDLZ_MultiSelectScrollList.onMouseUp;
 function TDLZ_ISList:new(x, y, width, height, previousState, onHighlight)
     local o = {}
     o = TDLZ_MultiSelectScrollList:new(x, y, width, height, onHighlight)
@@ -45,6 +49,13 @@ function TDLZ_ISList:new(x, y, width, height, previousState, onHighlight)
     o.onEditItem = nil
     o.editItemTarget = nil
 
+    o.buttons = {
+        TDLZ_ListItemOptionButton:new(getTexture("media/ui/move.png"), "Move element"),
+        TDLZ_ListItemOptionButton:new(getTexture("media/ui/edit-line.png"), "Edit element"),
+        TDLZ_ListItemOptionButton:new(getTexture("media/ui/erase.png"), "Erase element")
+    }
+    o.editButton = o.buttons[2]
+    o.eraseButton = o.buttons[3]
     return o
 end
 
@@ -54,13 +65,11 @@ function TDLZ_ISList:setOnMouseClick(target, onCheckboxToggle)
 end
 
 function TDLZ_ISList:setOnEraseItem(target, onEraseItem)
-    self.onEraseItem = onEraseItem;
-    self.target = target;
+    self.eraseButton:setOnMouseUpCallback(target, onEraseItem)
 end
 
 function TDLZ_ISList:setOnEditItem(target, onEditItem)
-    self.onEditItem = onEditItem;
-    self.editItemTarget = target;
+    self.editButton:setOnMouseUpCallback(target, onEditItem)
 end
 
 ---@param label string
@@ -73,12 +82,19 @@ function TDLZ_ISList:addItem(label, item)
 end
 
 function TDLZ_ISList:onMouseUp(x, y)
-    original_onmouseup(x, y)
+    TDLZ_MultiSelectScrollList:onMouseUp(x, y)
     if #self.items == 0 then return end
-    local row = self:rowAt(x, y, "[onmousedown] ")
+    local row = self:rowAt(x, y, "[onmouseup] ")
     if row == nil then return end
     if row > #self.items or row < 1 then
         return
+    end
+    -- Dispatch mouse up event
+    for key, btn in pairs(self.buttons) do
+        if btn:contains(x, y) then
+            btn:triggerMouseUp(self.items[row].lineData)
+            return
+        end
     end
 
     if self.marginLeft < x and x < self.marginLeft + BOX_SIZE and self.items[row].lineData.isCheckbox then
@@ -86,14 +102,31 @@ function TDLZ_ISList:onMouseUp(x, y)
         if self.onCheckboxToggle then
             self.onCheckboxToggle(self.target, self.items[row].lineData);
         end
-    elseif self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + 3) < x and x < self:getWidth() - (self.marginLeft + BOX_SIZE + 3) then
-        if self.onEditItem ~= nil and self.editItemTarget ~= nil then
-            self.onEditItem(self.editItemTarget, self.items[row].lineData)
+    end
+
+    if isCtrlKeyDown() then
+        if self.highlighted:contains(row) then
+            self.highlighted:remove(row)
+            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
+        else
+            self.highlighted:add(row)
+            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
         end
-    elseif self:getWidth() - (self.marginLeft + BOX_SIZE + 3) < x then
-        if self.onEraseItem then
-            self.onEraseItem(self.target, self.items[row].lineData);
+    else
+        if self.highlighted:contains(row) and self.highlighted:size() == 1 then
+            -- remove highlight from choosen element only if one is highlighted
+            self.highlighted = TDLZ_NumSet:new();
+            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
+        else
+            -- wipe all and add highlight choosen element
+            self.highlighted = TDLZ_NumSet:new()
+            self.highlighted:add(row)
+            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
         end
+    end
+    -- callback
+    if self.onmouseup then
+        self.onmouseup(self.target, self.items[self.selected].item);
     end
 end
 
@@ -132,35 +165,21 @@ function TDLZ_ISList:doDrawItem(y, item, alt, k)
             --- Mouse over on checkbox
             TDLZ_Draw.drawRect(self, self.marginLeft, checkBoxY, BOX_SIZE, BOX_SIZE, TDLZ_Colors.GRAY_300)
         end
-        local eraseX = self:getWidth() - (self.marginLeft + BOX_SIZE + 3)
-        if eraseX < self:getMouseX() then
-            TDLZ_Draw.drawTexture(self, getTexture("media/ui/erase.png"),
-                self:getWidth() - (self.marginLeft + BOX_SIZE + 3),
-                y + self.itemheight / 2 - 9, TDLZ_Colors.WHITE)
-        else
-            TDLZ_Draw.drawTexture(self, getTexture("media/ui/erase.png"),
-                self:getWidth() - (self.marginLeft + BOX_SIZE + 3),
-                y + self.itemheight / 2 - 9, TDLZ_Colors.GRAY_700)
-        end
-        local editLineX = self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + 3)
-        if editLineX < self:getMouseX() and self:getMouseX() < eraseX then
-            TDLZ_Draw.drawTexture(self, getTexture("media/ui/edit-line.png"),
-                self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + 3),
-                y + self.itemheight / 2 - 9, TDLZ_Colors.WHITE)
-        else
-            TDLZ_Draw.drawTexture(self, getTexture("media/ui/edit-line.png"),
-                self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + 3),
-                y + self.itemheight / 2 - 9, TDLZ_Colors.GRAY_700)
-        end
-        local moveX = self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + BOX_SIZE + 3)
-        if moveX < self:getMouseX() and self:getMouseX() < editLineX then
-            TDLZ_Draw.drawTexture(self, getTexture("media/ui/move.png"),
-                self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + BOX_SIZE + 3),
-                y + self.itemheight / 2 - 9, TDLZ_Colors.WHITE)
-        else
-            TDLZ_Draw.drawTexture(self, getTexture("media/ui/move.png"),
-                self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + BOX_SIZE + 3),
-                y + self.itemheight / 2 - 9, TDLZ_Colors.GRAY_700)
+
+        local btnX = self:getWidth() - self.marginLeft
+        for key, btn in pairs(self.buttons) do
+            btn.bounds.width = BOX_SIZE
+            btnX = btnX - btn.bounds.width
+            btn.bounds.x = btnX
+            btn.bounds.y = y + self.itemheight / 2 - 9
+            btn.bounds.height = 18
+            if btn.bounds.x < self:getMouseX() and self:getMouseX() < btn.bounds.x + btn.bounds.width then
+                TDLZ_Draw.drawTexture(self, btn.texture,
+                    btn.bounds.x, btn.bounds.y, TDLZ_Colors.WHITE)
+            else
+                TDLZ_Draw.drawTexture(self, btn.texture,
+                    btn.bounds.x, btn.bounds.y, TDLZ_Colors.GRAY_700)
+            end
         end
     end
     if item.lineData.isCheckbox then
@@ -179,47 +198,6 @@ function TDLZ_ISList:doDrawItem(y, item, alt, k)
         TDLZ_Colors.GRAY_800, UIFont.Small)
 
     return y + self.itemheight;
-end
-
-function TDLZ_ISList:onMouseDown(x, y)
-    if #self.items == 0 then return end
-    local row = self:rowAt(x, y, "[onmousedown] ")
-    if row == nil then return end
-    if row > #self.items or row < 1 or not self.items[row].lineData.isCheckbox then
-        return
-    end
-    local moveX = self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + BOX_SIZE + 3)
-    if self.marginLeft < x and x < self.marginLeft + BOX_SIZE or moveX < x then
-        return
-    end
-
-    getSoundManager():playUISound("UISelectListItem")
-    self.selected = row;
-
-    if isCtrlKeyDown() then
-        if self.highlighted:contains(row) then
-            self.highlighted:remove(row)
-            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
-        else
-            self.highlighted:add(row)
-            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
-        end
-    else
-        if self.highlighted:contains(row) and self.highlighted:size() == 1 then
-            -- remove highlight from choosen element only if one is highlighted
-            self.highlighted = TDLZ_NumSet:new();
-            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
-        else
-            -- wipe all and add highlight choosen element
-            self.highlighted = TDLZ_NumSet:new()
-            self.highlighted:add(row)
-            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
-        end
-    end
-    -- callback
-    if self.onmousedown then
-        self.onmousedown(self.target, self.items[self.selected].item);
-    end
 end
 
 ---Get item from list

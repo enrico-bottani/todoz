@@ -7,7 +7,6 @@ require "TimedActions/ISEatFoodAction"
 require "src.lua.client.Utils.TDLZ_NumSet"
 
 --- @class TDLZ_MultiSelectScrollList
-
 TDLZ_MultiSelectScrollList = ISPanelJoypad:derive("TDLZ_MultiSelectScrollList");
 TDLZ_MultiSelectScrollList.joypadListIndex = 1;
 
@@ -490,42 +489,6 @@ function TDLZ_MultiSelectScrollList:onMouseDoubleClick(x, y)
 end
 
 function TDLZ_MultiSelectScrollList:onMouseDown(x, y)
-	if #self.items == 0 then return end
-	local row = self:rowAt(x, y, "[onmousedown] ")
-	if row == nil then return end
-	if row > #self.items then
-		row = #self.items;
-	end
-	if row < 1 then
-		row = 1;
-	end
-	getSoundManager():playUISound("UISelectListItem")
-	self.selected = row;
-
-	if isCtrlKeyDown() then
-		if self.highlighted:contains(row) then
-			self.highlighted:remove(row)
-			self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
-		else
-			self.highlighted:add(row)
-			self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
-		end
-	else
-		if self.highlighted:contains(row) and self.highlighted:size() == 1 then
-			-- remove highlight from choosen element only if one is highlighted
-			self.highlighted = TDLZ_NumSet:new();
-			self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
-		else
-			-- wipe all and add highlight choosen element
-			self.highlighted = TDLZ_NumSet:new();
-			self.highlighted:add(row)
-			self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
-		end
-	end
-	-- callback
-	if self.onmousedown then
-		self.onmousedown(self.target, self.items[self.selected].item);
-	end
 end
 
 function TDLZ_MultiSelectScrollList:onJoypadDirUp()

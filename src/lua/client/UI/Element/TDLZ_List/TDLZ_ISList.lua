@@ -188,8 +188,8 @@ function TDLZ_ISList:onMouseDown(x, y)
     if row > #self.items or row < 1 or not self.items[row].lineData.isCheckbox then
         return
     end
-
-    if self.marginLeft < x and x < self.marginLeft + BOX_SIZE then
+    local moveX = self:getWidth() - (self.marginLeft + BOX_SIZE + BOX_SIZE + BOX_SIZE + 3)
+    if self.marginLeft < x and x < self.marginLeft + BOX_SIZE or moveX < x then
         return
     end
 

@@ -28,7 +28,7 @@ function ISUIWriteJournal:onClick(button)
                 error("get instance returned nil")
                 return
             end
-            instance:setNotebookID(notebookID)
+            instance:setNotebookID(notebookID, instance.model.notebook.currentPage)
             return
         end
     end
@@ -37,7 +37,7 @@ end
 ---@param items table
 ---@param player any
 function TDLZ_ContextMenu.onOpenTodoZ(items, player)
-    local instance = TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(items[1]:getID())
+    local instance = TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(items[1]:getID(), 1)
     if instance ~= nil then
         instance:setVisible(true)
     end

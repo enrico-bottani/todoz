@@ -93,6 +93,18 @@ function TDLZ_MultiSelectScrollList:rowAt(x, y)
 	return -1
 end
 
+function TDLZ_MultiSelectScrollList:yAtRow(x, y)
+	local y0 = 0
+	for i, v in ipairs(self.items) do
+		if not v.height then v.height = self.itemheight end -- compatibililty
+		if y >= y0 and y < y0 + v.height then
+			return y0
+		end
+		y0 = y0 + v.height
+	end
+	return y0
+end
+
 function TDLZ_MultiSelectScrollList:topOfItem(index)
 	local y = 0
 	for k, v in ipairs(self.items) do

@@ -68,14 +68,14 @@ end
 
 ---@param notebookID number
 ---@return TDLZ_TodoListZWindow
-function TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(notebookID)
+function TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(notebookID, pageNumber)
     for key, window in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
         if window:getBookID() == notebookID then
             return window
         end
     end
     local newWindow = TDLZ_ISTodoListTZWindowHandler._createWindow()
-    newWindow:setNotebookID(notebookID)
+    newWindow:setNotebookID(notebookID, pageNumber)
     return newWindow
 end
 

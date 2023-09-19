@@ -146,7 +146,7 @@ function TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, bookLines)
         end
     end
     winCtx.model.notebook.currentNotebook:addPage(winCtx.model.notebook.currentPage, toWrite)
-    TDLZ_TodoListZWindow.reloadModel(winCtx, winCtx.model.notebook.notebookID)
+    TDLZ_TodoListZWindow.reloadModel(winCtx, winCtx.model.notebook.notebookID, winCtx.model.notebook.currentPage)
     return toWrite;
 end
 

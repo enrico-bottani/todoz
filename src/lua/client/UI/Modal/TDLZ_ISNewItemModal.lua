@@ -146,7 +146,7 @@ function TDLZ_ISNewItemModal:onClick(button)
 
 
         TDLZ_TodoListZWindowController.saveAllJournalData(self.winCtx, notebookItems)
-        TDLZ_TodoListZWindow.reloadModel(self.winCtx, self.winCtx.model.notebook.notebookID)
+        TDLZ_TodoListZWindow.reloadModel(self.winCtx, self.winCtx.model.notebook.notebookID,self.winCtx.model.notebook.currentPage)
         self.winCtx:refreshUIElements()
         self:destroy()
         return

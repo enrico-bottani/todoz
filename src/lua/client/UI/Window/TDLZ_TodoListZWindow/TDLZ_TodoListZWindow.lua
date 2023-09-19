@@ -19,8 +19,8 @@ function TDLZ_TodoListZWindow:getBookID() return self.model.notebook.notebookID 
 
 ---Set notebook id and refresh UI Elements
 ---@param notebookID number
-function TDLZ_TodoListZWindow:setNotebookID(notebookID)
-    TDLZ_TodoListZWindow.reloadModel(self, notebookID)
+function TDLZ_TodoListZWindow:setNotebookID(notebookID, pageNumber)
+    TDLZ_TodoListZWindow.reloadModel(self, notebookID, pageNumber)
     self:refreshUIElements()
 end
 
@@ -42,7 +42,7 @@ function TDLZ_TodoListZWindow:new()
     o.multiSelectMode = true
     o.frameChildren = {}
 
-    TDLZ_TodoListZWindow.reloadModel(o, mD.todoListData.notebookID)
+    TDLZ_TodoListZWindow.reloadModel(o, mD.todoListData.notebookID, mD.todoListData.pageNumber)
 
     o.listbox = nil
 
@@ -119,7 +119,7 @@ function TDLZ_TodoListZWindow:refreshUIElements()
     end
     -- save changes
     TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(),
-        self.model.notebook.notebookID);
+        self.model.notebook.notebookID, self.model.notebook.currentPage)
     self.resizeWidget2:bringToTop()
     self.resizeWidget:bringToTop()
 end
@@ -129,7 +129,7 @@ function TDLZ_TodoListZWindow:close()
     getPlayer():setIgnoreAimingInput(false);
     self:setVisible(false)
     TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(),
-        self.model.notebook.notebookID)
+        self.model.notebook.notebookID, self.model.notebook.currentPage)
     ISCollapsableWindow.close(self)
     self:removeFromUIManager();
 
@@ -206,7 +206,7 @@ end
 ---@private
 ---@param notebookID number
 ---@return TDLZ_NotebookModel
-function TDLZ_TodoListZWindow._getNotebookData(notebookID)
+function TDLZ_TodoListZWindow._getNotebookData(notebookID, pageNumber)
     local notebookMap = TDLZ_NotebooksUtils.getNotebooksInContainer()
     local nb = notebookMap:get(notebookID)
     if nb == nil then
@@ -215,7 +215,7 @@ function TDLZ_TodoListZWindow._getNotebookData(notebookID)
     if notebookID == nil or notebookID == -1 then
         return TDLZ_NotebookModel:new({}, -1, "", -1, -1)
     else
-        return TDLZ_NotebookModel:new(nb, notebookID, nb:seePage(1), 1, nb:getPageToWrite())
+        return TDLZ_NotebookModel:new(nb, notebookID, nb:seePage(pageNumber), pageNumber, nb:getPageToWrite())
     end
 end
 
@@ -280,13 +280,16 @@ function TDLZ_TodoListZWindow:createLabel(label)
 end
 
 --- @private
-function TDLZ_TodoListZWindow.reloadModel(o, notebookID)
+---@param o any
+---@param notebookID any
+---@param pageNumber any
+function TDLZ_TodoListZWindow.reloadModel(o, notebookID, pageNumber)
     local notebookData = nil
     if notebookID == nil then
-        notebookData = TDLZ_TodoListZWindow._getNotebookData(-1)
+        notebookData = TDLZ_TodoListZWindow._getNotebookData(-1, 1)
         o.model = TDLZ_TodoListZWindowViewModel:new(notebookData, {})
     else
-        notebookData = TDLZ_TodoListZWindow._getNotebookData(notebookID)
+        notebookData = TDLZ_TodoListZWindow._getNotebookData(notebookID, pageNumber)
         local itemList = TDLZ_TodoListZWindowController.getHashnames(notebookData.currentNotebook)
         o.model = TDLZ_TodoListZWindowViewModel:new(notebookData, itemList)
     end

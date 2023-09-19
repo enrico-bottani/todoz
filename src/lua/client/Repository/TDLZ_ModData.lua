@@ -30,7 +30,7 @@ function TDLZ_ModData.loadModData()
     return TDLZ_ModData.modData;
 end
 
-function TDLZ_ModData.saveModData(x, y, width, height, pin, hidden, notebookID)
+function TDLZ_ModData.saveModData(x, y, width, height, pin, hidden, notebookID, pageNumber)
     local player = getPlayer();
     local modData = player:getModData()
     modData.todoListZMod.isFirstRun = false;
@@ -43,7 +43,8 @@ function TDLZ_ModData.saveModData(x, y, width, height, pin, hidden, notebookID)
         hidden = hidden
     };
     modData.todoListZMod.todoListData = {
-        notebookID = notebookID
+        notebookID = notebookID,
+        pageNumber = pageNumber
     };
     player:transmitModData();
 end

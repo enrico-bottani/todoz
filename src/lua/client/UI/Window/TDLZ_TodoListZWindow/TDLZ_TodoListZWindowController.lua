@@ -35,6 +35,7 @@ function TDLZ_TodoListZWindowController.onClick(winCtx, button)
         winCtx.listbox.highlighted = TDLZ_NumSet:new();
     elseif button.internal == "PREVIOUSPAGE" then
         winCtx.model.notebook.currentPage = winCtx.model.notebook.currentPage - 1
+        winCtx.listbox.highlighted = TDLZ_NumSet:new();
     elseif button.internal == "DELETEPAGE" then
         winCtx.entry:setText("");
         winCtx.entry.javaObject:setCursorLine(0);

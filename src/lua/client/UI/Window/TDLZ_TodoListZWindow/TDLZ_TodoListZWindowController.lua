@@ -30,6 +30,7 @@ end
 ---@param winCtx TDLZ_TodoListZWindow
 ---@param button any
 function TDLZ_TodoListZWindowController.onClick(winCtx, button)
+    print("Dispatch: " .. button.internal)
     if button.internal == "NEXTPAGE" then
         winCtx.model.notebook.currentPage = winCtx.model.notebook.currentPage + 1
         winCtx.listbox.highlighted = TDLZ_NumSet:new();
@@ -37,20 +38,16 @@ function TDLZ_TodoListZWindowController.onClick(winCtx, button)
         winCtx.model.notebook.currentPage = winCtx.model.notebook.currentPage - 1
         winCtx.listbox.highlighted = TDLZ_NumSet:new();
     elseif button.internal == "DELETEPAGE" then
-        winCtx.entry:setText("");
-        winCtx.entry.javaObject:setCursorLine(0);
+        print("saveAllJournalData DELETEPAGE")
+        TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, {})
+        winCtx:refreshUIElements()
     elseif button.internal == "LOCKBOOK" then
-        winCtx.lockButton:setImage(getTexture("media/ui/lock.png"));
-        winCtx.lockButton.internal = "UNLOCKBOOK";
-        winCtx.model.notebook:setLockedBy(winCtx.character:getUsername());
-        winCtx.title:setEditable(false);
-        winCtx.entry:setEditable(false);
-        winCtx.lockButton:setTooltip("Allow the journal to be edited");
-        winCtx:setJoypadButtons(winCtx.joyfocus)
+        local player = getPlayer()
+        winCtx.model.notebook.currentNotebook:setLockedBy(player:getUsername());
     elseif button.internal == "UNLOCKBOOK" then
         winCtx.lockButton:setImage(getTexture("media/ui/lockOpen.png"));
         winCtx.lockButton.internal = "LOCKBOOK";
-        winCtx.model.notebook:setLockedBy(nil);
+        winCtx.model.notebook.currentNotebook:setLockedBy(nil);
         winCtx.title:setEditable(true);
         winCtx.entry:setEditable(true);
         winCtx.lockButton:setTooltip("Prevent the journal from being edited");

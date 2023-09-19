@@ -71,6 +71,8 @@ function TDLZ_TodoListZWindow:onMouseMoveOutside(dx, dy)
 end
 
 function TDLZ_TodoListZWindow:refreshUIElements()
+    local resizeBarHeight = self.resizable and self:resizeWidgetHeight() or 0
+    local titleBarHeight = self:titleBarHeight()
     if self.model.notebook.notebookID == -1 then
         TDLZ_TodoListZWindow._setFormattedTitle(self, self.model.notebook.notebookID)
     else
@@ -92,16 +94,13 @@ function TDLZ_TodoListZWindow:refreshUIElements()
         end
         self:clearFrameChildren()
 
-        -- Create tibox
-        local resizeBarHeight = self.resizable and self:resizeWidgetHeight() or 0
-        local titleBarHeight = self:titleBarHeight()
 
         ----------------------------
         -- Building PageNav
         local y = titleBarHeight
         local pageNav = TDLZ_PageNav:new(0, y, self.width, TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM)
         pageNav:initialise()
-        pageNav:createPageNav(
+        TDLZ_PageNav.createPageNav(pageNav,
             self.model.notebook.currentPage, self.model.notebook.numberOfPages,
             self, TDLZ_TodoListZWindowController.onClick)
         self:addFrameChild(pageNav)
@@ -120,6 +119,12 @@ function TDLZ_TodoListZWindow:refreshUIElements()
     -- save changes
     TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(),
         self.model.notebook.notebookID, self.model.notebook.currentPage)
+
+    local modal1 = TDLZ_ISNewItemModalMask:new(0, titleBarHeight + TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM,
+        self.width, self.height - (titleBarHeight + TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM) - resizeBarHeight)
+    modal1:initialise()
+    self:addFrameChild(modal1)
+
     self.resizeWidget2:bringToTop()
     self.resizeWidget:bringToTop()
 end

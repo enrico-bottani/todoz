@@ -2,6 +2,8 @@ require 'src.lua.client.Utils.TDLZ_Set'
 --- @class TDLZ_NumSet:TDLZ_Set
 TDLZ_NumSet = TDLZ_Set:derive("TDLZ_NumSet")
 local notNumberMessage = "Element is not a number"
+
+---@return TDLZ_NumSet
 function TDLZ_NumSet:new()
     local o = TDLZ_Set:new()
     setmetatable(o, self)

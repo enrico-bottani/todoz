@@ -47,7 +47,6 @@ function TDLZ_TodoListZWindowController.onClick(winCtx, button)
     elseif button.internal == "UNLOCKBOOK" then
         winCtx.model.notebook.currentNotebook:setLockedBy(nil)
     end
-
     winCtx:refreshUIElements()
 end
 
@@ -105,7 +104,7 @@ function TDLZ_TodoListZWindowController.onEditItem(winCtx, listItem)
     editItemModal:addToUIManager()
 end
 
----Save data into Notebook
+---Save data into Notebook. Please note this does not refresh the UI
 ---@param winCtx TDLZ_TodoListZWindow
 ---@param bookLines table<number, TDLZ_BookLineModel>
 function TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, bookLines)

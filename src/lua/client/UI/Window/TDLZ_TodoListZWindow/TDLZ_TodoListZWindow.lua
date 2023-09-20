@@ -30,7 +30,7 @@ function TDLZ_TodoListZWindow:new()
     o = ISCollapsableWindow:new(mD.panelSettings.x, mD.panelSettings.y, mD.panelSettings.width, mD.panelSettings.height);
     o.pin = mD.panelSettings.pin
     o.minimumWidth = 300
-    o.minimumHeight = 600
+    o.minimumHeight = 200
     o.resizable = true
     o.borderColor = WIN_BORDER_COLOR
     o.backgroundColor = WIN_BACKGROUND_COLOR
@@ -70,7 +70,10 @@ function TDLZ_TodoListZWindow:onMouseMoveOutside(dx, dy)
     getPlayer():setIgnoreAimingInput(false);
 end
 
+local TDLZ_DEBUG_RNumber = 0
 function TDLZ_TodoListZWindow:refreshUIElements()
+    TDLZ_DEBUG_RNumber = TDLZ_DEBUG_RNumber + 1
+    print("------ r " .. TDLZ_DEBUG_RNumber .. " ------")
     local resizeBarHeight = self.resizable and self:resizeWidgetHeight() or 0
     local titleBarHeight = self:titleBarHeight()
     if self.model.notebook.notebookID == -1 then
@@ -93,7 +96,6 @@ function TDLZ_TodoListZWindow:refreshUIElements()
             self:removeChild(self.listbox)
         end
         self:clearFrameChildren()
-
 
         ----------------------------
         -- Building PageNav
@@ -118,7 +120,7 @@ function TDLZ_TodoListZWindow:refreshUIElements()
     end
     -- save changes
     TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(),
-        self.model.notebook.notebookID, self.model.notebook.currentPage)
+        self.model.notebook.notebookID, self.model.notebook.currentPage, self.listbox:getYScroll())
 
     if self.model.notebook.currentNotebook:getLockedBy() then
         local modal1 = TDLZ_ISNewItemModalMask:new(0,
@@ -245,11 +247,13 @@ function TDLZ_TodoListZWindow._createTodoList(windowUI, x, y, width, height, pre
         o = windowUI,
         f = TDLZ_TodoListZWindow.onHighlightChange
     })
-    windowUI.listbox:initialise()
     windowUI.listbox.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
+
     windowUI.listbox:setOnMouseClick(windowUI, TDLZ_TodoListZWindowController.onOptionTicked)
     windowUI.listbox:setOnEraseItem(windowUI, TDLZ_TodoListZWindowController.onEraseItem)
     windowUI.listbox:setOnEditItem(windowUI, TDLZ_TodoListZWindowController.onEditItem)
+    windowUI.listbox:initialise()
+    windowUI.listbox:instantiate()
     local pageText = windowUI.model.notebook.currentNotebook:seePage(windowUI.model.notebook.currentPage)
     if pageText ~= "" then
         local lines = TDLZ_StringUtils.splitKeepingEmptyLines(pageText)
@@ -261,10 +265,13 @@ function TDLZ_TodoListZWindow._createTodoList(windowUI, x, y, width, height, pre
         end
     end
 
+    print("Set scroll height")
+    windowUI:addChild(windowUI.listbox)
+    print("Scrollheight: "..windowUI.listbox:getScrollHeight())
     if (previousState ~= nil) then
+        --windowUI.listbox:addScrollBars(false)
         windowUI.listbox:setYScroll(previousState.yScroll)
     end
-    windowUI:addChild(windowUI.listbox);
 end
 
 --- @private
@@ -288,6 +295,7 @@ function TDLZ_TodoListZWindow:createLabel(label)
 end
 
 --- @private
+--- This does not refresh the UI
 ---@param o any
 ---@param notebookID any
 ---@param pageNumber any

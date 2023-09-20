@@ -29,8 +29,7 @@ function TDLZ_ModData.loadModData()
     -- failed to load player and mod data
     return TDLZ_ModData.modData;
 end
-
-function TDLZ_ModData.saveModData(x, y, width, height, pin, hidden, notebookID, pageNumber)
+function TDLZ_ModData.saveModData(x, y, width, height, pin, hidden, notebookID, pageNumber, scrollYPosition)
     local player = getPlayer();
     local modData = player:getModData()
     modData.todoListZMod.isFirstRun = false;
@@ -40,7 +39,8 @@ function TDLZ_ModData.saveModData(x, y, width, height, pin, hidden, notebookID, 
         width = width,
         height = height,
         pin = pin,
-        hidden = hidden
+        hidden = hidden,
+        scrollYPosition = scrollYPosition
     };
     modData.todoListZMod.todoListData = {
         notebookID = notebookID,

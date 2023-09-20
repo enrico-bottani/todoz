@@ -98,6 +98,9 @@ end
 ---@param label string
 ---@param item TDLZ_BookLineModel
 function TDLZ_ISList:addItem(label, item)
+    if self:getScrollHeight() == 0 then
+        self:setScrollHeight(4)
+    end
     local listItemViewModel = TDLZ_ListItemViewModel:new(label, item, nil, self.count + 1, self.itemheight)
     table.insert(self.items, listItemViewModel)
     self.count = self.count + 1

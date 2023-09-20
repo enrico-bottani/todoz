@@ -43,10 +43,20 @@ function TDLZ_PageNav.createPageNav(winCtx, currentPage, numberOfPages, windowUI
     buttonLock.anchorRight = false
     buttonLock.anchorTop = true
     buttonLock.internal = "LOCKBOOK"
-    --  winCtx.lockButton:setImage(getTexture("media/ui/lock.png"));
-    --  winCtx.lockButton:setImage(getTexture("media/ui/lockOpen.png"));
     buttonLock:setImage(getTexture("media/ui/lockOpen.png"));
     buttonLock:setTooltip(getText("Tooltip_Journal_Lock"));
+    buttonLock.textureColor = { g = 0.7, r = 0, b = 0, a = 1 }
+    if windowUI.model.notebook.currentNotebook:getLockedBy() then
+        buttonLock.internal = "UNLOCKBOOK"
+        buttonLock.textureColor = { r = 0.7, g = 0, b = 0, a = 1 }
+        buttonLock:setImage(getTexture("media/ui/lock.png"));
+        buttonLock:setTooltip(getText("Tooltip_Journal_UnLock"));
+    end
+
+    --  winCtx.lockButton:setImage(getTexture("media/ui/lock.png"));
+    --  winCtx.lockButton:setImage(getTexture("media/ui/lockOpen.png"));
+
+    
     winCtx:addFrameChild(buttonLock);
 
     local previousPage = ISButton:new(buttonLock.x + buttonLock.width + 0.5 * TDLZ_REM, y, TDLZ_BTN_DEFAULT_H,

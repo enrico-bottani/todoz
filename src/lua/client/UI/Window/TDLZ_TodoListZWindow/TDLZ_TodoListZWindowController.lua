@@ -45,13 +45,7 @@ function TDLZ_TodoListZWindowController.onClick(winCtx, button)
         local player = getPlayer()
         winCtx.model.notebook.currentNotebook:setLockedBy(player:getUsername());
     elseif button.internal == "UNLOCKBOOK" then
-        winCtx.lockButton:setImage(getTexture("media/ui/lockOpen.png"));
-        winCtx.lockButton.internal = "LOCKBOOK";
-        winCtx.model.notebook.currentNotebook:setLockedBy(nil);
-        winCtx.title:setEditable(true);
-        winCtx.entry:setEditable(true);
-        winCtx.lockButton:setTooltip("Prevent the journal from being edited");
-        winCtx:setJoypadButtons(winCtx.joyfocus)
+        winCtx.model.notebook.currentNotebook:setLockedBy(nil)
     end
 
     winCtx:refreshUIElements()

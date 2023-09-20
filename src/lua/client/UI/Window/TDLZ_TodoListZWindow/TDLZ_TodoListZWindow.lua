@@ -120,10 +120,13 @@ function TDLZ_TodoListZWindow:refreshUIElements()
     TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(),
         self.model.notebook.notebookID, self.model.notebook.currentPage)
 
-    local modal1 = TDLZ_ISNewItemModalMask:new(0, titleBarHeight + TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM,
-        self.width, self.height - (titleBarHeight + TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM) - resizeBarHeight)
-    modal1:initialise()
-    self:addFrameChild(modal1)
+    if self.model.notebook.currentNotebook:getLockedBy() then
+        local modal1 = TDLZ_ISNewItemModalMask:new(0,
+            titleBarHeight + TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM,
+            self.width, self.height - (titleBarHeight + TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM) - resizeBarHeight)
+        modal1:initialise()
+        self:addFrameChild(modal1)
+    end
 
     self.resizeWidget2:bringToTop()
     self.resizeWidget:bringToTop()

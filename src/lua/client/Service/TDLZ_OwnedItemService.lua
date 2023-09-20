@@ -19,7 +19,7 @@ end
 ---@param itemMap TDLZ_Map
 ---@param it any ArrayList<InventoryItem>
 ---@param name string
-TDLZ_OwnedItemService.recFindItemByName = function(itemMap, it, name)
+function TDLZ_OwnedItemService.recFindItemByName(itemMap, it, name)
     if it == nil then
         return;
     end
@@ -30,7 +30,7 @@ TDLZ_OwnedItemService.recFindItemByName = function(itemMap, it, name)
             itemMap:add(item:getID(), item)
         else
             if item:getCategory() == "Container" then
-                TDLZ_OwnedItemService.recFindItemByName(itemMap, item:getInventory():getItems())
+                TDLZ_OwnedItemService.recFindItemByName(itemMap, item:getInventory():getItems(), name)
             end
         end
     end

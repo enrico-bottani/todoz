@@ -98,6 +98,7 @@ function TDLZ_TodoListZWindowController.onEditItem(winCtx, listItem)
         listItem,
         TDLZ_TodoListZWindowController.onModalClose)
     editItemModal.backgroundColor.a = 0.9
+    editItemModal:instantiate()
     TDLZ_ISNewItemModal.initialise(editItemModal)
     editItemModal:addToUIManager()
 end

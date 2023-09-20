@@ -20,6 +20,7 @@ function TDLZ_ISNewItemModal.initialise(o)
     local lWidth = getTextManager():MeasureStringX(UIFont.Medium, "Add new row")
     local label = ISLabel:new((o:getWidth() - lWidth) / 2, FONT_HGT_SMALL, FONT_HGT_MEDIUM, "Add new row", 1, 1, 1, 1,
         UIFont.Medium, true)
+    label:instantiate()
     label:initialise()
     o:addChild(label)
 
@@ -30,16 +31,16 @@ function TDLZ_ISNewItemModal.initialise(o)
     local lineTypeWidth = 100
     -- Remove [_] before
     o.textbox = ISTextEntryBox:new(TDLZ_StringUtils.removeCheckboxSquareBrackets(o.listItem.lineString),
-        FONT_HGT_SMALL * 0.75, label.y + label.height + FONT_HGT_SMALL * 0.5,
+        FONT_HGT_SMALL * 0.75, label.y + FONT_HGT_SMALL + FONT_HGT_SMALL * 0.5,
         o:getWidth() - lineTypeWidth - (FONT_HGT_SMALL * 0.75) * 2,
         height);
     o.textbox.font = UIFont.Small
     o.textbox:initialise()
     o.textbox:instantiate()
 
-    o.contextMenu:setVisible(false)
-    o.contextMenu:initialise()
     o.contextMenu:instantiate()
+    o.contextMenu:initialise()
+    o.contextMenu:setVisible(false)
     o.contextMenu:addToUIManager()
 
     o.textbox.onTextChange = function(ctx)
@@ -198,8 +199,8 @@ function TDLZ_ISNewItemModal:new(x, y, width, height, winCtx, listItem, onCloseC
     o = ISPanelJoypad:new(x, y, width, height);
     setmetatable(o, self)
     self.__index = self
-    o.x = x;
-    o.y = y;
+    o.x = x
+    o.y = y
     o.background = true;
     o.backgroundColor = { r = 0, g = 0, b = 0, a = 0.5 };
     o.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 };

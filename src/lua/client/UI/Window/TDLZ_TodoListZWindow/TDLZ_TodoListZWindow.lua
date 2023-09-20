@@ -73,7 +73,6 @@ end
 local TDLZ_DEBUG_RNumber = 0
 function TDLZ_TodoListZWindow:refreshUIElements()
     TDLZ_DEBUG_RNumber = TDLZ_DEBUG_RNumber + 1
-    print("------ r " .. TDLZ_DEBUG_RNumber .. " ------")
     local resizeBarHeight = self.resizable and self:resizeWidgetHeight() or 0
     local titleBarHeight = self:titleBarHeight()
     if self.model.notebook.notebookID == -1 then
@@ -264,10 +263,7 @@ function TDLZ_TodoListZWindow._createTodoList(windowUI, x, y, width, height, pre
                 TDLZ_TodoListZWindow._createItemDataModel(windowUI, lineString, lineNumber, lines))
         end
     end
-
-    print("Set scroll height")
     windowUI:addChild(windowUI.listbox)
-    print("Scrollheight: "..windowUI.listbox:getScrollHeight())
     if (previousState ~= nil) then
         --windowUI.listbox:addScrollBars(false)
         windowUI.listbox:setYScroll(previousState.yScroll)

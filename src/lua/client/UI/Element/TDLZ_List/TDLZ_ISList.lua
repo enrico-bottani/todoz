@@ -102,10 +102,6 @@ function TDLZ_ISList:addItem(label, item)
     table.insert(self.items, listItemViewModel)
     self.count = self.count + 1
     self:setScrollHeight(self:getScrollHeight() + listItemViewModel.height)
-    if(self.javaObject == nil) then
-        print("NIL")
-    end
-    print("tmpscrollheight: " .. self:getScrollHeight() .. "listItemViewModel.height: ".. listItemViewModel.height)
 end
 
 ---@param winCtx TDLZ_TodoListZWindow

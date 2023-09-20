@@ -30,7 +30,6 @@ end
 ---@param winCtx TDLZ_TodoListZWindow
 ---@param button any
 function TDLZ_TodoListZWindowController.onClick(winCtx, button)
-    print("Dispatch: " .. button.internal)
     if button.internal == "NEXTPAGE" then
         winCtx.model.notebook.currentPage = winCtx.model.notebook.currentPage + 1
         winCtx.listbox.highlighted = TDLZ_NumSet:new();
@@ -38,7 +37,6 @@ function TDLZ_TodoListZWindowController.onClick(winCtx, button)
         winCtx.model.notebook.currentPage = winCtx.model.notebook.currentPage - 1
         winCtx.listbox.highlighted = TDLZ_NumSet:new();
     elseif button.internal == "DELETEPAGE" then
-        print("saveAllJournalData DELETEPAGE")
         TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, {})
         winCtx:refreshUIElements()
     elseif button.internal == "LOCKBOOK" then

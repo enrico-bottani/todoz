@@ -290,7 +290,6 @@ function TDLZ_TodoListZWindow:createLabel(label)
     return text
 end
 
---- @private
 --- This does not refresh the UI
 ---@param o any
 ---@param notebookID any

@@ -12,7 +12,7 @@ function TDLZ_ISContextMenu:searchAndDisplayResults(hashFound)
         return
     end
     self:setCapture(true)
-    print("set visible true")
+    
     self:setVisible(true)
     self:setAlwaysOnTop(true)
     for index, item in pairs(self.viewModel.allItems) do

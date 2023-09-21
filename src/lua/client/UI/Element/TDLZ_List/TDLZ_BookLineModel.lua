@@ -18,8 +18,15 @@ function TDLZ_BookLineModel:new()
     o.lineNumber = 0
     o.lineString = ""
     o.notebook = nil
+    o.jobDelta = 0
     return o
 end
+
+---@param jobDelta any
+function TDLZ_BookLineModel:setJobDelta(jobDelta)
+    self.jobDelta = jobDelta
+end
+
 ---@return TDLZ_ListItemViewModelBuilder
 function TDLZ_BookLineModel.builder()
     return TDLZ_BookLineModelBuilder:new()
@@ -50,6 +57,7 @@ function TDLZ_BookLineModelBuilder:isChecked(value)
     self.listItemModel.isChecked = value
     return self
 end
+
 ---@return TDLZ_ListItemViewModelBuilder
 function TDLZ_BookLineModelBuilder:pageNumber(value)
     self.listItemModel.pageNumber = value

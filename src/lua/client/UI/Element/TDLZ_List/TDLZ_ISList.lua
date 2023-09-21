@@ -192,7 +192,7 @@ end
 function TDLZ_ISList._drawCheckboxBackground(uiSelf, y, item, alt)
     if alt then
         uiSelf:drawRect(0, y, uiSelf:getWidth(), uiSelf.itemheight, 0.08, uiSelf.borderColor.r, uiSelf.borderColor.g,
-            uiSelf.borderColor.b);
+            uiSelf.borderColor.b)
     else
         uiSelf:drawRect(0, y, uiSelf:getWidth(), uiSelf.itemheight, 0.0, uiSelf.borderColor.r, uiSelf.borderColor.g,
             uiSelf.borderColor.b);
@@ -213,6 +213,7 @@ function TDLZ_ISList:handleNotMoveMode(y, item, k)
     if self.highlighted:contains(k) and item.lineData.isCheckbox then
         --- Item is highlighted
         TDLZ_Draw.drawRect(self, 3, y - 1, self.width - 5, self.itemheight + 2, TDLZ_Colors.GRAY_130)
+        TDLZ_Draw.drawRect(self, 0, y - 1, self.width * item.lineData.jobDelta, self.itemheight + 2, TDLZ_Colors.YELLOW_A1)
         TDLZ_Draw.drawRectBorder(self, 1, y - 1, 2, self.itemheight + 2, TDLZ_Colors.YELLOW);
     end
 

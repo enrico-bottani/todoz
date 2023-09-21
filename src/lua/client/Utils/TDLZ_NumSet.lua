@@ -20,7 +20,7 @@ function TDLZ_NumSet:add(number)
     TDLZ_Set.add(self, number)
 end
 ---Remove element from set
----@param number number to remove from set
+---@param number number to remove from set (not the index of the table where the element is saved)
 function TDLZ_NumSet:remove(number)
     if type(number) ~= "number" then
         error(notNumberMessage)

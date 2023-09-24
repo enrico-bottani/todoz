@@ -2,7 +2,7 @@ require 'Utils/TDLZ_Map'
 require 'Utils/TDLZ_Vars'
 require 'Utils/TDLZ_StringUtils'
 require 'Utils/TDLZ_CheckboxUtils'
---- @class TDLZ_TodoListZWindow
+--- @class TDLZ_TodoListZWindow:ISCollapsableWindow
 --- @field listbox TDLZ_ISList
 --- @field model TDLZ_TodoListZWindowViewModel
 --- @field x number
@@ -10,10 +10,10 @@ require 'Utils/TDLZ_CheckboxUtils'
 --- @field height number
 --- @field width number
 --- @field modal1 any
+--- @field onReviewOptCtxMenu TDLZ_GenericContextMenu
 TDLZ_TodoListZWindow = ISCollapsableWindow:derive("TDLZ_TodoListZWindow")
 
 TDLZ_TodoListZWindow.UI_MAP = TDLZ_Map:new()
-
 
 function TDLZ_TodoListZWindow:getBookID() return self.model.notebook.notebookID end
 
@@ -45,7 +45,9 @@ function TDLZ_TodoListZWindow:new()
     TDLZ_TodoListZWindow.reloadModel(o, mD.todoListData.notebookID, mD.todoListData.pageNumber)
 
     o.listbox = nil
-
+    o.executeMode = 0
+    --   o.onReviewOptCtxMenu = nil
+    o.onReviewOptCtxMenu = TDLZ_GenericContextMenu:new(0, 0 + 10, 200, 60)
     -- This will call the instantiate method
     o:initialise()
     o:addToUIManager()
@@ -58,16 +60,6 @@ function TDLZ_TodoListZWindow:new()
 
     TDLZ_TodoListZWindow.UI_MAP:add(o.ID, o)
     return o;
-end
-
-function TDLZ_TodoListZWindow:onMouseMove(dx, dy)
-    ISCollapsableWindow.onMouseMove(self, dx, dy);
-    getPlayer():setIgnoreAimingInput(self:isMouseOver() and not self.closingWindow);
-end
-
-function TDLZ_TodoListZWindow:onMouseMoveOutside(dx, dy)
-    ISCollapsableWindow.onMouseMoveOutside(self, dx, dy);
-    getPlayer():setIgnoreAimingInput(false);
 end
 
 local TDLZ_DEBUG_RNumber = 0
@@ -164,6 +156,11 @@ end
 
 function TDLZ_TodoListZWindow:initialise()
     ISCollapsableWindow.initialise(self);
+    self.onReviewOptCtxMenu:instantiate()
+    self.onReviewOptCtxMenu:setVisible(false)
+    self.onReviewOptCtxMenu:initialise()
+    self.onReviewOptCtxMenu:addToUIManager()
+
 
     self.closingWindow = false
     self:refreshUIElements();
@@ -179,7 +176,6 @@ function TDLZ_TodoListZWindow:render()
     ISCollapsableWindow.render(self);
 end
 
----@private
 ---Add a child inside the Window frame
 ---@param child any UI Element
 function TDLZ_TodoListZWindow:addFrameChild(child)
@@ -304,4 +300,38 @@ function TDLZ_TodoListZWindow.reloadModel(o, notebookID, pageNumber)
         local itemList = TDLZ_TodoListZWindowController.getHashnames(notebookData.currentNotebook)
         o.model = TDLZ_TodoListZWindowViewModel:new(notebookData, itemList)
     end
+end
+
+function TDLZ_TodoListZWindow:onMouseMove(dx, dy)
+    ISCollapsableWindow.onMouseMove(self, dx, dy);
+    getPlayer():setIgnoreAimingInput(self:isMouseOver() and not self.closingWindow);
+    if self.moving then
+        self:updatePosition()
+    end
+end
+
+function TDLZ_TodoListZWindow:onMouseMoveOutside(dx, dy)
+    ISCollapsableWindow.onMouseMoveOutside(self, dx, dy);
+    getPlayer():setIgnoreAimingInput(false);
+    if self.moving then
+        self:updatePosition()
+    end
+end
+
+function TDLZ_TodoListZWindow:onResize()
+    print("onresize")
+    ISCollapsableWindow.onResize(self)
+    self:updatePosition()
+end
+
+function TDLZ_TodoListZWindow:updatePosition()
+    if self.buttonSelectOpt ~= nil then
+        self.onReviewOptCtxMenu:setX(self.buttonSelectOpt:getAbsoluteX())
+        self.onReviewOptCtxMenu:setY(self.buttonSelectOpt:getAbsoluteY() + self.buttonSelectOpt.height)
+    end
+end
+
+---@param executeMode number
+function TDLZ_TodoListZWindow:setExecuteMode(executeMode)
+    self.executeMode = executeMode
 end

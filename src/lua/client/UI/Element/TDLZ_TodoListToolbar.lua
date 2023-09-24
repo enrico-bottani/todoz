@@ -26,19 +26,23 @@ function TDLZ_TodoListToolbar._createTodoListToolbar(windowUI, y)
         end
         windowUI:addFrameChild(buttonBack);
 
+        windowUI.buttonSelectOpt = ISComboBox:new(buttonBack.x + buttonBack.width + TDLZ_REM * 0.5, y, 100,
+            TDLZ_BTN_DEFAULT_H, windowUI, TDLZ_TodoListZWindowController.onSelectItem)
+        --windowUI.buttonSelectOpt:setImage(getTexture("media/ui/trashIcon.png"));
+        windowUI.buttonSelectOpt.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+        windowUI.buttonSelectOpt.anchorBottom = true
+        windowUI.buttonSelectOpt.anchorLeft = true
+        windowUI.buttonSelectOpt.anchorRight = false
+        windowUI.buttonSelectOpt.anchorTop = false
+        windowUI.buttonSelectOpt.selected = windowUI.executeMode
+        windowUI.buttonSelectOpt:addOptionWithData("Review", { id = 0 })
+        windowUI.buttonSelectOpt:addOptionWithData("Check", { id = 2 })
+        windowUI.buttonSelectOpt:addOptionWithData("Uncheck", { id = 1 })
+        --  windowUI.buttonSelectOpt:setOnClick(TDLZ_TodoListZWindowController.onClickReviewOptButton, windowUI)
+        windowUI:addFrameChild(windowUI.buttonSelectOpt);
 
-
-        local buttonUncheck = ISButton:new(buttonBack.x + buttonBack.width + TDLZ_REM * 0.5, y, 100,
-            TDLZ_BTN_DEFAULT_H, "Review")
-        --buttonCheck:setImage(getTexture("media/ui/trashIcon.png"));
-        buttonUncheck.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        buttonUncheck.anchorBottom = true
-        buttonUncheck.anchorLeft = true
-        buttonUncheck.anchorRight = false
-        buttonUncheck.anchorTop = false
-        windowUI:addFrameChild(buttonUncheck);
-
-        local btnExecute = ISButton:new(buttonUncheck.x + buttonUncheck.width, y, TDLZ_BTN_DEFAULT_H,
+        local btnExecute = ISButton:new(windowUI.buttonSelectOpt.x + windowUI.buttonSelectOpt.width, y,
+            TDLZ_BTN_DEFAULT_H,
             TDLZ_BTN_DEFAULT_H, "", windowUI, TDLZ_TodoListZWindowController.onExecuteClick)
         btnExecute:setImage(getTexture("media/ui/execute.png"));
         btnExecute.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;

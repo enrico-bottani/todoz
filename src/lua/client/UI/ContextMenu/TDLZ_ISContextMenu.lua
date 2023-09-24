@@ -1,5 +1,5 @@
----@class TDLZ_ISContextMenu
-TDLZ_ISContextMenu = ISScrollingListBox:derive("TDLZ_ISNewItemModal");
+---@class TDLZ_ISContextMenu:ISScrollingListBox
+TDLZ_ISContextMenu = ISScrollingListBox:derive("TDLZ_ISContextMenu");
 local instance = nil
 local FONT_HGT_MEDIUM = getTextManager():getFontHeight(UIFont.Medium)
 function TDLZ_ISContextMenu:searchAndDisplayResults(hashFound)

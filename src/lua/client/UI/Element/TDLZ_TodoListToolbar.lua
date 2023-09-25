@@ -35,9 +35,9 @@ function TDLZ_TodoListToolbar._createTodoListToolbar(windowUI, y)
         windowUI.buttonSelectOpt.anchorRight = false
         windowUI.buttonSelectOpt.anchorTop = false
         windowUI.buttonSelectOpt.selected = windowUI.executeMode
-        windowUI.buttonSelectOpt:addOptionWithData("Review", { id = 0 })
+        windowUI.buttonSelectOpt:addOptionWithData("Review", { id = 1 })
         windowUI.buttonSelectOpt:addOptionWithData("Check", { id = 2 })
-        windowUI.buttonSelectOpt:addOptionWithData("Uncheck", { id = 1 })
+        windowUI.buttonSelectOpt:addOptionWithData("Uncheck", { id = 3 })
         --  windowUI.buttonSelectOpt:setOnClick(TDLZ_TodoListZWindowController.onClickReviewOptButton, windowUI)
         windowUI:addFrameChild(windowUI.buttonSelectOpt);
 

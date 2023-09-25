@@ -45,7 +45,7 @@ function TDLZ_TodoListZWindow:new()
     TDLZ_TodoListZWindow.reloadModel(o, mD.todoListData.notebookID, mD.todoListData.pageNumber)
 
     o.listbox = nil
-    o.executeMode = 0
+    o.executeMode = 1
     --   o.onReviewOptCtxMenu = nil
     o.onReviewOptCtxMenu = TDLZ_GenericContextMenu:new(0, 0 + 10, 200, 60)
     -- This will call the instantiate method

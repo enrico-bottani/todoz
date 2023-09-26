@@ -65,43 +65,46 @@ function TDLZ_TodoListToolbar._createTodoListToolbar(windowUI, y)
         windowUI:addFrameChild(taskLabel);
     else
         local buttonCheckWidth = 140
-        local buttonNewItem = ISButton:new(buttonNewMarginLR, y,
-            windowUI.width - marginBetween - buttonCheckWidth - buttonCheckOtherWidth - buttonNewMarginLR * 2,
-            TDLZ_BTN_DEFAULT_H,
-            "+ New...")
-        buttonNewItem.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        buttonNewItem.anchorBottom = true
-        buttonNewItem.anchorLeft = true
-        buttonNewItem.anchorRight = true
-        buttonNewItem.anchorTop = false
-        buttonNewItem.onclick = function()
-            TDLZ_TodoListZWindowController.onEditItem(windowUI,
-                TDLZ_BookLineModel.builder()
-                :lineNumber(-1) -- -1: new Item
-                :lineString("")
-                :notebook(windowUI.model.notebook):build())
-        end
-        windowUI:addFrameChild(buttonNewItem);
-
-        local btnSelectAll = ISButton:new(buttonNewItem.x + buttonNewItem.width + TDLZ_REM * 0.25, y, buttonCheckWidth,
-            TDLZ_BTN_DEFAULT_H, "Select all")
-        --buttonCheck:setImage(getTexture("media/ui/trashIcon.png"));
-        btnSelectAll.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        btnSelectAll.anchorBottom = true
-        btnSelectAll.anchorLeft = false
-        btnSelectAll.anchorRight = true
-        btnSelectAll.anchorTop = false
-        btnSelectAll.onclick = function()
-            for key, lineData in pairs(windowUI.listbox:getItems()) do
-                if lineData.isCheckbox then
-                    windowUI.listbox.highlighted:add(key)
-                end
+        if (windowUI.buttonNewItem == nil) then
+            windowUI.buttonNewItem = ISButton:new(buttonNewMarginLR, y,
+                windowUI.width - marginBetween - buttonCheckWidth - buttonCheckOtherWidth - buttonNewMarginLR * 2,
+                TDLZ_BTN_DEFAULT_H,
+                "+ New...")
+            windowUI.buttonNewItem.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+            windowUI.buttonNewItem.anchorBottom = true
+            windowUI.buttonNewItem.anchorLeft = true
+            windowUI.buttonNewItem.anchorRight = true
+            windowUI.buttonNewItem.anchorTop = false
+            windowUI.buttonNewItem.onclick = function()
+                TDLZ_TodoListZWindowController.onEditItem(windowUI,
+                    TDLZ_BookLineModel.builder()
+                    :lineNumber(-1) -- -1: new Item
+                    :lineString("")
+                    :notebook(windowUI.model.notebook):build())
             end
-            windowUI:refreshUIElements()
+            windowUI:addChild(windowUI.buttonNewItem);
         end
-        windowUI:addFrameChild(btnSelectAll);
-
-        local buttonCheckOthers = ISButton:new(btnSelectAll.x + btnSelectAll.width, y, buttonCheckOtherWidth,
+        if (windowUI.btnSelectAll == nil) then
+            windowUI.btnSelectAll = ISButton:new(
+                windowUI.buttonNewItem.x + windowUI.buttonNewItem.width + TDLZ_REM * 0.25, y, buttonCheckWidth,
+                TDLZ_BTN_DEFAULT_H, "Select all")
+            --buttonCheck:setImage(getTexture("media/ui/trashIcon.png"));
+            windowUI.btnSelectAll.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+            windowUI.btnSelectAll.anchorBottom = true
+            windowUI.btnSelectAll.anchorLeft = false
+            windowUI.btnSelectAll.anchorRight = true
+            windowUI.btnSelectAll.anchorTop = false
+            windowUI.btnSelectAll.onclick = function()
+                for key, lineData in pairs(windowUI.listbox:getItems()) do
+                    if lineData.isCheckbox then
+                        windowUI.listbox.highlighted:add(key)
+                    end
+                end
+                windowUI:refreshUIElements()
+            end
+            windowUI:addChild(windowUI.btnSelectAll);
+        end
+        local buttonCheckOthers = ISButton:new(windowUI.btnSelectAll.x + windowUI.btnSelectAll.width, y, buttonCheckOtherWidth,
             TDLZ_BTN_DEFAULT_H,
             "")
         buttonCheckOthers:setImage(getTexture("media/ui/menu-dots-vertical.png"));

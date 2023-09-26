@@ -2,7 +2,7 @@ require 'Utils/TDLZ_Map'
 require 'Utils/TDLZ_Vars'
 require 'Utils/TDLZ_StringUtils'
 require 'Utils/TDLZ_CheckboxUtils'
---- @class TDLZ_TodoListZWindow:ISCollapsableWindow
+--- @class TDLZ_TodoListZWindow:ISCollapsableWindowJoypad
 --- @field listbox TDLZ_ISList
 --- @field model TDLZ_TodoListZWindowViewModel
 --- @field x number
@@ -10,8 +10,9 @@ require 'Utils/TDLZ_CheckboxUtils'
 --- @field height number
 --- @field width number
 --- @field modal1 any
+--- @field pageNav TDLZ_PageNav
 --- @field onReviewOptCtxMenu TDLZ_GenericContextMenu
-TDLZ_TodoListZWindow = ISCollapsableWindow:derive("TDLZ_TodoListZWindow")
+TDLZ_TodoListZWindow = ISCollapsableWindowJoypad:derive("TDLZ_TodoListZWindow")
 
 TDLZ_TodoListZWindow.UI_MAP = TDLZ_Map:new()
 
@@ -27,7 +28,8 @@ end
 function TDLZ_TodoListZWindow:new()
     local o = {}
     local mD = TDLZ_ModData.loadModData();
-    o = ISCollapsableWindow:new(mD.panelSettings.x, mD.panelSettings.y, mD.panelSettings.width, mD.panelSettings.height);
+    o = ISCollapsableWindowJoypad:new(mD.panelSettings.x, mD.panelSettings.y, mD.panelSettings.width,
+        mD.panelSettings.height);
     o.pin = mD.panelSettings.pin
     o.minimumWidth = 300
     o.minimumHeight = 200
@@ -36,15 +38,16 @@ function TDLZ_TodoListZWindow:new()
     o.backgroundColor = WIN_BACKGROUND_COLOR
     o.drawFrame = true;
     o.moveWithMouse = true;
+    o.isUnlocked = nil
     setmetatable(o, self);
     self.__index = self;
 
-    o.multiSelectMode = true
+    o.listbox = nil
+    o.pageNav = nil
     o.frameChildren = {}
-
     TDLZ_TodoListZWindow.reloadModel(o, mD.todoListData.notebookID, mD.todoListData.pageNumber)
 
-    o.listbox = nil
+
     o.executeMode = 1
     --   o.onReviewOptCtxMenu = nil
     o.onReviewOptCtxMenu = TDLZ_GenericContextMenu:new(0, 0 + 10, 200, 60)
@@ -91,13 +94,14 @@ function TDLZ_TodoListZWindow:refreshUIElements()
         ----------------------------
         -- Building PageNav
         local y = titleBarHeight
-        local pageNav = TDLZ_PageNav:new(0, y, self.width, TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM)
-        pageNav:initialise()
-        TDLZ_PageNav.createPageNav(pageNav,
-            self.model.notebook.currentPage, self.model.notebook.numberOfPages,
-            self, TDLZ_TodoListZWindowController.onClick)
-        self:addFrameChild(pageNav)
-
+        if (self.pageNav == nil) then
+            self.pageNav = TDLZ_PageNav:new(0, y, self.width, TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM)
+            self.pageNav:initialise()
+            TDLZ_PageNav.createPageNav(self.pageNav,
+                self.model.notebook.currentPage, self.model.notebook.numberOfPages,
+                self, TDLZ_TodoListZWindowController.onClick)
+            self:addFrameChild(self.pageNav)
+        end
         ----------------------------
         -- Building TodoList
         y = titleBarHeight + TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM
@@ -123,6 +127,69 @@ function TDLZ_TodoListZWindow:refreshUIElements()
 
     self.resizeWidget2:bringToTop()
     self.resizeWidget:bringToTop()
+end
+
+function TDLZ_TodoListZWindow:onLoseJoypadFocus(joypadData)
+    ISPanel.onLoseJoypadFocus(self, joypadData)
+    self.borderColor = { r = 0.4, g = 0.4, b = 0.4, a = 1 };
+end
+
+function TDLZ_TodoListZWindow:setJoypadButtons(joypadData)
+    print("Joypad button set")
+    if not joypadData then return end
+    local isUnlocked = true
+    local firstShown = self.isUnlocked == nil
+    if isUnlocked == self.isUnlocked then return end
+    self.isUnlocked = isUnlocked
+    self:clearJoypadFocus(joypadData)
+    self.joypadButtonsY = {}
+    local buttons = {}
+    -- self:insertNewLineOfButtons(self.listbox)
+    if (self.buttonNewItem ~= nil) then
+        self:insertNewLineOfButtons(self.buttonNewItem)
+    end
+    if (self.btnSelectAll ~= nil) then
+        self:insertNewLineOfButtons(self.btnSelectAll)
+    end
+
+
+    --if self.nextPage then
+    --     table.insert(buttons, self.previousPage)
+    --     table.insert(buttons, self.nextPage)
+    -- end
+    if #buttons > 0 then
+        self:insertNewListOfButtons(buttons)
+    end
+    if firstShown then
+        self.joypadIndexY = 1
+    end
+    self.joypadButtons = self.joypadButtonsY[self.joypadIndexY]
+    self.joypadIndex = math.min(math.max(self.joypadIndex, 1), #self.joypadButtons)
+    self:restoreJoypadFocus(joypadData)
+end
+
+function ISPanelJoypad:getVisibleChildren(joypadIndexY)
+    local children = {}
+    if self.joypadButtonsY[joypadIndexY] then
+        local children1 = self.joypadButtonsY[joypadIndexY]
+        for _, child in ipairs(children1) do
+            if child:isVisible() then
+                table.insert(children, child)
+            end
+        end
+    end
+    return children
+end
+
+function TDLZ_TodoListZWindow:onGainJoypadFocus(joypadData)
+    ISCollapsableWindowJoypad.onGainJoypadFocus(self, joypadData)
+    print("Focus gained")
+    self.borderColor = TDLZ_Colors.YELLOW
+    --    self:setISButtonForA(self.yes)
+    --   self:setISButtonForB(self.no)
+    --self.yes:setJoypadButton(Joypad.Texture.AButton)
+    -- self.no:setJoypadButton(Joypad.Texture.BButton)
+    self:setJoypadButtons(joypadData)
 end
 
 function TDLZ_TodoListZWindow:close()

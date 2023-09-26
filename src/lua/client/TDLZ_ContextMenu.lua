@@ -14,7 +14,7 @@ TDLZ_ContextMenu = {}
 local original_ISUIOnClick = ISUIWriteJournal.onClick;
 -- @original_ISUIOnClick override
 ---@diagnostic disable-next-line: duplicate-set-field
-function ISUIWriteJournal:onClick(button)
+function ISUIWriteJournal:onClick(button, player, p2)
     original_ISUIOnClick(self, button)
 
     if button.internal == "OK" then
@@ -40,6 +40,9 @@ function TDLZ_ContextMenu.onOpenTodoZ(items, player)
     local instance = TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(items[1]:getID(), 1)
     if instance ~= nil then
         instance:setVisible(true)
+    end
+    if JoypadState.players[player+1] then
+        setJoypadFocus(player, instance)
     end
 end
 

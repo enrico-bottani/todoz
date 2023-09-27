@@ -286,7 +286,12 @@ function TDLZ_MultiSelectScrollList:clear()
 	self.itemheightoverride = {}
 	self.count = 0;
 end
-
+function TDLZ_MultiSelectScrollList:clearItems()
+	self.items = {}
+	self.selected = 1;
+	self.itemheightoverride = {}
+	self.count = 0;
+end
 function TDLZ_MultiSelectScrollList:onMouseWheel(del)
 	local yScroll = self.smoothScrollTargetY or self:getYScroll()
 	local topRow = self:rowAt(0, -yScroll)

@@ -37,7 +37,7 @@ end
 ---@param items table
 ---@param player any
 function TDLZ_ContextMenu.onOpenTodoZ(items, player)
-    local instance = TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(items[1]:getID(), 1)
+    local instance = TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(player, items[1]:getID(), 1)
     if instance ~= nil then
         instance:setVisible(true)
     end

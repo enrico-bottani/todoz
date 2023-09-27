@@ -1,7 +1,12 @@
---- @class TDLZ_PageNav:ISPanel
+--- @class TDLZ_PageNav:ISPanelJoypad
 --- @field buttonDelete ISButton
 --- @field buttonLock ISButton
-TDLZ_PageNav = ISPanel:derive("TDLZ_PageNav");
+--- @field previousPage ISButton
+--- @field nextPage ISButton
+--- @field pageLabel ISLabel
+--- @field currentPage number
+--- @field numberOfPages number
+TDLZ_PageNav = ISPanelJoypad:derive("TDLZ_PageNav");
 
 local TDLZ_BTN_DEFAULT_BORDER_COLOR = { r = 0.5, g = 0.5, b = 0.5, a = 1 }
 
@@ -13,100 +18,145 @@ function TDLZ_PageNav:addFrameChild(child)
     table.insert(self.frameChildren, child)
 end
 
+function TDLZ_PageNav:_update(currentPage, numberOfPages, isLocked)
+    if currentPage == self.currentPage and numberOfPages == self.numberOfPages and isLocked == self.isLocked then
+        return
+    end
+    self.isLocked = isLocked
+    self.currentPage = currentPage
+    self.numberOfPages = numberOfPages
+    self.pageLabel:setName(getText("IGUI_Pages") .. currentPage .. "/" .. numberOfPages)
+
+    if self.currentPage == 1 then
+        self.previousPage:setEnable(false)
+    else
+        self.previousPage:setEnable(true);
+    end
+
+    if self.currentPage == self.numberOfPages then
+        self.nextPage:setEnable(false);
+    else
+        self.nextPage:setEnable(true);
+    end
+
+    if self.isLocked then
+        self.buttonLock.internal = "UNLOCKBOOK"
+        self.buttonLock.textureColor = { r = 0.7, g = 0, b = 0, a = 1 }
+        self.buttonLock:setImage(getTexture("media/ui/lock.png"));
+        self.buttonLock:setTooltip(getText("Tooltip_Journal_UnLock"));
+    else
+        self.buttonLock.internal = "LOCKBOOK"
+        self.buttonLock:setImage(getTexture("media/ui/lockOpen.png"));
+        self.buttonLock:setTooltip(getText("Tooltip_Journal_Lock"));
+    end
+end
+
+function TDLZ_PageNav:new(x, y, width, height)
+    local o = {}
+    o = ISPanelJoypad:new(x, y, width, height)
+    setmetatable(o, self)
+    self.__index = self
+
+    o.currentPage = 1
+    o.numberOfPages = 1
+    return o
+end
+
 ---@param currentPage number
 ---@param numberOfPages number
 ---@param windowUI TDLZ_TodoListZWindow
-function TDLZ_PageNav.createPageNav(winCtx, currentPage, numberOfPages, windowUI, onBtnClick)
-    winCtx.frameChildren = {}
-    winCtx.borderColor = { r = 0, g = 0, b = 0, a = 1 }
-    winCtx.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
+function TDLZ_PageNav.createPageNav(pNavCtx, currentPage, numberOfPages, windowUI, onBtnClick)
+    pNavCtx.frameChildren = {}
+    pNavCtx.borderColor = { r = 0, g = 0, b = 0, a = 1 }
+    pNavCtx.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
 
     local y = TDLZ_BTN_MV
     local x = TDLZ_REM * 0.25
-    local height = winCtx.height - TDLZ_BTN_MV * 2
+    local height = pNavCtx.height - TDLZ_BTN_MV * 2
     local width = TDLZ_REM * 1.5
-    if winCtx.buttonDelete == nil then
-        winCtx.buttonDelete = ISButton:new(x, y, width, height, "", windowUI, onBtnClick)
-        winCtx.buttonDelete.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        winCtx.buttonDelete:setImage(getTexture("media/ui/trashIcon.png"));
-        winCtx.buttonDelete:setTooltip(getText("Tooltip_Journal_Erase"));
-        winCtx.buttonDelete.anchorBottom = false
-        winCtx.buttonDelete.anchorLeft = true
-        winCtx.buttonDelete.anchorRight = false
-        winCtx.buttonDelete.anchorTop = true
-        winCtx.buttonDelete.internal = "DELETEPAGE"
-        winCtx:addChild(winCtx.buttonDelete)
+    if pNavCtx.buttonDelete == nil then
+        pNavCtx.buttonDelete = ISButton:new(x, y, width, height, "", windowUI, onBtnClick)
+        pNavCtx.buttonDelete.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+        pNavCtx.buttonDelete:setImage(getTexture("media/ui/trashIcon.png"));
+        pNavCtx.buttonDelete:setTooltip(getText("Tooltip_Journal_Erase"));
+        pNavCtx.buttonDelete.anchorBottom = false
+        pNavCtx.buttonDelete.anchorLeft = true
+        pNavCtx.buttonDelete.anchorRight = false
+        pNavCtx.buttonDelete.anchorTop = true
+        pNavCtx.buttonDelete.internal = "DELETEPAGE"
+        pNavCtx:addChild(pNavCtx.buttonDelete)
     end
 
 
-    local x = winCtx.buttonDelete.x + winCtx.buttonDelete.width + TDLZ_REM * 0.125
-    if winCtx.buttonLock == nil then
-        winCtx.buttonLock = ISButton:new(x, y, width, height, "", windowUI, onBtnClick)
-        winCtx.buttonLock.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        winCtx.buttonLock.anchorBottom = false
-        winCtx.buttonLock.anchorLeft = true
-        winCtx.buttonLock.anchorRight = false
-        winCtx.buttonLock.anchorTop = true
-        winCtx.buttonLock.internal = "LOCKBOOK"
-        winCtx.buttonLock:setImage(getTexture("media/ui/lockOpen.png"));
-        winCtx.buttonLock:setTooltip(getText("Tooltip_Journal_Lock"));
-        winCtx.buttonLock.textureColor = { g = 0.7, r = 0, b = 0, a = 1 }
-        if windowUI.model.notebook.currentNotebook:getLockedBy() then
-            winCtx.buttonLock.internal = "UNLOCKBOOK"
-            winCtx.buttonLock.textureColor = { r = 0.7, g = 0, b = 0, a = 1 }
-            winCtx.buttonLock:setImage(getTexture("media/ui/lock.png"));
-            winCtx.buttonLock:setTooltip(getText("Tooltip_Journal_UnLock"));
-        end
-        winCtx:addChild(winCtx.buttonLock)
+    local x = pNavCtx.buttonDelete.x + pNavCtx.buttonDelete.width + TDLZ_REM * 0.125
+
+    pNavCtx.buttonLock = ISButton:new(x, y, width, height, "", windowUI, onBtnClick)
+    pNavCtx.buttonLock.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+    pNavCtx.buttonLock.anchorBottom = false
+    pNavCtx.buttonLock.anchorLeft = true
+    pNavCtx.buttonLock.anchorRight = false
+    pNavCtx.buttonLock.anchorTop = true
+
+    pNavCtx.buttonLock.textureColor = { g = 0.7, r = 0, b = 0, a = 1 }
+    if windowUI.model.notebook.currentNotebook:getLockedBy() then
+        pNavCtx.buttonLock.internal = "UNLOCKBOOK"
+        pNavCtx.buttonLock:setImage(getTexture("media/ui/lock.png"));
+        pNavCtx.buttonLock:setTooltip(getText("Tooltip_Journal_UnLock"));
+    else
+        pNavCtx.buttonLock.internal = "LOCKBOOK"
+        pNavCtx.buttonLock:setImage(getTexture("media/ui/lockOpen.png"));
+        pNavCtx.buttonLock:setTooltip(getText("Tooltip_Journal_Lock"));
     end
+    pNavCtx:addChild(pNavCtx.buttonLock)
+
 
 
     --  winCtx.lockButton:setImage(getTexture("media/ui/lock.png"));
     --  winCtx.lockButton:setImage(getTexture("media/ui/lockOpen.png"));
 
-    if winCtx.previousPage == nil then
-        winCtx.previousPage = ISButton:new(winCtx.buttonLock.x + winCtx.buttonLock.width + 0.5 * TDLZ_REM, y,
-            TDLZ_BTN_DEFAULT_H,
-            TDLZ_BTN_DEFAULT_H, "<",
-            windowUI, onBtnClick);
-        winCtx.previousPage.internal = "PREVIOUSPAGE";
-        winCtx.previousPage.anchorLeft = true
-        winCtx.previousPage.anchorRight = false
-        --windowUI.winCtx.previousPage.borderColorEnabled = BTN_DEFAULT_BORDER_COLOR;
-        -- windowUI.winCtx.previousPage.borderColor = BTN_ERROR_BORDER_COLOR;
-        winCtx.previousPage:initialise();
-        winCtx.previousPage:instantiate();
-        if currentPage == 1 then
-            winCtx.previousPage:setEnable(false);
-        else
-            winCtx.previousPage:setEnable(true);
-        end
-        winCtx:addChild(winCtx.previousPage)
+
+    pNavCtx.previousPage = ISButton:new(pNavCtx.buttonLock.x + pNavCtx.buttonLock.width + 0.5 * TDLZ_REM, y,
+        TDLZ_BTN_DEFAULT_H,
+        TDLZ_BTN_DEFAULT_H, "<",
+        windowUI, onBtnClick);
+    pNavCtx.previousPage.internal = "PREVIOUSPAGE";
+    pNavCtx.previousPage.anchorLeft = true
+    pNavCtx.previousPage.anchorRight = false
+    --windowUI.winCtx.previousPage.borderColorEnabled = BTN_DEFAULT_BORDER_COLOR;
+    -- windowUI.winCtx.previousPage.borderColor = BTN_ERROR_BORDER_COLOR;
+    pNavCtx.previousPage:initialise();
+    pNavCtx.previousPage:instantiate();
+    if currentPage == 1 then
+        pNavCtx.previousPage:setEnable(false);
+    else
+        pNavCtx.previousPage:setEnable(true);
     end
-    local nextPage = ISButton:new(winCtx.previousPage.x + winCtx.previousPage.width + 0.125 * TDLZ_REM, y,
+    pNavCtx:addChild(pNavCtx.previousPage)
+
+    pNavCtx.nextPage = ISButton:new(pNavCtx.previousPage.x + pNavCtx.previousPage.width + 0.125 * TDLZ_REM, y,
         TDLZ_BTN_DEFAULT_H,
         TDLZ_BTN_DEFAULT_H, ">", windowUI, onBtnClick);
-    nextPage.internal = "NEXTPAGE";
-    nextPage.anchorLeft = true
-    nextPage.anchorRight = false
-    -- windowUI.nextPage.borderColorEnabled = BTN_DEFAULT_BORDER_COLOR;
-    -- windowUI.nextPage.borderColor = BTN_ERROR_BORDER_COLOR;
-    nextPage:initialise();
-    nextPage:instantiate();
+    pNavCtx.nextPage.internal = "NEXTPAGE";
+    pNavCtx.nextPage.anchorLeft = true
+    pNavCtx.nextPage.anchorRight = false
+    -- windowUI.pNavCtx.nextPage.borderColorEnabled = BTN_DEFAULT_BORDER_COLOR;
+    -- windowUI.pNavCtx.nextPage.borderColor = BTN_ERROR_BORDER_COLOR;
+    pNavCtx.nextPage:initialise();
+    pNavCtx.nextPage:instantiate();
     if currentPage == numberOfPages then
-        nextPage:setEnable(false);
+        pNavCtx.nextPage:setEnable(false);
     else
-        nextPage:setEnable(true);
+        pNavCtx.nextPage:setEnable(true);
     end
-    winCtx:addFrameChild(nextPage);
+    pNavCtx:addChild(pNavCtx.nextPage);
 
-    local pageLabel = ISLabel:new(nextPage.x + nextPage.width + 0.5 * TDLZ_REM, y,
+    pNavCtx.pageLabel = ISLabel:new(pNavCtx.nextPage.x + pNavCtx.nextPage.width + 0.5 * TDLZ_REM, y,
         TDLZ_BTN_DEFAULT_H, getText(
             "IGUI_Pages") .. currentPage .. "/" .. numberOfPages, 1, 1, 1, 1,
         UIFont.Small, true);
-    pageLabel.anchorRight = false
-    pageLabel.anchorLeft = true
-    pageLabel:initialise();
-    pageLabel:instantiate();
-    winCtx:addFrameChild(pageLabel);
+    pNavCtx.pageLabel.anchorRight = false
+    pNavCtx.pageLabel.anchorLeft = true
+    pNavCtx.pageLabel:initialise();
+    pNavCtx.pageLabel:instantiate();
+    pNavCtx:addChild(pNavCtx.pageLabel);
 end

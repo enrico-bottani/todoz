@@ -10,14 +10,15 @@ TDLZ_ISTodoListTZWindowHandler = {}
 
 ---@private
 ---@return TDLZ_TodoListZWindow
-function TDLZ_ISTodoListTZWindowHandler._createWindow()
-    return TDLZ_TodoListZWindow:new()
+function TDLZ_ISTodoListTZWindowHandler._createWindow(player)
+    return TDLZ_TodoListZWindow:new(player)
 end
 
+---@deprecated
 ---@return TDLZ_TodoListZWindow|nil
-function TDLZ_ISTodoListTZWindowHandler.create()
+function TDLZ_ISTodoListTZWindowHandler.create(player)
     if TDLZ_TodoListZWindow.UI_MAP:size() == 0 then
-        return TDLZ_ISTodoListTZWindowHandler._createWindow()
+        return TDLZ_ISTodoListTZWindowHandler._createWindow(player)
     end
     return nil
 end
@@ -68,15 +69,17 @@ end
 
 ---@param notebookID number
 ---@return TDLZ_TodoListZWindow
-function TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(notebookID, pageNumber)
+function TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(player, notebookID, pageNumber)
     for key, window in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
         if window:getBookID() == notebookID then
             return window
         end
     end
-    local newWindow = TDLZ_ISTodoListTZWindowHandler._createWindow()
+    local newWindow = TDLZ_ISTodoListTZWindowHandler._createWindow(player)
     newWindow:setNotebookID(notebookID, pageNumber)
     return newWindow
 end
 
-Events.OnCreateUI.Add(TDLZ_ISTodoListTZWindowHandler.create)
+--Events.OnCreateUI.Add(function(player, a1, a2)
+ --   TDLZ_ISTodoListTZWindowHandler.create(player)
+--end)

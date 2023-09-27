@@ -20,6 +20,7 @@ local MARGIN_TOP_BOTTOM = FONT_HGT_SMALL / 4
 --- @type number
 local MARGIN_BETWEEN = FONT_HGT_SMALL / 4
 
+--- On move item inside the list
 ---@param ctx any
 ---@param lineData TDLZ_BookLineModel
 function TDLZ_ISList.handleOnMove(ctx, lineData)
@@ -32,6 +33,7 @@ function TDLZ_ISList.handleOnMove(ctx, lineData)
 end
 
 function TDLZ_ISList:new(x, y, width, height, previousState, onHighlight)
+    print("TDLZ_ISList:new()")
     local o = {}
     o = TDLZ_MultiSelectScrollList:new(x, y, width, height, onHighlight)
     setmetatable(o, self)
@@ -71,6 +73,20 @@ function TDLZ_ISList:new(x, y, width, height, previousState, onHighlight)
 
     o.moveSelectedIndex = -1 -- -1 = not in move mode
     return o
+end
+
+function TDLZ_ISList:_update(windowUI, currentPage, highlighted)
+    self:clearItems()
+    local pageText = windowUI.model.notebook.currentNotebook:seePage(currentPage)
+    if pageText ~= "" then
+        local lines = TDLZ_StringUtils.splitKeepingEmptyLines(pageText)
+        for lineNumber, lineString in ipairs(lines) do
+            local listItemText = TDLZ_StringUtils.removeCheckboxSquareBrackets(lineString)
+            self:addItem(
+                windowUI:createLabel(listItemText),
+                TDLZ_TodoListZWindow._createItemDataModel(windowUI, lineString, lineNumber, lines))
+        end
+    end
 end
 
 function TDLZ_ISList:initialise()
@@ -131,64 +147,74 @@ end
 function TDLZ_ISList:onMouseUp(x, mouseY)
     TDLZ_MultiSelectScrollList:onMouseUp(x, mouseY)
     if #self.items == 0 then return end
-    local row = self:rowAt(x, mouseY, "[onmouseup] ")
-    if row == nil then return end
-    if row > #self.items or row < 1 then
+    local clickedRow = self:rowAt(x, mouseY, "[onmouseup] ")
+    if clickedRow == nil then return end
+    if clickedRow > #self.items or clickedRow < 1 then
         return
     end
     -- Dispatch mouse up event
     for key, btn in pairs(self.buttons) do
         if btn:contains(x, mouseY) then
-            btn:triggerMouseUp(self.items[row].lineData)
+            btn:triggerMouseUp(self.items[clickedRow].lineData)
             return
         end
     end
 
-    local item = self.items[row]
+    local item = self.items[clickedRow]
     local isMouseOver = self.mouseoverselected == item.index and not self:isMouseOverScrollBar()
     local isMovingAndMouseHoverItem = self:moveMode() and isMouseOver
     local y = self:yAtRow(x, mouseY)
     if isMovingAndMouseHoverItem and mouseY < y + self.itemheight / 2
-        and not (row - 1 == self.moveSelectedIndex or row == self.moveSelectedIndex) then
-        self:moveAtRow(self.target, self:getItems(), self.moveSelectedIndex, row)
+        and not (clickedRow - 1 == self.moveSelectedIndex or clickedRow == self.moveSelectedIndex) then
+        self:moveAtRow(self.target, self:getItems(), self.moveSelectedIndex, clickedRow)
     elseif isMovingAndMouseHoverItem and mouseY > y + self.itemheight / 2
-        and not (row + 1 == self.moveSelectedIndex or row == self.moveSelectedIndex) then
-        self:moveAtRow(self.target, self:getItems(), self.moveSelectedIndex, row + 1)
+        and not (clickedRow + 1 == self.moveSelectedIndex or clickedRow == self.moveSelectedIndex) then
+        self:moveAtRow(self.target, self:getItems(), self.moveSelectedIndex, clickedRow + 1)
     end
 
-    if not self:moveMode() and self.marginLeft < x and x < self.marginLeft + BOX_SIZE and self.items[row].lineData.isCheckbox then
+    if not self:moveMode() and self.marginLeft < x and x < self.marginLeft + BOX_SIZE and self.items[clickedRow].lineData.isCheckbox then
         getSoundManager():playUISound("UISelectListItem")
         if self.onCheckboxToggle then
-            self.onCheckboxToggle(self.target, self.items[row].lineData);
+            self.onCheckboxToggle(self.target, self.items[clickedRow].lineData);
         end
     end
 
     if not self:moveMode() and isCtrlKeyDown() then
-        if self.highlighted:contains(row) then
-            self.highlighted:remove(row)
+        print("Select Mode and Control is Down")
+        if self.highlighted:contains(clickedRow) then
+            print("Select Mode and Control is Down - Remove")
+            self.highlighted:remove(clickedRow)
             self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
         else
-            self.highlighted:add(row)
+            print("Select Mode and Control is Down - Add")
+            self.highlighted:add(clickedRow)
             self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
         end
     elseif not self:moveMode() then
-        if self.highlighted:contains(row) and self.highlighted:size() == 1 then
+        print("Select Mode")
+        if self.highlighted:contains(clickedRow) and self.highlighted:size() == 1 then
             -- remove highlight from choosen element only if one is highlighted
+            print("Select Mode - Remove Selected Item")
             self.highlighted = TDLZ_NumSet:new();
             self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
         else
             -- wipe all and add highlight choosen element
+            print("Select Mode - Add")
             self.highlighted = TDLZ_NumSet:new()
-            self.highlighted:add(row)
+            self.highlighted:add(clickedRow)
+            print("self.highlighted # [" .. self.highlighted:size() .. "]")
             self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
         end
     end
+
+    print("self.highlighted # [" .. self.highlighted:size() .. "]")
     -- callback
     if self.onmouseup then
         self.onmouseup(self.target, self.items[self.selected].item);
     end
 end
 
+--- @private
 function TDLZ_ISList._drawCheckboxBackground(uiSelf, y, item, alt)
     if alt then
         uiSelf:drawRect(0, y, uiSelf:getWidth(), uiSelf.itemheight, 0.08, uiSelf.borderColor.r, uiSelf.borderColor.g,
@@ -199,7 +225,8 @@ function TDLZ_ISList._drawCheckboxBackground(uiSelf, y, item, alt)
     end
 end
 
-function TDLZ_ISList:handleNotMoveMode(y, item, k)
+--- @private
+function TDLZ_ISList:_handleNotMoveMode(y, item, k)
     local mouseX = self:getMouseX()
     local checkBoxY = y + (self.itemheight / 2 - BOX_SIZE / 2)
     local isMouseOver = self.mouseoverselected == item.index and not self:isMouseOverScrollBar()
@@ -213,7 +240,8 @@ function TDLZ_ISList:handleNotMoveMode(y, item, k)
     if self.highlighted:contains(k) and item.lineData.isCheckbox then
         --- Item is highlighted
         TDLZ_Draw.drawRect(self, 3, y - 1, self.width - 5, self.itemheight + 2, TDLZ_Colors.GRAY_130)
-        TDLZ_Draw.drawRect(self, 0, y - 1, self.width * item.lineData.jobDelta, self.itemheight + 2, TDLZ_Colors.YELLOW_A1)
+        TDLZ_Draw.drawRect(self, 0, y - 1, self.width * item.lineData.jobDelta, self.itemheight + 2,
+            TDLZ_Colors.YELLOW_A1)
         TDLZ_Draw.drawRectBorder(self, 1, y - 1, 2, self.itemheight + 2, TDLZ_Colors.YELLOW);
     end
 
@@ -277,7 +305,7 @@ function TDLZ_ISList:doDrawItem(y, item, alt, k)
         TDLZ_Draw.drawRect(self, 0, y + self.itemheight - 1, self:getWidth(), 3, TDLZ_Colors.YELLOW)
         -- Not move mode - mouse hover and highlight handling
     elseif not self:moveMode() then
-        self:handleNotMoveMode(y, item, k)
+        self:_handleNotMoveMode(y, item, k)
     end
 
     -- In any case, move or not move mode

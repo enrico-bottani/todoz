@@ -75,16 +75,27 @@ function TDLZ_ISList:new(x, y, width, height, previousState, onHighlight)
     return o
 end
 
-function TDLZ_ISList:_update(windowUI, currentPage, highlighted)
+---@param notebookID number
+---@param currentPage number
+---@param notebookItems TDLZ_Set
+---@param currentNotebook any
+function TDLZ_ISList:_update(notebookID, currentPage, pageText, notebookItems, currentNotebook)
+    if currentPage == self.currentPage and notebookID == self.notebookID and pageText == self.pageText then
+        return
+    end
+    self.notebookID = notebookID
+    self.currentPage = currentPage
+    self.pageText = pageText
+
     self:clearItems()
-    local pageText = windowUI.model.notebook.currentNotebook:seePage(currentPage)
-    if pageText ~= "" then
-        local lines = TDLZ_StringUtils.splitKeepingEmptyLines(pageText)
+
+    if self.pageText ~= "" then
+        local lines = TDLZ_StringUtils.splitKeepingEmptyLines(self.pageText)
         for lineNumber, lineString in ipairs(lines) do
             local listItemText = TDLZ_StringUtils.removeCheckboxSquareBrackets(lineString)
             self:addItem(
-                windowUI:createLabel(listItemText),
-                TDLZ_TodoListZWindow._createItemDataModel(windowUI, lineString, lineNumber, lines))
+                TDLZ_TodoListZWindow.createLabel(listItemText, notebookItems),
+                TDLZ_TodoListZWindow._createItemDataModel(lineString, lineNumber, currentPage, currentNotebook))
         end
     end
 end

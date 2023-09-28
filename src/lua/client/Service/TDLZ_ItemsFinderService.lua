@@ -7,12 +7,15 @@ function TDLZ_ItemsFinderService.filterName(filterTxt, scriptItem)
     return checkStringPattern(filterTxt) and string.match(txtToCheck, filterTxt)
 end
 
+---@param filterTxt any
+---@param allItems TDLZ_Map
+---@return nil
 function TDLZ_ItemsFinderService.filterName2(filterTxt, allItems)
     if allItems==nil then
         return nil
     end
     filterTxt = string.lower(filterTxt:gsub('[%p%c%s%-]', ''))
-    for key, value in pairs(allItems) do
+    for key, value in pairs(allItems:toList()) do
         local txtToCheck = string.lower(value:getName())
         txtToCheck = txtToCheck:gsub('[%p%c%s%-]', '')
         if (checkStringPattern(filterTxt) and string.match(txtToCheck, filterTxt)) then

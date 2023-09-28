@@ -1,8 +1,10 @@
 ---@class TDLZ_ISContextMenu:ISScrollingListBox
+---@field viewModel {allItems:table}
 TDLZ_ISContextMenu = ISScrollingListBox:derive("TDLZ_ISContextMenu");
 local instance = nil
 local FONT_HGT_MEDIUM = getTextManager():getFontHeight(UIFont.Medium)
 function TDLZ_ISContextMenu:searchAndDisplayResults(hashFound)
+    print("TDLZ_ISContextMenu:searchAndDisplayResults " .. string.len(hashFound.text))
     self.startIndex = hashFound.startIndex
     self.endIndex = hashFound.endIndex
 
@@ -11,9 +13,11 @@ function TDLZ_ISContextMenu:searchAndDisplayResults(hashFound)
         self:setVisible(false)
         return
     end
-    self:setCapture(true)
-    
+
+    print("TDLZ_ISContextMenu:searchAndDisplayResults " .. string.len(hashFound.text))
+
     self:setVisible(true)
+    self:setCapture(true)
     self:setAlwaysOnTop(true)
     for index, item in pairs(self.viewModel.allItems) do
         if TDLZ_ItemsFinderService.hasIcon(item) and TDLZ_ItemsFinderService.filterName(hashFound.text, item) then
@@ -94,11 +98,14 @@ function TDLZ_ISContextMenu:setFont(font, padY)
     self.itemheight = self.fontHgt * 2 + (self.itemPadY or 0) * 2;
 end
 
---************************************************************************--
---** TDLZ_ISNewItemModal:new
---**
---************************************************************************--
-function TDLZ_ISContextMenu:new(x, y, width, height)
+---comment
+---@param x number
+---@param y number
+---@param width number
+---@param height number
+---@param allItems TDLZ_Map
+---@return TDLZ_ISContextMenu
+function TDLZ_ISContextMenu:new(x, y, width, height, allItems)
     local o = {}
     o = ISScrollingListBox:new(x, y, width, height);
     setmetatable(o, self)
@@ -125,16 +132,8 @@ function TDLZ_ISContextMenu:new(x, y, width, height)
     o.onCloseCTX = nil
     o.onCloseCallback = nil
 
-    local items = getAllItems()
-    local allItems = {}
-    for i = 0, items:size() - 1 do
-        local item = items:get(i);
-        if not item:getObsolete() and not item:isHidden() then
-            table.insert(allItems, item)
-        end
-    end
     o.viewModel = {
-        allItems = allItems
+        allItems = allItems:toList()
     }
 
     o.startIndex = -1

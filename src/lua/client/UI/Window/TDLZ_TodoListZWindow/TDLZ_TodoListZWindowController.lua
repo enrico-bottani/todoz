@@ -75,7 +75,6 @@ function TDLZ_TodoListZWindowController.onClick(winCtx, button)
         winCtx.listbox.highlighted = TDLZ_NumSet:new();
     elseif button.internal == "DELETEPAGE" then
         TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, {})
-        winCtx:refreshUIElements()
     elseif button.internal == "LOCKBOOK" then
         local player = getPlayer()
         winCtx.model.notebook.currentNotebook:setLockedBy(player:getUsername());
@@ -112,32 +111,16 @@ end
 
 ---@param winCtx TDLZ_TodoListZWindow
 function TDLZ_TodoListZWindowController.onModalClose(winCtx)
-    winCtx.modal1:setVisible(false);
-    winCtx.modal1:removeFromUIManager();
+    winCtx.lockedOverlay:setVisible(false);
 end
 
 ---@param winCtx TDLZ_TodoListZWindow
 ---@param listItem TDLZ_BookLineModel
 function TDLZ_TodoListZWindowController.onEditItem(winCtx, listItem)
-    winCtx.modal1 = TDLZ_ISNewItemModalMask:new(winCtx.x, winCtx.y, winCtx.width, winCtx.height)
-    winCtx.modal1:initialise();
-    winCtx.modal1:addToUIManager();
-
-
-    local modalHeight = 350;
-    local modalWidth = 280;
-    local mx = (winCtx.width - modalWidth) / 2
-
-    local editItemModal = TDLZ_ISNewItemModal:new(winCtx.x + mx, winCtx.y + winCtx.height - modalHeight - 50,
-        modalWidth,
-        modalHeight,
-        winCtx,
-        listItem,
-        TDLZ_TodoListZWindowController.onModalClose)
-    editItemModal.backgroundColor.a = 0.9
-    editItemModal:instantiate()
-    TDLZ_ISNewItemModal.initialise(editItemModal)
-    editItemModal:addToUIManager()
+    winCtx.editItemModal.backgroundColor.a = 0.9
+    winCtx.editItemModal:setAlwaysOnTop(true)
+    winCtx.editItemModal:setVisible(true)
+    winCtx.editItemModal:setListItem(listItem)
 end
 
 ---Save data into Notebook. Please note this does not refresh the UI but reload the model
@@ -178,7 +161,7 @@ function TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, bookLines)
         end
     end
     winCtx.model.notebook.currentNotebook:addPage(winCtx.model.notebook.currentPage, toWrite)
-    TDLZ_TodoListZWindow.reloadModel(winCtx, winCtx.model.notebook.notebookID, winCtx.model.notebook.currentPage)
+    TDLZ_TodoListZWindow.reloadViewModel(winCtx, winCtx.model.notebook.notebookID, winCtx.model.notebook.currentPage)
     return toWrite;
 end
 
@@ -188,7 +171,7 @@ function TDLZ_TodoListZWindowController.onStopAction(winCtx, row)
     listRows[row].jobDelta = 0
 end
 
----@return table<number,any>
+---@return TDLZ_Set
 function TDLZ_TodoListZWindowController.getHashnames(currentNotebook)
     local text = ""
     for i = 1, currentNotebook:getCustomPages():size(), 1 do
@@ -199,13 +182,13 @@ function TDLZ_TodoListZWindowController.getHashnames(currentNotebook)
     local pageHashnames = TDLZ_StringUtils.findAllHashTagName(text)
     pageHashnames = TDLZ_StringUtils.removeAllHash(pageHashnames)
     local items = getAllItems()
-    local rtnItems = {}
+    local rtnItems = TDLZ_Set:new()
     for i = 0, items:size() - 1 do
         local item = items:get(i);
         if not item:getObsolete() and not item:isHidden() then
             for key, value in pairs(pageHashnames) do
                 if value == item:getName() then
-                    table.insert(rtnItems, item)
+                    rtnItems:add(item)
                     break
                 end
             end

@@ -6,7 +6,7 @@ require "TimedActions/ISEatFoodAction"
 
 require "src.lua.client.Utils.TDLZ_NumSet"
 
---- @class TDLZ_MultiSelectScrollList
+--- @class TDLZ_MultiSelectScrollList:ISPanelJoypad
 TDLZ_MultiSelectScrollList = ISPanelJoypad:derive("TDLZ_MultiSelectScrollList");
 TDLZ_MultiSelectScrollList.joypadListIndex = 1;
 

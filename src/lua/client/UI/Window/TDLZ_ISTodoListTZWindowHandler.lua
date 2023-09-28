@@ -33,7 +33,7 @@ end
 ---@param ownedNotebooks TDLZ_Map
 function TDLZ_ISTodoListTZWindowHandler.closeExcept(ownedNotebooks)
     for key, window in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
-        if not ownedNotebooks:containsKey(window:getBookID()) then
+        if not ownedNotebooks:containsKey(window:getNotebookID()) then
             window:close()
         end
     end
@@ -49,7 +49,7 @@ end
 ---@param notebookID number
 TDLZ_ISTodoListTZWindowHandler.isOpen = function(notebookID)
     for key, value in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
-        if value:getBookID() == notebookID then
+        if value:getNotebookID() == notebookID then
             return true
         end
     end
@@ -60,7 +60,7 @@ end
 ---@return TDLZ_TodoListZWindow|nil
 function TDLZ_ISTodoListTZWindowHandler.getInstance(notebookID)
     for key, value in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
-        if value:getBookID() == notebookID then
+        if value:getNotebookID() == notebookID then
             return value
         end
     end
@@ -71,7 +71,7 @@ end
 ---@return TDLZ_TodoListZWindow
 function TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(player, notebookID, pageNumber)
     for key, window in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
-        if window:getBookID() == notebookID then
+        if window:getNotebookID() == notebookID then
             return window
         end
     end

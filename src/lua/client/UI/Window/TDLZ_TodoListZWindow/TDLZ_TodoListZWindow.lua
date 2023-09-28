@@ -9,19 +9,30 @@ require 'Utils/TDLZ_CheckboxUtils'
 --- @field y number
 --- @field height number
 --- @field width number
---- @field modal1 any
+--- @field lockedOverlay TDLZ_ISNewItemModalMask
 --- @field pageNav TDLZ_PageNav
 --- @field onReviewOptCtxMenu TDLZ_GenericContextMenu
+--- @field allItems TDLZ_Set
+--- @field editItemModal TDLZ_ISNewItemModal
 TDLZ_TodoListZWindow = ISCollapsableWindowJoypad:derive("TDLZ_TodoListZWindow")
 
 TDLZ_TodoListZWindow.UI_MAP = TDLZ_Map:new()
 
-function TDLZ_TodoListZWindow:getBookID() return self.model.notebook.notebookID end
 
----Set notebook id and refresh UI Elements
+-- SETTERS AND GETTERS
+-- ================================
+
+-- Notebook Getter and Setters
+-- --------------------------------
+
+---Get notebook ID
+---@return number
+function TDLZ_TodoListZWindow:getNotebookID() return self.model.notebook.notebookID end
+
+---Set notebook id, reload model and refresh UI Elements
 ---@param notebookID number
 function TDLZ_TodoListZWindow:setNotebookID(notebookID, pageNumber)
-    TDLZ_TodoListZWindow.reloadModel(self, notebookID, pageNumber)
+    TDLZ_TodoListZWindow.reloadViewModel(self, notebookID, pageNumber)
     self:refreshUIElements()
 end
 
@@ -45,14 +56,32 @@ function TDLZ_TodoListZWindow:new(player)
     o.listbox = nil
     o.pageNav = nil
     o.frameChildren = {}
-    TDLZ_TodoListZWindow.reloadModel(o, mD.todoListData.notebookID, mD.todoListData.pageNumber)
+    TDLZ_TodoListZWindow.reloadViewModel(o, mD.todoListData.notebookID, mD.todoListData.pageNumber)
 
+    local items = getAllItems()
+    local allItems = TDLZ_Map:new()
+    for i = 0, items:size() - 1 do
+        local item = items:get(i);
+        if not item:getObsolete() and not item:isHidden() then
+            allItems:add(item:getName(), item)
+        end
+    end
+    o.allItems = allItems
+
+    local modalHeight = 350;
+    local modalWidth = 280;
+    local mx = (o.width - modalWidth) / 2
+    o.editItemModal = TDLZ_ISNewItemModal:new(o.x + mx, o.y + o.height - modalHeight - 50,
+        modalWidth, modalHeight,
+        o, o.allItems)
 
     o.executeMode = 1
     --   o.onReviewOptCtxMenu = nil
     o.onReviewOptCtxMenu = TDLZ_GenericContextMenu:new(0, 0 + 10, 200, 60)
+    o.lockedOverlay = TDLZ_ISNewItemModalMask:new(0, 0, o.width, o.height)
     -- This will call the instantiate method
     o.debug_firstRun = true
+
     o:initialise()
     o:addToUIManager()
 
@@ -71,33 +100,26 @@ local TDLZ_DEBUG_RNumber = 0
 function TDLZ_TodoListZWindow:refreshUIElements()
     TDLZ_DEBUG_RNumber = TDLZ_DEBUG_RNumber + 1
     print("Refresh UI Run #" .. TDLZ_DEBUG_RNumber)
-    local resizeBarHeight = self.resizable and self:resizeWidgetHeight() or 0
-    local titleBarHeight = self:titleBarHeight()
     if self.model.notebook.notebookID == -1 then
         TDLZ_TodoListZWindow._setFormattedTitle(self, self.model.notebook.notebookID)
     else
         --- Refresh UI With ID
         print("Refresh UI WID #" .. TDLZ_DEBUG_RNumber)
-
         local notebook = self.model.notebook
+        local _pageText = notebook.currentNotebook:seePage(notebook.currentPage)
         self:_setFormattedTitle(notebook.currentNotebook:getName())
-        self.pageNav:_update(notebook.currentPage, notebook.numberOfPages, notebook.currentNotebook:getLockedBy())
-        self.listbox:_update(self, notebook.currentPage)
+        self.pageNav:_update(notebook.currentPage, notebook.numberOfPages, notebook.currentNotebook:getLockedBy() ~= nil)
+        self.listbox:_update(notebook.notebookID, notebook.currentPage, _pageText, self.model.notebookItems,
+            notebook.currentNotebook)
         TDLZ_TodoListToolbar.refreshTodoListToolbar(self)
+        self.editItemModal:_update()
+        self.lockedOverlay:_update(self.model.notebook.currentNotebook:getLockedBy() ~= nil)
     end
 
     -- Save Changes in Mod Data
     TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(),
         self.model.notebook.notebookID, self.model.notebook.currentPage, self.listbox:getYScroll())
 
-    if self.model.notebook.currentNotebook:getLockedBy() then
-        local modal1 = TDLZ_ISNewItemModalMask:new(0,
-            titleBarHeight + TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM,
-            self.width, self.height - (titleBarHeight + TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM) - resizeBarHeight)
-        modal1:initialise()
-        modal1:instantiate()
-        self:addFrameChild(modal1)
-    end
 
     self.resizeWidget2:bringToTop()
     self.resizeWidget:bringToTop()
@@ -142,9 +164,9 @@ end
 function TDLZ_TodoListZWindow:onGainJoypadFocus(joypadData)
     ISCollapsableWindowJoypad.onGainJoypadFocus(self, joypadData)
     self.borderColor = TDLZ_Colors.GREEN
-    --    self:setISButtonForA(self.yes)
-    --self:setISButtonForB(self.no)
-    --self.yes:setJoypadButton(Joypad.Texture.AButton)
+    -- self:setISButtonForA(self.yes)
+    -- self:setISButtonForB(self.no)
+    -- self.yes:setJoypadButton(Joypad.Texture.AButton)
     -- self.no:setJoypadButton(Joypad.Texture.BButton)
     self:setJoypadButtons(joypadData)
 end
@@ -183,9 +205,9 @@ function TDLZ_TodoListZWindow:initialise()
     self.debug_firstRun = false
 
     ISCollapsableWindowJoypad.initialise(self)
+
     -- UI Variables Creation
     local resizeBarHeight = self.resizable and self:resizeWidgetHeight() or 0
-
     local titleBarHeight = self:titleBarHeight()
     local y = titleBarHeight
 
@@ -199,7 +221,7 @@ function TDLZ_TodoListZWindow:initialise()
     self:addChild(self.pageNav)
     y = y + TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM
 
-    -- Create TodoList Element
+    -- Create Todos Multi Item List
     local h = self.height - resizeBarHeight - titleBarHeight - TDLZ_BTN_DEFAULT_H * 2 - TDLZ_BTN_MV * 2 * 2;
     TDLZ_TodoListZWindow._createTodoList(self, 0, y, self.width, h, nil)
     y = self.listbox.y + self.listbox.height + TDLZ_BTN_MV
@@ -216,6 +238,7 @@ function TDLZ_TodoListZWindow:initialise()
     self.buttonNewItem.anchorRight = true
     self.buttonNewItem.anchorTop = false
     self.buttonNewItem.onclick = function()
+        self.lockedOverlay:setVisible(true)
         TDLZ_TodoListZWindowController.onEditItem(self,
             TDLZ_BookLineModel.builder()
             :lineNumber(-1) -- -1: new Item
@@ -305,6 +328,20 @@ function TDLZ_TodoListZWindow:initialise()
     self.taskLabel:setVisible(false)
     self:addChild(self.taskLabel);
 
+
+    self.lockedOverlay:initialise()
+    self.lockedOverlay:instantiate()
+    self:addChild(self.lockedOverlay)
+    self.lockedOverlay:setVisible(false)
+
+    self.editItemModal:instantiate()
+    self.editItemModal:initialise()
+    self.editItemModal:setVisible(false)
+    self.editItemModal:setAlwaysOnTop(true)
+    self.editItemModal:addToUIManager()
+    --self:addChild(self.editItemModal);
+
+
     self.closingWindow = false
     self:refreshUIElements()
 end
@@ -340,14 +377,14 @@ end
 ---@param lineNumber number
 ---@param lines table
 ---@return TDLZ_BookLineModel
-function TDLZ_TodoListZWindow._createItemDataModel(windowUI, lineString, lineNumber, lines)
+function TDLZ_TodoListZWindow._createItemDataModel(lineString, lineNumber, currentPage, currentNotebook)
     return TDLZ_BookLineModel.builder()
         :isCheckbox(TDLZ_CheckboxUtils.containsCheckBox(lineString))
         :isChecked(TDLZ_CheckboxUtils.containsCheckedCheckBox(lineString))
-        :pageNumber(windowUI.model.notebook.currentPage)
+        :pageNumber(currentPage)
         :lineNumber(lineNumber)
         :lineString(lineString)
-        :notebook(windowUI.model.notebook.currentNotebook)
+        :notebook(currentNotebook)
         :build()
 end
 
@@ -392,58 +429,51 @@ function TDLZ_TodoListZWindow._createTodoList(windowUI, x, y, width, height, pre
     windowUI.listbox:setOnEditItem(windowUI, TDLZ_TodoListZWindowController.onEditItem)
     windowUI.listbox:initialise()
     windowUI.listbox:instantiate()
-    local pageText = windowUI.model.notebook.currentNotebook:seePage(windowUI.model.notebook.currentPage)
-    if pageText ~= "" then
-        local lines = TDLZ_StringUtils.splitKeepingEmptyLines(pageText)
-        for lineNumber, lineString in ipairs(lines) do
-            local listItemText = TDLZ_StringUtils.removeCheckboxSquareBrackets(lineString)
-            windowUI.listbox:addItem(
-                windowUI:createLabel(listItemText),
-                TDLZ_TodoListZWindow._createItemDataModel(windowUI, lineString, lineNumber, lines))
-        end
-    end
+
     windowUI:addChild(windowUI.listbox)
     if (previousState ~= nil) then
         --windowUI.listbox:addScrollBars(false)
         windowUI.listbox:setYScroll(previousState.yScroll)
     end
     windowUI.listbox:setVisible(true)
-    print("_createTodoList END")
 end
 
---- @private
-function TDLZ_TodoListZWindow:createLabel(label)
-    local allHash = TDLZ_StringUtils.findAllHashTagName(label)
+---Create Label for ListItem
+---@param rawLineText any
+---@param notebookItems any
+---@return string
+function TDLZ_TodoListZWindow.createLabel(rawLineText, notebookItems)
+    local allHash = TDLZ_StringUtils.findAllHashTagName(rawLineText)
     local cursorIndex = 0
     local text = ""
 
-    for key, value in pairs(allHash) do
-        text = text .. string.sub(label, cursorIndex, value.startIndex - 1)
+    for _key, value in pairs(allHash) do
+        text = text .. string.sub(rawLineText, cursorIndex, value.startIndex - 1)
         local hashtagName = TDLZ_ItemsFinderService.filterName2(string.sub(
-            string.sub(label, value.startIndex, value.endIndex), 2), self.model.allItems)
+            string.sub(rawLineText, value.startIndex, value.endIndex), 2), notebookItems)
         if hashtagName ~= nil then
             text = text .. "#[" .. hashtagName:getDisplayName() .. "]"
         end
         cursorIndex = value.endIndex + 1
     end
 
-    text = text .. string.sub(label, cursorIndex)
+    text = text .. string.sub(rawLineText, cursorIndex)
     return text
 end
 
---- This does not refresh the UI
----@param o any
----@param notebookID any
----@param pageNumber any
-function TDLZ_TodoListZWindow.reloadModel(o, notebookID, pageNumber)
+---Reload TodoListZ Window ViewModel
+---@param winCtx TDLZ_TodoListZWindow
+---@param notebookID number
+---@param pageNumber number
+function TDLZ_TodoListZWindow.reloadViewModel(winCtx, notebookID, pageNumber)
     local notebookData = nil
     if notebookID == nil then
         notebookData = TDLZ_TodoListZWindow._getNotebookData(-1, 1)
-        o.model = TDLZ_TodoListZWindowViewModel:new(notebookData, {})
+        winCtx.model = TDLZ_TodoListZWindowViewModel:new(notebookData, {})
     else
         notebookData = TDLZ_TodoListZWindow._getNotebookData(notebookID, pageNumber)
         local itemList = TDLZ_TodoListZWindowController.getHashnames(notebookData.currentNotebook)
-        o.model = TDLZ_TodoListZWindowViewModel:new(notebookData, itemList)
+        winCtx.model = TDLZ_TodoListZWindowViewModel:new(notebookData, itemList)
     end
 end
 
@@ -463,17 +493,18 @@ function TDLZ_TodoListZWindow:onMouseMoveOutside(dx, dy)
     end
 end
 
-function TDLZ_TodoListZWindow:onResize()
-    print("onresize")
-    ISCollapsableWindow.onResize(self)
-    self:updatePosition()
-end
-
+---Update "indirect" child windows position
 function TDLZ_TodoListZWindow:updatePosition()
     if self.buttonSelectOpt ~= nil then
         self.onReviewOptCtxMenu:setX(self.buttonSelectOpt:getAbsoluteX())
         self.onReviewOptCtxMenu:setY(self.buttonSelectOpt:getAbsoluteY() + self.buttonSelectOpt.height)
     end
+end
+
+---On Window resize
+function TDLZ_TodoListZWindow:onResize()
+    ISCollapsableWindow.onResize(self)
+    self:updatePosition()
 end
 
 ---@param executeMode number

@@ -142,16 +142,18 @@ function TDLZ_TodoListZWindow:setJoypadButtons(joypadData)
     if self.listbox.highlighted:size() > 0 then
         print("Joypad Buttons Set (n of highlighted: " .. self.listbox.highlighted:size() .. ")")
         self.joypadIndex = 1
-        self.joypadIndexY = 2
+        self.joypadIndexY = 3
         self:insertNewLineOfButtons(self.pageNav.buttonDelete, self.pageNav.buttonLock,
             self.pageNav.previousPage, self.pageNav.nextPage)
+        self:insertNewLineOfButtons(self.listbox)
         self:insertNewLineOfButtons(self.buttonBack, self.buttonSelectOpt, self.btnExecute)
     else
         print("Joypad Buttons Set (n of highlighted: " .. self.listbox.highlighted:size() .. ")")
-        self.joypadIndex = 2
-        self.joypadIndexY = 2
+        self.joypadIndex = 1
+        self.joypadIndexY = 3
         self:insertNewLineOfButtons(self.pageNav.buttonDelete, self.pageNav.buttonLock,
             self.pageNav.previousPage, self.pageNav.nextPage)
+        self:insertNewLineOfButtons(self.listbox)
         self:insertNewLineOfButtons(self.buttonNewItem, self.btnSelectAll)
     end
 

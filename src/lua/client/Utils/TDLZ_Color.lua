@@ -26,6 +26,8 @@ TDLZ_Colors.GRAY_500 = TDLZ_Color:new(0.5, 0.5, 0.5, 1)
 
 TDLZ_Colors.WHITE = TDLZ_Color:new(1, 1, 1, 1)
 
+TDLZ_Colors.TRANSPARENT = TDLZ_Color:new(0, 0, 0, 0)
+
 TDLZ_Colors.GRAY_300 = TDLZ_Color:new(0.3, 0.3, 0.3, 1)
 TDLZ_Colors.GRAY_100 = TDLZ_Color:new(0.1, 0.1, 0.1, 1)
 TDLZ_Colors.GRAY_130 = TDLZ_Color:new(0.13, 0.13, 0.13, 1)

@@ -39,6 +39,8 @@ function TDLZ_ISList:new(x, y, width, height, previousState, onHighlight)
     setmetatable(o, self)
     self.__index = self
 
+    o.width = width
+    
     o.itemheight = FONT_HGT_SMALL + MARGIN_TOP_BOTTOM * 2
     o:setAnchorLeft(true)
     o:setAnchorRight(true)

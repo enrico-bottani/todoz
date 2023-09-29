@@ -66,7 +66,7 @@ end
 ---@param winCtx TDLZ_TodoListZWindow
 ---@param button any
 function TDLZ_TodoListZWindowController.onClick(winCtx, button)
-    print("Button click ".. button.internal)
+    print("Button click " .. button.internal)
     if button.internal == "NEXTPAGE" then
         winCtx.model.notebook.currentPage = winCtx.model.notebook.currentPage + 1
         winCtx.listbox.highlighted = TDLZ_NumSet:new();
@@ -82,6 +82,26 @@ function TDLZ_TodoListZWindowController.onClick(winCtx, button)
         winCtx.model.notebook.currentNotebook:setLockedBy(nil)
     end
     winCtx:refreshUIElements()
+end
+
+---@param winCtx TDLZ_TodoListZWindow
+function TDLZ_TodoListZWindowController.createNewItem(winCtx)
+    winCtx.lockedOverlay:setVisible(true)
+    TDLZ_TodoListZWindowController.onEditItem(winCtx,
+        TDLZ_BookLineModel.builder()
+        :lineNumber(-1) -- -1: new Item
+        :lineString("")
+        :notebook(self.model.notebook):build())
+end
+
+function TDLZ_TodoListZWindowController.selectAll(winCtx)
+    for key, lineData in pairs(winCtx.listbox:getItems()) do
+        if lineData.isCheckbox then
+            winCtx.listbox.highlighted:add(key)
+        end
+    end
+    winCtx:refreshUIElements()
+    winCtx:setJoypadButtons(joypadData)
 end
 
 local run = 0
@@ -200,7 +220,7 @@ end
 
 ---@param winCtx TDLZ_TodoListZWindow
 ---@param item any
-function TDLZ_TodoListZWindowController.onSelectItem(winCtx,combobox)
+function TDLZ_TodoListZWindowController.onSelectItem(winCtx, combobox)
     print("TDLZ_TodoListZWindowController.onSelectItem")
     local item = combobox:getOptionData(combobox.selected)
     winCtx:setExecuteMode(item.id)

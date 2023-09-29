@@ -2,19 +2,20 @@ require 'Utils/TDLZ_Map'
 require 'Utils/TDLZ_Vars'
 require 'Utils/TDLZ_StringUtils'
 require 'Utils/TDLZ_CheckboxUtils'
---- @class TDLZ_TodoListZWindow:ISCollapsableWindowJoypad
---- @field listbox TDLZ_ISList
---- @field model TDLZ_TodoListZWindowViewModel
---- @field x number
---- @field y number
---- @field height number
---- @field width number
---- @field lockedOverlay TDLZ_ISNewItemModalMask
---- @field pageNav TDLZ_PageNav
---- @field onReviewOptCtxMenu TDLZ_GenericContextMenu
---- @field allItems TDLZ_Set
---- @field editItemModal TDLZ_ISNewItemModal
---- @field player any
+---@class TDLZ_TodoListZWindow:ISCollapsableWindowJoypad
+---@field listbox TDLZ_ISList
+---@field model TDLZ_TodoListZWindowViewModel
+---@field x number
+---@field y number
+---@field height number
+---@field width number
+---@field lockedOverlay TDLZ_ISNewItemModalMask
+---@field pageNav TDLZ_PageNav
+---@field onReviewOptCtxMenu TDLZ_GenericContextMenu
+---@field allItems TDLZ_Set
+---@field editItemModal TDLZ_ISNewItemModal
+---@field player any
+---@field todoListToolbar TDLZ_TodoListToolbar
 TDLZ_TodoListZWindow = ISCollapsableWindowJoypad:derive("TDLZ_TodoListZWindow")
 
 TDLZ_TodoListZWindow.UI_MAP = TDLZ_Map:new()
@@ -112,7 +113,8 @@ function TDLZ_TodoListZWindow:refreshUIElements()
         self.pageNav:_update(notebook.currentPage, notebook.numberOfPages, notebook.currentNotebook:getLockedBy() ~= nil)
         self.listbox:_update(notebook.notebookID, notebook.currentPage, _pageText, self.model.notebookItems,
             notebook.currentNotebook)
-        TDLZ_TodoListToolbar.refreshTodoListToolbar(self)
+        --self.todoListToolbar:_update(self.listbox.highlighted:size())
+        self.todoListToolbar:_update(0)
         self.editItemModal:_update()
         self.lockedOverlay:_update(self.model.notebook.currentNotebook:getLockedBy() ~= nil)
     end
@@ -146,7 +148,8 @@ function TDLZ_TodoListZWindow:setJoypadButtons(joypadData)
         self:insertNewLineOfButtons(self.pageNav.buttonDelete, self.pageNav.buttonLock,
             self.pageNav.previousPage, self.pageNav.nextPage)
         self:insertNewLineOfButtons(self.listbox)
-        self:insertNewLineOfButtons(self.buttonBack, self.buttonSelectOpt, self.btnExecute)
+        self:insertNewLineOfButtons(self.todoListToolbar.buttonBack, self.todoListToolbar.buttonSelectOpt,
+            self.todoListToolbar.btnExecute)
     else
         print("Joypad Buttons Set (n of highlighted: " .. self.listbox.highlighted:size() .. ")")
         self.joypadIndex = 1
@@ -154,7 +157,7 @@ function TDLZ_TodoListZWindow:setJoypadButtons(joypadData)
         self:insertNewLineOfButtons(self.pageNav.buttonDelete, self.pageNav.buttonLock,
             self.pageNav.previousPage, self.pageNav.nextPage)
         self:insertNewLineOfButtons(self.listbox)
-        self:insertNewLineOfButtons(self.buttonNewItem, self.btnSelectAll)
+        self:insertNewLineOfButtons(self.todoListToolbar.buttonNewItem, self.todoListToolbar.btnSelectAll)
     end
 
 
@@ -231,106 +234,12 @@ function TDLZ_TodoListZWindow:initialise()
     y = self.listbox.y + self.listbox.height + TDLZ_BTN_MV
 
     -- Create "New +" Button
-    self.buttonNewItem = ISButton:new(TDLZ_HALF_REM, y,
-        100,
-        TDLZ_BTN_DEFAULT_H,
-        "+ Add...")
-    self.buttonNewItem.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-    self.buttonNewItem.anchorBottom = true
-    self.buttonNewItem.anchorLeft = true
-    self.buttonNewItem.anchorRight = true
-    self.buttonNewItem.anchorTop = false
-    self.buttonNewItem.onclick = function()
-        self.lockedOverlay:setVisible(true)
-        TDLZ_TodoListZWindowController.onEditItem(self,
-            TDLZ_BookLineModel.builder()
-            :lineNumber(-1) -- -1: new Item
-            :lineString("")
-            :notebook(self.model.notebook):build())
-    end
-    self.buttonNewItem:setVisible(false)
-    self:addChild(self.buttonNewItem);
-
-    -- Create "Select All" Button
-    self.btnSelectAll = ISButton:new(
-        self.buttonNewItem.x + self.buttonNewItem.width + TDLZ_QUARTER_REM, y, 120,
-        TDLZ_BTN_DEFAULT_H, "Select all")
-    --buttonCheck:setImage(getTexture("media/ui/trashIcon.png"));
-    self.btnSelectAll.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-    self.btnSelectAll.anchorBottom = true
-    self.btnSelectAll.anchorLeft = false
-    self.btnSelectAll.anchorRight = true
-    self.btnSelectAll.anchorTop = false
-    self.btnSelectAll.onclick = function()
-        for key, lineData in pairs(self.listbox:getItems()) do
-            if lineData.isCheckbox then
-                self.listbox.highlighted:add(key)
-            end
-        end
-        self:refreshUIElements()
-        self:setJoypadButtons(joypadData)
-    end
-    self.btnSelectAll:setVisible(false)
-    self:addChild(self.btnSelectAll);
-
-    ---
-    self.buttonBack = ISButton:new(TDLZ_HALF_REM, y, TDLZ_BTN_DEFAULT_H,
-        TDLZ_BTN_DEFAULT_H,
-        "")
-    self.buttonBack:setImage(getTexture("media/ui/arrow-small-left.png"));
-    self.buttonBack.borderColor = { r = 0.5, g = 0.5, b = 0.5, a = 0 }
-    self.buttonBack.anchorBottom = true
-    self.buttonBack.anchorLeft = true
-    self.buttonBack.anchorRight = false
-    self.buttonBack.anchorTop = false
-    self.buttonBack.onclick = function()
-        self.listbox.highlighted = TDLZ_NumSet:new();
-        self:refreshUIElements()
-        self:setJoypadButtons(joypadData)
-    end
-    self.buttonBack:setVisible(false)
-    self:addChild(self.buttonBack);
-
-    self.buttonSelectOpt = ISComboBox:new(self.buttonBack.x + self.buttonBack.width + TDLZ_REM * 0.5, y, 100,
-        TDLZ_BTN_DEFAULT_H, self, TDLZ_TodoListZWindowController.onSelectItem)
-    --self.buttonSelectOpt:setImage(getTexture("media/ui/trashIcon.png"));
-    self.buttonSelectOpt.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-    self.buttonSelectOpt.anchorBottom = true
-    self.buttonSelectOpt.anchorLeft = true
-    self.buttonSelectOpt.anchorRight = false
-    self.buttonSelectOpt.anchorTop = false
-    self.buttonSelectOpt.selected = self.executeMode
-    self.buttonSelectOpt:addOptionWithData("Review", { id = 1 })
-    self.buttonSelectOpt:addOptionWithData("Check", { id = 2 })
-    self.buttonSelectOpt:addOptionWithData("Uncheck", { id = 3 })
-    --  self.buttonSelectOpt:setOnClick(TDLZ_TodoListZWindowController.onClickReviewOptButton, self)
-    self.buttonSelectOpt:setVisible(false)
-    self:addChild(self.buttonSelectOpt);
-
-    self.btnExecute = ISButton:new(self.buttonSelectOpt.x + self.buttonSelectOpt.width, y,
-        TDLZ_BTN_DEFAULT_H,
-        TDLZ_BTN_DEFAULT_H, "", self, TDLZ_TodoListZWindowController.onExecuteClick)
-    self.btnExecute:setImage(getTexture("media/ui/execute.png"));
-    self.btnExecute.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-    self.btnExecute.anchorBottom = true
-    self.btnExecute.anchorLeft = true
-    self.btnExecute.anchorRight = false
-    self.btnExecute.anchorTop = false
-    self.btnExecute:setVisible(false)
-    self:addChild(self.btnExecute);
-
-    self.taskLabel = ISLabel:new(self.btnExecute.x + self.btnExecute.width + 0.5 * TDLZ_REM, y,
-        TDLZ_BTN_DEFAULT_H, self.listbox.highlighted:size() .. " Tasks", 1, 1, 1, 1,
-        UIFont.Small, true);
-    self.taskLabel.anchorBottom = true
-    self.taskLabel.anchorRight = false
-    self.taskLabel.anchorLeft = true
-    self.taskLabel.anchorTop = false
-    self.taskLabel:initialise();
-    self.taskLabel:instantiate()
-    self.taskLabel:setVisible(false)
-    self:addChild(self.taskLabel);
-
+    self.todoListToolbar = TDLZ_TodoListToolbar:new(0, y, self.width, TDLZ_BTN_DEFAULT_H)
+    self.todoListToolbar:onButtonNewClick(self, TDLZ_TodoListZWindowController.createNewItem)
+    self.todoListToolbar:onButtonSelectAll(self, TDLZ_TodoListZWindowController.selectAll)
+    self.todoListToolbar:instantiate()
+    self.todoListToolbar:initialise()
+    self:addChild(self.todoListToolbar);
 
     self.lockedOverlay:initialise()
     self.lockedOverlay:instantiate()

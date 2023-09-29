@@ -121,6 +121,7 @@ function TDLZ_TodoListZWindowController.onEditItem(winCtx, listItem)
     winCtx.editItemModal:setAlwaysOnTop(true)
     winCtx.editItemModal:setVisible(true)
     winCtx.editItemModal:setListItem(listItem)
+    setJoypadFocus(winCtx.player, winCtx.editItemModal)
 end
 
 ---Save data into Notebook. Please note this does not refresh the UI but reload the model

@@ -14,6 +14,7 @@ require 'Utils/TDLZ_CheckboxUtils'
 --- @field onReviewOptCtxMenu TDLZ_GenericContextMenu
 --- @field allItems TDLZ_Set
 --- @field editItemModal TDLZ_ISNewItemModal
+--- @field player any
 TDLZ_TodoListZWindow = ISCollapsableWindowJoypad:derive("TDLZ_TodoListZWindow")
 
 TDLZ_TodoListZWindow.UI_MAP = TDLZ_Map:new()
@@ -164,6 +165,7 @@ end
 function TDLZ_TodoListZWindow:onGainJoypadFocus(joypadData)
     ISCollapsableWindowJoypad.onGainJoypadFocus(self, joypadData)
     self.borderColor = TDLZ_Colors.GREEN
+    self:drawRectBorder(1, 1, self:getWidth() - 2, self:getHeight() - 2, 0.4, 0.2, 1.0, 1.0);
     -- self:setISButtonForA(self.yes)
     -- self:setISButtonForB(self.no)
     -- self.yes:setJoypadButton(Joypad.Texture.AButton)
@@ -227,11 +229,10 @@ function TDLZ_TodoListZWindow:initialise()
     y = self.listbox.y + self.listbox.height + TDLZ_BTN_MV
 
     -- Create "New +" Button
-    local btnSelectAllFixedWidth = 140
     self.buttonNewItem = ISButton:new(TDLZ_HALF_REM, y,
-        self.width - TDLZ_QUARTER_REM - btnSelectAllFixedWidth - TDLZ_BTN_DEFAULT_H - TDLZ_HALF_REM * 2,
+        100,
         TDLZ_BTN_DEFAULT_H,
-        "+ New...")
+        "+ Add...")
     self.buttonNewItem.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
     self.buttonNewItem.anchorBottom = true
     self.buttonNewItem.anchorLeft = true
@@ -250,7 +251,7 @@ function TDLZ_TodoListZWindow:initialise()
 
     -- Create "Select All" Button
     self.btnSelectAll = ISButton:new(
-        self.buttonNewItem.x + self.buttonNewItem.width + TDLZ_REM * 0.25, y, btnSelectAllFixedWidth,
+        self.buttonNewItem.x + self.buttonNewItem.width + TDLZ_QUARTER_REM, y, 120,
         TDLZ_BTN_DEFAULT_H, "Select all")
     --buttonCheck:setImage(getTexture("media/ui/trashIcon.png"));
     self.btnSelectAll.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;

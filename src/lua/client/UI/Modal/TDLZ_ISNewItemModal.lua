@@ -106,6 +106,37 @@ end
 function TDLZ_ISNewItemModal:onClose()
     self:setVisible(false)
     self.winCtx.lockedOverlay:setVisible(false)
+    setJoypadFocus(self.winCtx.player, self.winCtx)
+end
+
+function TDLZ_ISNewItemModal:onGainJoypadFocus(joypadData)
+    ISPanelJoypad.onGainJoypadFocus(self, joypadData)
+    self.borderColor = TDLZ_Colors.GREEN
+    -- self:setISButtonForA(self.yes)
+    -- self:setISButtonForB(self.no)
+    -- self.yes:setJoypadButton(Joypad.Texture.AButton)
+    -- self.no:setJoypadButton(Joypad.Texture.BButton)
+    self:setJoypadButtons(joypadData)
+end
+
+function TDLZ_ISNewItemModal:setJoypadButtons(joypadData)
+    print("Joypad Buttons Start")
+    if not joypadData then return end
+    self:clearJoypadFocus(joypadData)
+    self.joypadButtonsY = {}
+
+    -- self.joypadButtonsY
+    self.joypadIndex = 1
+    self.joypadIndexY = 1
+
+    self:insertNewLineOfButtons(self.textbox, self.lineType)
+    self:insertNewLineOfButtons(self.yes, self.no)
+
+
+    -- Set self.joypadButtons
+    self.joypadButtons = self.joypadButtonsY[self.joypadIndexY]
+    self.joypadIndex = math.min(math.max(self.joypadIndex, 1), #self.joypadButtons)
+    self:restoreJoypadFocus(joypadData)
 end
 
 function TDLZ_ISNewItemModal:onClick(button)

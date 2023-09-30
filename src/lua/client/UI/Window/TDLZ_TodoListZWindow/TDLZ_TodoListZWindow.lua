@@ -76,8 +76,6 @@ function TDLZ_TodoListZWindow:new(player)
     o.editItemModal = TDLZ_ISNewItemModal:new(o.x + mx, o.y + o.height - modalHeight - 50,
         modalWidth, modalHeight,
         o, o.allItems)
-
-    o.executeMode = 1
     --   o.onReviewOptCtxMenu = nil
     o.onReviewOptCtxMenu = TDLZ_GenericContextMenu:new(0, 0 + 10, 200, 60)
     o.lockedOverlay = TDLZ_ISNewItemModalMask:new(0, 0, o.width, o.height)
@@ -114,7 +112,7 @@ function TDLZ_TodoListZWindow:refreshUIElements()
         self.listbox:_update(notebook.notebookID, notebook.currentPage, _pageText, self.model.notebookItems,
             notebook.currentNotebook)
         --self.todoListToolbar:_update(self.listbox.highlighted:size())
-        self.todoListToolbar:_update(0)
+        self.todoListToolbar:_update(self.listbox.highlighted:size())
         self.editItemModal:_update()
         self.lockedOverlay:_update(self.model.notebook.currentNotebook:getLockedBy() ~= nil)
     end
@@ -237,6 +235,9 @@ function TDLZ_TodoListZWindow:initialise()
     self.todoListToolbar = TDLZ_TodoListToolbar:new(0, y, self.width, TDLZ_BTN_DEFAULT_H)
     self.todoListToolbar:onButtonNewClick(self, TDLZ_TodoListZWindowController.createNewItem)
     self.todoListToolbar:onButtonSelectAll(self, TDLZ_TodoListZWindowController.selectAll)
+    self.todoListToolbar:onButtonBackClick(self, TDLZ_TodoListZWindowController.onTodoListToolbarButtonBackClick)
+    self.todoListToolbar:onButtonExecuteClick(self, TDLZ_TodoListZWindowController.onExecuteClick)
+
     self.todoListToolbar:instantiate()
     self.todoListToolbar:initialise()
     self:addChild(self.todoListToolbar);
@@ -284,10 +285,10 @@ function TDLZ_TodoListZWindow:clearFrameChildren()
 end
 
 ---@private
----@param windowUI TDLZ_TodoListZWindow
 ---@param lineString string
 ---@param lineNumber number
----@param lines table
+---@param currentPage number
+---@param currentNotebook any
 ---@return TDLZ_BookLineModel
 function TDLZ_TodoListZWindow._createItemDataModel(lineString, lineNumber, currentPage, currentNotebook)
     return TDLZ_BookLineModel.builder()
@@ -417,9 +418,4 @@ end
 function TDLZ_TodoListZWindow:onResize()
     ISCollapsableWindow.onResize(self)
     self:updatePosition()
-end
-
----@param executeMode number
-function TDLZ_TodoListZWindow:setExecuteMode(executeMode)
-    self.executeMode = executeMode
 end

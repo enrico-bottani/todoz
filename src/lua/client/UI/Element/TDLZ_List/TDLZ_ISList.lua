@@ -1,27 +1,55 @@
 require "UI/Element/TDLZ_MultiSelectScrollList"
 require 'src.lua.client.Utils.TDLZ_Vars'
 require 'src.lua.client.UI.Element.TDLZ_ListItemOptionButton'
---- @class TDLZ_ISList:TDLZ_MultiSelectScrollList
---- @field highlighted TDLZ_NumSet
---- @field items table<number, TDLZ_ListItemViewModel>
---- @field marginLeft number
---- @field itemheight number
---- @field width number
---- @field buttons table<number,TDLZ_ListItemOptionButton>
---- @field eraseButton TDLZ_ListItemOptionButton
---- @field editButton TDLZ_ListItemOptionButton
---- @field moveMode boolean
---- @field moveSelectedIndex number
+---@class TDLZ_ISList:TDLZ_MultiSelectScrollList
+---@field highlighted TDLZ_NumSet
+---@field items table<number, TDLZ_ListItemViewModel>
+---@field marginLeft number
+---@field itemheight number
+---@field width number
+---@field buttons table<number,TDLZ_ListItemOptionButton>
+---@field eraseButton TDLZ_ListItemOptionButton
+---@field editButton TDLZ_ListItemOptionButton
+---@field moveMode boolean
+---@field tickTexture any
+---@field moveSelectedIndex number
 ---@field onHighlight TDLZ_TargetAndCallback
 TDLZ_ISList = TDLZ_MultiSelectScrollList:derive("TDLZ_ISList")
---- @type number
+
+---@type number
 local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
---- @type number
+---@type number
 local MARGIN_TOP_BOTTOM = FONT_HGT_SMALL / 4
---- @type number
+---@type number
 local MARGIN_BETWEEN = FONT_HGT_SMALL / 4
 
---- On move item inside the list
+-- Mouse Events Setters
+-- -------------------------------------------------------------
+
+---On item's checkbox click
+---@param target any
+---@param onCheckboxClick function
+function TDLZ_ISList:setOnCheckboxClick(target, onCheckboxClick)
+    self.onCheckboxClick = onCheckboxClick;
+    self.target = target;
+end
+
+---On item's erase button click
+---@param target any
+---@param onEraseItem function
+function TDLZ_ISList:setOnEraseItem(target, onEraseItem)
+    self.eraseButton:setOnMouseUpCallback(target, onEraseItem)
+end
+
+---On item's edit button click
+---@param target any
+---@param onEditItem function
+function TDLZ_ISList:setOnEditItem(target, onEditItem)
+    self.editButton:setOnMouseUpCallback(target, onEditItem)
+end
+
+---@private
+---On move item inside the list
 ---@param ctx any
 ---@param lineData TDLZ_BookLineModel
 function TDLZ_ISList.handleOnMove(ctx, lineData)
@@ -55,7 +83,6 @@ function TDLZ_ISList:new(x, y, width, height, previousState, onHighlight)
     o:setAnchorBottom(true)
     o.drawBorder = true
     o.tickTexture = getTexture("Quest_Succeed");
-    -- o.doDrawItem = TDLZ_ISList.doDrawItem
     o.selected = -1;
     o.joypadParent = self;
     o.font = UIFont.NewSmall;
@@ -84,6 +111,14 @@ function TDLZ_ISList:new(x, y, width, height, previousState, onHighlight)
     return o
 end
 
+function TDLZ_ISList:initialise()
+    if self.javaObject==nil then
+        print("Warning: initialising not instantiated component")
+    end
+    TDLZ_MultiSelectScrollList.initialise(self)
+    self.buttons[1]:setOnMouseUpCallback(self, TDLZ_ISList.handleOnMove)
+end
+
 ---@param notebookID number
 ---@param currentPage number
 ---@param notebookItems TDLZ_Set
@@ -109,26 +144,8 @@ function TDLZ_ISList:_update(notebookID, currentPage, pageText, notebookItems, c
     end
 end
 
-function TDLZ_ISList:initialise()
-    TDLZ_MultiSelectScrollList.initialise(self)
-    self.buttons[1]:setOnMouseUpCallback(self, TDLZ_ISList.handleOnMove)
-end
-
 function TDLZ_ISList:moveMode()
     return self.moveSelectedIndex ~= -1
-end
-
-function TDLZ_ISList:setOnMouseClick(target, onCheckboxToggle)
-    self.onCheckboxToggle = onCheckboxToggle;
-    self.target = target;
-end
-
-function TDLZ_ISList:setOnEraseItem(target, onEraseItem)
-    self.eraseButton:setOnMouseUpCallback(target, onEraseItem)
-end
-
-function TDLZ_ISList:setOnEditItem(target, onEditItem)
-    self.editButton:setOnMouseUpCallback(target, onEditItem)
 end
 
 ---@param label string
@@ -194,8 +211,8 @@ function TDLZ_ISList:onMouseUp(x, mouseY)
 
     if not self:moveMode() and self.marginLeft < x and x < self.marginLeft + BOX_SIZE and self.items[clickedRow].lineData.isCheckbox then
         getSoundManager():playUISound("UISelectListItem")
-        if self.onCheckboxToggle then
-            self.onCheckboxToggle(self.target, self.items[clickedRow].lineData);
+        if self.onCheckboxClick then
+            self.onCheckboxClick(self.target, self.items[clickedRow].lineData);
         end
     end
 
@@ -226,7 +243,7 @@ function TDLZ_ISList:onMouseUp(x, mouseY)
     end
 end
 
---- @private
+---@private
 function TDLZ_ISList._drawCheckboxBackground(uiSelf, y, item, alt)
     if alt then
         uiSelf:drawRect(0, y, uiSelf:getWidth(), uiSelf.itemheight, 0.08, uiSelf.borderColor.r, uiSelf.borderColor.g,
@@ -237,7 +254,7 @@ function TDLZ_ISList._drawCheckboxBackground(uiSelf, y, item, alt)
     end
 end
 
---- @private
+---@private
 function TDLZ_ISList:_handleNotMoveMode(y, item, k)
     local mouseX = self:getMouseX()
     local checkBoxY = y + (self.itemheight / 2 - BOX_SIZE / 2)

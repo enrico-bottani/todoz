@@ -73,12 +73,7 @@ function TDLZ_MultiSelectScrollList:onJoypadDirLeft(joypadData)
 	--end
 end
 
---************************************************************************--
---** ISPanel:instantiate
---**
---************************************************************************--
 function TDLZ_MultiSelectScrollList:instantiate()
-	--self:initialise();
 	self.javaObject = UIElement.new(self);
 	self.javaObject:setX(self.x);
 	self.javaObject:setY(self.y);

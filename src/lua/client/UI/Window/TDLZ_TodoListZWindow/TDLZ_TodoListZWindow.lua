@@ -332,11 +332,12 @@ function TDLZ_TodoListZWindow._createTodoList(windowUI, x, y, width, height, pre
 
     windowUI.listbox:setJoypadParent(windowUI)
 
-    windowUI.listbox:setOnMouseClick(windowUI, TDLZ_TodoListZWindowController.onOptionTicked)
+    windowUI.listbox:setOnCheckboxClick(windowUI, TDLZ_TodoListZWindowController.onOptionTicked)
     windowUI.listbox:setOnEraseItem(windowUI, TDLZ_TodoListZWindowController.onEraseItem)
     windowUI.listbox:setOnEditItem(windowUI, TDLZ_TodoListZWindowController.onEditItem)
-    windowUI.listbox:initialise()
+
     windowUI.listbox:instantiate()
+    windowUI.listbox:initialise()
 
     windowUI:addChild(windowUI.listbox)
     if (previousState ~= nil) then

@@ -5,7 +5,7 @@ require 'Utils/TDLZ_NotebooksUtils'
 require 'UI/TDLZ_ISTodoListTZWindowHandler'
 require 'ISUI/ISUIWriteJournal'
 
-TDLZ_ContextMenu = {}
+TDLZ_ISContextMenu = {}
 
 -- ****************************************************************
 -- ***************   VANILLA FUNCTIONS OVERRIDE       *************
@@ -36,7 +36,7 @@ end
 
 ---@param items table
 ---@param player any
-function TDLZ_ContextMenu.onOpenTodoZ(items, player)
+function TDLZ_ISContextMenu.onOpenTodoZ(items, player)
     local instance = TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(player, items[1]:getID(), 1)
     if instance ~= nil then
         instance:setVisible(true)
@@ -47,9 +47,9 @@ function TDLZ_ContextMenu.onOpenTodoZ(items, player)
 end
 
 ---@return table<number,any>
-function TDLZ_ContextMenu.getNotebooks(items)
+function TDLZ_ISContextMenu.getNotebooks(items)
     local notebooks = {}
-    local item
+    local item = nil
     -- Go through the items selected (because multiple selections in inventory is possible)
     for i = 1, #items do
         if not instanceof(items[i], 'InventoryItem') then
@@ -70,8 +70,8 @@ end
 ---@param player any
 ---@param context ISContextMenu
 ---@param items table
-function TDLZ_ContextMenu.handleShowTodoListContextMenu(player, context, items)
-    local notebooks = TDLZ_ContextMenu.getNotebooks(items);
+function TDLZ_ISContextMenu.handleShowTodoListContextMenu(player, context, items)
+    local notebooks = TDLZ_ISContextMenu.getNotebooks(items);
 
     if type(notebooks) == 'table' and #notebooks > 0 then
         local notebookID = notebooks[1]:getID();
@@ -82,7 +82,7 @@ function TDLZ_ContextMenu.handleShowTodoListContextMenu(player, context, items)
                 return
             end
         end
-        local opt = context:addOption(getText('IGUI_TDLZ_context_open_onclick'), notebooks, TDLZ_ContextMenu.onOpenTodoZ,
+        local opt = context:addOption(getText('IGUI_TDLZ_context_open_onclick'), notebooks, TDLZ_ISContextMenu.onOpenTodoZ,
             player)
         opt.iconTexture = getTexture('media/textures/TDLZ_ctx_icon.png')
     end
@@ -90,12 +90,12 @@ end
 
 ---@param ctx any
 ---@param state string
-function TDLZ_ContextMenu.onRefreshInventoryWindowContainers(ctx, state)
+function TDLZ_ISContextMenu.onRefreshInventoryWindowContainers(ctx, state)
     if state == "begin" then
         local ownedNotebooks = TDLZ_NotebooksUtils.getNotebooksInContainer()
         TDLZ_ISTodoListTZWindowHandler.closeExcept(ownedNotebooks)
     end
 end
 
-Events.OnFillInventoryObjectContextMenu.Add(TDLZ_ContextMenu.handleShowTodoListContextMenu)
-Events.OnRefreshInventoryWindowContainers.Add(TDLZ_ContextMenu.onRefreshInventoryWindowContainers)
+Events.OnFillInventoryObjectContextMenu.Add(TDLZ_ISContextMenu.handleShowTodoListContextMenu)
+Events.OnRefreshInventoryWindowContainers.Add(TDLZ_ISContextMenu.onRefreshInventoryWindowContainers)

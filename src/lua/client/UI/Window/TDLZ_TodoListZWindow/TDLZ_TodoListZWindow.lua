@@ -1,4 +1,4 @@
-require 'Utils/TDLZ_Map'
+require 'src.lua.client.Utils.TDLZ_Map'
 require 'Utils/TDLZ_Vars'
 require 'Utils/TDLZ_StringUtils'
 require 'Utils/TDLZ_CheckboxUtils'
@@ -12,7 +12,6 @@ require 'Utils/TDLZ_CheckboxUtils'
 ---@field lockedOverlay TDLZ_ISNewItemModalMask
 ---@field pageNav TDLZ_PageNav
 ---@field onReviewOptCtxMenu TDLZ_GenericContextMenu
----@field allItems TDLZ_Set
 ---@field editItemModal TDLZ_ISNewItemModal
 ---@field player any
 ---@field actions table<number,TDLZ_CheckEquipmentAction>
@@ -44,6 +43,9 @@ function TDLZ_TodoListZWindow:new(player)
     local mD = TDLZ_ModData.loadModData();
     o = ISCollapsableWindowJoypad:new(mD.panelSettings.x, mD.panelSettings.y, mD.panelSettings.width,
         mD.panelSettings.height);
+    setmetatable(o, self);
+    self.__index = self;
+
     o.pin = mD.panelSettings.pin
     o.minimumWidth = 300
     o.minimumHeight = 200
@@ -52,33 +54,23 @@ function TDLZ_TodoListZWindow:new(player)
     o.backgroundColor = WIN_BACKGROUND_COLOR
     o.drawFrame = true;
     o.moveWithMouse = true;
-    o.isUnlocked = nil
-    setmetatable(o, self);
-    self.__index = self;
-
     o.player = player
+
+    TDLZ_TodoListZWindow.reloadViewModel(o, mD.todoListData.notebookID, mD.todoListData.pageNumber)
+    
     o.actions = {}
     o.listbox = nil
     o.pageNav = nil
     o.frameChildren = {}
-    TDLZ_TodoListZWindow.reloadViewModel(o, mD.todoListData.notebookID, mD.todoListData.pageNumber)
 
-    local items = getAllItems()
-    local allItems = TDLZ_Map:new()
-    for i = 0, items:size() - 1 do
-        local item = items:get(i);
-        if not item:getObsolete() and not item:isHidden() then
-            allItems:add(item:getName(), item)
-        end
-    end
-    o.allItems = allItems
+
 
     local modalHeight = 350;
     local modalWidth = 280;
     local mx = (o.width - modalWidth) / 2
     o.editItemModal = TDLZ_ISNewItemModal:new(o.x + mx, o.y + o.height - modalHeight - 50,
         modalWidth, modalHeight,
-        o, o.allItems)
+        o)
     --   o.onReviewOptCtxMenu = nil
     o.onReviewOptCtxMenu = TDLZ_GenericContextMenu:new(0, 0 + 10, 200, 60)
     o.lockedOverlay = TDLZ_ISNewItemModalMask:new(0, 0, o.width, o.height)
@@ -89,9 +81,9 @@ function TDLZ_TodoListZWindow:new(player)
     o:addToUIManager()
 
     if o.pin then
-        ISCollapsableWindow.pin(o)
+        ISCollapsableWindowJoypad.pin(o)
     else
-        ISCollapsableWindow.collapse(o)
+        ISCollapsableWindowJoypad.collapse(o)
     end
 
     TDLZ_TodoListZWindow.UI_MAP:add(o.ID, o)
@@ -102,12 +94,10 @@ end
 local TDLZ_DEBUG_RNumber = 0
 function TDLZ_TodoListZWindow:refreshUIElements()
     TDLZ_DEBUG_RNumber = TDLZ_DEBUG_RNumber + 1
-    print("Refresh UI Run #" .. TDLZ_DEBUG_RNumber)
     if self.model.notebook.notebookID == -1 then
         TDLZ_TodoListZWindow._setFormattedTitle(self, self.model.notebook.notebookID)
     else
         --- Refresh UI With ID
-        print("Refresh UI WID #" .. TDLZ_DEBUG_RNumber)
         local notebook = self.model.notebook
         local _pageText = notebook.currentNotebook:seePage(notebook.currentPage)
         self:_setFormattedTitle(notebook.currentNotebook:getName())
@@ -185,7 +175,7 @@ function TDLZ_TodoListZWindow:close()
     self:setVisible(false)
     TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(),
         self.model.notebook.notebookID, self.model.notebook.currentPage)
-    ISCollapsableWindow.close(self)
+    ISCollapsableWindowJoypad.close(self)
     self:removeFromUIManager();
 
     -- Callback
@@ -264,12 +254,12 @@ end
 
 ---@private
 function TDLZ_TodoListZWindow:prerender()
-    ISCollapsableWindow.prerender(self);
+    ISCollapsableWindowJoypad.prerender(self);
 end
 
 ---@private
 function TDLZ_TodoListZWindow:render()
-    ISCollapsableWindow.render(self);
+    ISCollapsableWindowJoypad.render(self);
 end
 
 ---Add a child inside the Window frame
@@ -394,7 +384,7 @@ function TDLZ_TodoListZWindow.reloadViewModel(winCtx, notebookID, pageNumber)
 end
 
 function TDLZ_TodoListZWindow:onMouseMove(dx, dy)
-    ISCollapsableWindow.onMouseMove(self, dx, dy);
+    ISCollapsableWindowJoypad.onMouseMove(self, dx, dy);
     getPlayer():setIgnoreAimingInput(self:isMouseOver() and not self.closingWindow);
     if self.moving then
         self:updatePosition()
@@ -402,7 +392,7 @@ function TDLZ_TodoListZWindow:onMouseMove(dx, dy)
 end
 
 function TDLZ_TodoListZWindow:onMouseMoveOutside(dx, dy)
-    ISCollapsableWindow.onMouseMoveOutside(self, dx, dy);
+    ISCollapsableWindowJoypad.onMouseMoveOutside(self, dx, dy);
     getPlayer():setIgnoreAimingInput(false);
     if self.moving then
         self:updatePosition()
@@ -419,6 +409,6 @@ end
 
 ---On Window resize
 function TDLZ_TodoListZWindow:onResize()
-    ISCollapsableWindow.onResize(self)
+    ISCollapsableWindowJoypad.onResize(self)
     self:updatePosition()
 end

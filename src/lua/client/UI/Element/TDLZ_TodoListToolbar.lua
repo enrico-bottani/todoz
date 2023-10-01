@@ -67,7 +67,6 @@ end
 
 function TDLZ_TodoListToolbar:initialise()
     ISPanelJoypad.initialise(self)
-    print("TDLZ_TodoListToolbar:initialise BEGIN")
     self.buttonNewItem:initialise()
     self.buttonNewItem:instantiate()
     self.buttonNewItem.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;

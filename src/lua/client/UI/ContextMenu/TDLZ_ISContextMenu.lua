@@ -1,10 +1,10 @@
+require("src.lua.client.Service.TDLZ_ItemsFinderService")
 ---@class TDLZ_ISContextMenu:ISScrollingListBox
 ---@field viewModel {allItems:table}
 TDLZ_ISContextMenu = ISScrollingListBox:derive("TDLZ_ISContextMenu");
 local instance = nil
 local FONT_HGT_MEDIUM = getTextManager():getFontHeight(UIFont.Medium)
 function TDLZ_ISContextMenu:searchAndDisplayResults(hashFound)
-    print("TDLZ_ISContextMenu:searchAndDisplayResults " .. string.len(hashFound.text))
     self.startIndex = hashFound.startIndex
     self.endIndex = hashFound.endIndex
 
@@ -13,9 +13,7 @@ function TDLZ_ISContextMenu:searchAndDisplayResults(hashFound)
         self:setVisible(false)
         return
     end
-
-    print("TDLZ_ISContextMenu:searchAndDisplayResults " .. string.len(hashFound.text))
-
+    
     self:setVisible(true)
     self:setCapture(true)
     self:setAlwaysOnTop(true)
@@ -105,7 +103,7 @@ end
 ---@param height number
 ---@param allItems TDLZ_Map
 ---@return TDLZ_ISContextMenu
-function TDLZ_ISContextMenu:new(x, y, width, height, allItems)
+function TDLZ_ISContextMenu:new(x, y, width, height)
     local o = {}
     o = ISScrollingListBox:new(x, y, width, height);
     setmetatable(o, self)
@@ -133,7 +131,7 @@ function TDLZ_ISContextMenu:new(x, y, width, height, allItems)
     o.onCloseCallback = nil
 
     o.viewModel = {
-        allItems = allItems:toList()
+        allItems = TDLZ_ItemsFinderService.ALL_NOT_OBSOLETE_ITEMS:toList()
     }
 
     o.startIndex = -1

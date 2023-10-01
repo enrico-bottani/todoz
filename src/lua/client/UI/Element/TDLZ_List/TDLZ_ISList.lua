@@ -33,7 +33,6 @@ function TDLZ_ISList.handleOnMove(ctx, lineData)
 end
 
 function TDLZ_ISList:new(x, y, width, height, previousState, onHighlight)
-    print("TDLZ_ISList:new()")
     local o = {}
     o = TDLZ_MultiSelectScrollList:new(x, y, width, height, onHighlight)
     setmetatable(o, self)
@@ -193,34 +192,26 @@ function TDLZ_ISList:onMouseUp(x, mouseY)
     end
 
     if not self:moveMode() and isCtrlKeyDown() then
-        print("Select Mode and Control is Down")
         if self.highlighted:contains(clickedRow) then
-            print("Select Mode and Control is Down - Remove")
             self.highlighted:remove(clickedRow)
             self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
         else
-            print("Select Mode and Control is Down - Add")
             self.highlighted:add(clickedRow)
             self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
         end
     elseif not self:moveMode() then
-        print("Select Mode")
         if self.highlighted:contains(clickedRow) and self.highlighted:size() == 1 then
             -- remove highlight from choosen element only if one is highlighted
-            print("Select Mode - Remove Selected Item")
             self.highlighted = TDLZ_NumSet:new();
             self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
         else
             -- wipe all and add highlight choosen element
-            print("Select Mode - Add")
             self.highlighted = TDLZ_NumSet:new()
             self.highlighted:add(clickedRow)
-            print("self.highlighted # [" .. self.highlighted:size() .. "]")
             self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
         end
     end
 
-    print("self.highlighted # [" .. self.highlighted:size() .. "]")
     -- callback
     if self.onmouseup then
         self.onmouseup(self.target, self.items[self.selected].item);

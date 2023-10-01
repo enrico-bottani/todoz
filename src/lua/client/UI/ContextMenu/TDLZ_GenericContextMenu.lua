@@ -51,7 +51,6 @@ function TDLZ_GenericContextMenu:doDrawItem(y, item, alt)
 end
 
 function TDLZ_GenericContextMenu:onMouseDown(x, y)
-    print("onMouseDown")
     if not self:isMouseOver() then
         self:setVisible(false);
         return

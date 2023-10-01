@@ -207,7 +207,7 @@ end
 ---@param winCtx any
 ---@param allItems TDLZ_Map
 ---@return table
-function TDLZ_ISNewItemModal:new(x, y, width, height, winCtx, allItems)
+function TDLZ_ISNewItemModal:new(x, y, width, height, winCtx)
     local o = {}
     --o.data = {}
     o = ISPanelJoypad:new(x, y, width, height);
@@ -258,7 +258,7 @@ function TDLZ_ISNewItemModal:new(x, y, width, height, winCtx, allItems)
 
     -- Create TDLZ_ISContextMenu
     -- ------------------------------
-    o.contextMenu = TDLZ_ISContextMenu:new(0, 0, 200, 200, allItems)
+    o.contextMenu = TDLZ_ISContextMenu:new(0, 0, 200, 200)
     o.contextMenu:setOnCloseCallback(o, TDLZ_ISNewItemModal.onContextualMenuClose)
     o.contextMenu:setFont(UIFont.Small, 2)
 

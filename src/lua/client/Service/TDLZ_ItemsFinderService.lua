@@ -1,4 +1,14 @@
+require("src.lua.client.Utils.TDLZ_Map")
 TDLZ_ItemsFinderService = {}
+local items = getAllItems()
+TDLZ_ItemsFinderService.ALL_NOT_OBSOLETE_ITEMS = TDLZ_Map:new()
+for i = 0, items:size() - 1 do
+    local item = items:get(i);
+    if not item:getObsolete() and not item:isHidden() then
+        TDLZ_ItemsFinderService.ALL_NOT_OBSOLETE_ITEMS:add(item:getName(), item)
+    end
+end
+
 function TDLZ_ItemsFinderService.filterName(filterTxt, scriptItem)
     local txtToCheck = string.lower(scriptItem:getDisplayName())
     txtToCheck = txtToCheck:gsub('[%p%c%s%-]', '')

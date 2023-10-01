@@ -1,3 +1,6 @@
+-- Author:      Enrico B.
+-- Repository:  https://github.com/tarma-3/todoz
+
 ---@class TDLZ_TodoListZWindowViewModel
 ---@field notebook TDLZ_NotebookModel
 ---@field notebookItems TDLZ_Set

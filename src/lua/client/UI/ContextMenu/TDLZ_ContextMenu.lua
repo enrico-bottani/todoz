@@ -1,10 +1,14 @@
-require("src.lua.client.Service.TDLZ_ItemsFinderService")
----@class TDLZ_ISContextMenu:ISScrollingListBox
----@field viewModel {allItems:table}
-TDLZ_ISContextMenu = ISScrollingListBox:derive("TDLZ_ISContextMenu");
+-- Author:      Enrico B.
+-- Repository:  https://github.com/tarma-3/todoz
+
+require "src.lua.client.Service.TDLZ_ItemsFinderService"
+
+---@class TDLZ_ContextMenu:ISScrollingListBox
+---@field viewModel {allItems:table<number,any>}
+TDLZ_ContextMenu = ISScrollingListBox:derive("TDLZ_ContextMenu");
 local instance = nil
 local FONT_HGT_MEDIUM = getTextManager():getFontHeight(UIFont.Medium)
-function TDLZ_ISContextMenu:searchAndDisplayResults(hashFound)
+function TDLZ_ContextMenu:searchAndDisplayResults(hashFound)
     self.startIndex = hashFound.startIndex
     self.endIndex = hashFound.endIndex
 
@@ -13,7 +17,7 @@ function TDLZ_ISContextMenu:searchAndDisplayResults(hashFound)
         self:setVisible(false)
         return
     end
-    
+
     self:setVisible(true)
     self:setCapture(true)
     self:setAlwaysOnTop(true)
@@ -34,7 +38,7 @@ function TDLZ_ISContextMenu:searchAndDisplayResults(hashFound)
     self:setHeight(nOfItemsInMenu * self.itemheight)
 end
 
-function TDLZ_ISContextMenu:doDrawItem(y, item, alt)
+function TDLZ_ContextMenu:doDrawItem(y, item, alt)
     if not item.height then item.height = self.itemheight end -- compatibililty
     self:drawRect(0, y, self:getWidth(), item.height - 1, 0.9, 0.1, 0.1, 0.1);
     if self.selected == item.index then
@@ -63,7 +67,7 @@ function TDLZ_ISContextMenu:doDrawItem(y, item, alt)
     return y;
 end
 
-function TDLZ_ISContextMenu:onMouseDown(x, y)
+function TDLZ_ContextMenu:onMouseDown(x, y)
     if instance == nil then
         return
     end
@@ -74,7 +78,7 @@ function TDLZ_ISContextMenu:onMouseDown(x, y)
     ISScrollingListBox.onMouseDown(self, x, y)
 end
 
-function TDLZ_ISContextMenu:onMouseDoubleClick(x, y)
+function TDLZ_ContextMenu:onMouseDoubleClick(x, y)
     if self.items[self.selected] ~= nil and self.onCloseCTX ~= nil and self.onCloseCallback ~= nil then
         self.onCloseCallback(self.onCloseCTX,
             {
@@ -86,23 +90,22 @@ function TDLZ_ISContextMenu:onMouseDoubleClick(x, y)
     end
 end
 
-function TDLZ_ISContextMenu:destroy()
+function TDLZ_ContextMenu:destroy()
     self:setVisible(false);
     self:removeFromUIManager();
 end
 
-function TDLZ_ISContextMenu:setFont(font, padY)
+function TDLZ_ContextMenu:setFont(font, padY)
     ISScrollingListBox.setFont(self, font, padY)
     self.itemheight = self.fontHgt * 2 + (self.itemPadY or 0) * 2;
 end
 
----comment
 ---@param x number
 ---@param y number
 ---@param width number
 ---@param height number
----@return TDLZ_ISContextMenu
-function TDLZ_ISContextMenu:new(x, y, width, height)
+---@return TDLZ_ContextMenu
+function TDLZ_ContextMenu:new(x, y, width, height)
     local o = {}
     o = ISScrollingListBox:new(x, y, width, height);
     setmetatable(o, self)
@@ -143,7 +146,7 @@ end
 ---Set callback on context menu close
 ---@param onCloseCTX any
 ---@param onCloseCallback fun(ctx : any,item: { text: string, startIndex: number, endIndex: number })
-function TDLZ_ISContextMenu:setOnCloseCallback(onCloseCTX, onCloseCallback)
+function TDLZ_ContextMenu:setOnCloseCallback(onCloseCTX, onCloseCallback)
     self.onCloseCTX = onCloseCTX
     self.onCloseCallback = onCloseCallback
 end

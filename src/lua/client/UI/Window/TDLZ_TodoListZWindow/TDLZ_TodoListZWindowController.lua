@@ -1,3 +1,6 @@
+-- Author:      Enrico B.
+-- Repository:  https://github.com/tarma-3/todoz
+
 ---@class TDLZ_TodoListZWindowController
 TDLZ_TodoListZWindowController = {}
 

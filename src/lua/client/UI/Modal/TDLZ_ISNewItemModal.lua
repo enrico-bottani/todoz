@@ -1,7 +1,7 @@
 require 'Utils/TDLZ_Vars'
 
 ---@class TDLZ_ISNewItemModal:ISPanelJoypad
----@field contextMenu TDLZ_ISContextMenu Modal textbox contextual menu
+---@field contextMenu TDLZ_ContextMenu Modal textbox contextual menu
 ---@field winCtx TDLZ_TodoListZWindow
 ---@field viewModel TDLZ_ISNewItemModalViewModel
 ---@field listItem TDLZ_BookLineModel
@@ -256,9 +256,9 @@ function TDLZ_ISNewItemModal:new(x, y, width, height, winCtx)
         o:getWidth() - lineTypeWidth - (TDLZ_REM * 0.75) * 2,
         height);
 
-    -- Create TDLZ_ISContextMenu
+    -- Create TDLZ_ContextMenu
     -- ------------------------------
-    o.contextMenu = TDLZ_ISContextMenu:new(0, 0, 200, 200)
+    o.contextMenu = TDLZ_ContextMenu:new(0, 0, 200, 200)
     o.contextMenu:setOnCloseCallback(o, TDLZ_ISNewItemModal.onContextualMenuClose)
     o.contextMenu:setFont(UIFont.Small, 2)
 

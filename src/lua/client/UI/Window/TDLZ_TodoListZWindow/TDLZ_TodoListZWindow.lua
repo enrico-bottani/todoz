@@ -1,3 +1,6 @@
+-- Author:      Enrico B.
+-- Repository:  https://github.com/tarma-3/todoz
+
 require 'src.lua.client.Utils.TDLZ_Map'
 require 'Utils/TDLZ_Vars'
 require 'Utils/TDLZ_StringUtils'

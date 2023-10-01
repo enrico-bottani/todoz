@@ -2,6 +2,9 @@ require "ISBaseObject"
 ---@class TDLZ_CheckEquipmentAction:ISBaseTimedAction
 ---@field winCtx TDLZ_TodoListZWindow
 ---@field row number
+---@field tdlz_actId number
+---@field _isValid boolean
+---@field action? any
 TDLZ_CheckEquipmentAction = ISBaseTimedAction:derive("TDLZ_CheckEquipmentAction");
 
 TDLZ_CheckEquipmentAction.IDMax = 1;
@@ -12,7 +15,7 @@ function TDLZ_CheckEquipmentAction:isValidStart()
 end
 
 function TDLZ_CheckEquipmentAction:isValid()
-	return true
+	return self._isValid
 end
 
 -- This runs on every tick
@@ -49,6 +52,8 @@ end
 
 function TDLZ_CheckEquipmentAction:stop()
     ISBaseTimedAction.stop(self)
+	self.javaAction = nil;
+
 	if self.onStopActionFunc and self.onStopActionArgs then
         local args = self.onStopActionArgs
         self.onStopActionFunc(args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8])
@@ -137,6 +142,7 @@ function TDLZ_CheckEquipmentAction:setOnStopAction(func, arg1, arg2, arg3, arg4,
 	self.onStopActionFunc = func
 	self.onStopActionArgs = { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 }
 end
+---@param character userdata
 ---@return TDLZ_CheckEquipmentAction
 function TDLZ_CheckEquipmentAction:new(character,row, time, winCtx)
 	local o = ISBaseTimedAction.new(self, character);
@@ -144,6 +150,7 @@ function TDLZ_CheckEquipmentAction:new(character,row, time, winCtx)
 	o.stopOnWalk = false;
 	o.stopOnRun = true;
 	o.stopOnAim = true;
+	o._isValid = true
     o.caloriesModifier = 1;
 	o.maxTime = time
 	o.winCtx = winCtx

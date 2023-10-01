@@ -8,6 +8,7 @@ require 'Utils/TDLZ_Vars'
 ---@field taskLabel ISLabel
 ---@field viewModel {size:number,executeMode:number}
 ---@field toUpdate boolean
+---@field btnExecuteCustomTC TDLZ_TargetAndCallback
 TDLZ_TodoListToolbar = ISPanelJoypad:derive("TDLZ_TodoListToolbar");
 function TDLZ_TodoListToolbar:new(x, y, width, height)
     local o = {}
@@ -33,12 +34,15 @@ function TDLZ_TodoListToolbar:new(x, y, width, height)
     o.buttonNewItem = ISButton:new(TDLZ_HALF_REM, y,
         100, TDLZ_BTN_DEFAULT_H,
         "+ Add...")
+    
     o.btnSelectAll = ISButton:new(
         o.buttonNewItem.x + o.buttonNewItem.width + TDLZ_QUARTER_REM, y, 120,
         TDLZ_BTN_DEFAULT_H, "Select all")
+    
     o.buttonBack = ISButton:new(TDLZ_HALF_REM, y,
         TDLZ_BTN_DEFAULT_H, TDLZ_BTN_DEFAULT_H,
         "")
+    
     o.buttonSelectOpt = ISComboBox:new(o.buttonBack.x + o.buttonBack.width + TDLZ_REM * 0.5, y, 100,
         TDLZ_BTN_DEFAULT_H, o, TDLZ_TodoListToolbar.onSelectItem)
     o.buttonSelectOpt:addOptionWithData("Review", { id = 1 })
@@ -46,11 +50,11 @@ function TDLZ_TodoListToolbar:new(x, y, width, height)
     o.buttonSelectOpt:addOptionWithData("Uncheck", { id = 3 })
 
     o.btnExecute = ISButton:new(o.buttonSelectOpt.x + o.buttonSelectOpt.width, y,
-        TDLZ_BTN_DEFAULT_H, TDLZ_BTN_DEFAULT_H, "", o)
+        TDLZ_BTN_DEFAULT_H, TDLZ_BTN_DEFAULT_H, "", o, TDLZ_TodoListToolbar._onExecuteClick)
     o.taskLabel = ISLabel:new(o.btnExecute.x + o.btnExecute.width + 0.5 * TDLZ_REM, y,
         TDLZ_BTN_DEFAULT_H, 0 .. " Tasks", 1, 1, 1, 1,
         UIFont.Small, true)
-
+    o.btnExecuteCustomTC = nil
     return o
 end
 
@@ -128,7 +132,7 @@ function TDLZ_TodoListToolbar:initialise()
 end
 
 function TDLZ_TodoListToolbar:onButtonNewClick(btnNewClickTarget, btnNewClickCallback)
-    self.btnSelectAll:setOnClick(btnNewClickCallback, btnNewClickTarget)
+    self.buttonNewItem:setOnClick(btnNewClickCallback, btnNewClickTarget)
 end
 
 function TDLZ_TodoListToolbar:onButtonSelectAll(btnNewClickTarget, btnNewClickCallback)
@@ -139,9 +143,16 @@ function TDLZ_TodoListToolbar:onButtonBackClick(btnBackTarget, btnBackClickCallb
     self.buttonBack:setOnClick(btnBackClickCallback, btnBackTarget)
 end
 
-function TDLZ_TodoListToolbar:onButtonExecuteClick(winctx, callback)
-    self.btnExecute.target = self
-    self.btnExecute:setOnClick(callback, winctx)
+---@private
+function TDLZ_TodoListToolbar:_onExecuteClick()
+    if self.btnExecuteCustomTC == nil then return end
+    self.btnExecuteCustomTC.callback(self.btnExecuteCustomTC.target, self.viewModel.executeMode)
+end
+
+---@param target any
+---@param callback fun(target: any, executeMode:number)
+function TDLZ_TodoListToolbar:onButtonExecuteClick(target, callback)
+    self.btnExecuteCustomTC = TDLZ_TargetAndCallback:new(target, callback)
 end
 
 ---@param size number

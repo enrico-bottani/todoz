@@ -15,6 +15,7 @@ require 'Utils/TDLZ_CheckboxUtils'
 ---@field allItems TDLZ_Set
 ---@field editItemModal TDLZ_ISNewItemModal
 ---@field player any
+---@field actions table<number,TDLZ_CheckEquipmentAction>
 ---@field todoListToolbar TDLZ_TodoListToolbar
 TDLZ_TodoListZWindow = ISCollapsableWindowJoypad:derive("TDLZ_TodoListZWindow")
 
@@ -55,6 +56,8 @@ function TDLZ_TodoListZWindow:new(player)
     setmetatable(o, self);
     self.__index = self;
 
+    o.player = player
+    o.actions = {}
     o.listbox = nil
     o.pageNav = nil
     o.frameChildren = {}
@@ -92,7 +95,7 @@ function TDLZ_TodoListZWindow:new(player)
     end
 
     TDLZ_TodoListZWindow.UI_MAP:add(o.ID, o)
-    o.player = player
+
     return o;
 end
 

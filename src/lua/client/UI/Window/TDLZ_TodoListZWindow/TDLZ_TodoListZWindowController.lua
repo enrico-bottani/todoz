@@ -3,11 +3,15 @@ TDLZ_TodoListZWindowController = {}
 
 ---@param winCtx TDLZ_TodoListZWindow
 ---@param highlightedRowNumber number
-function TDLZ_TodoListZWindowController.onRowIsChecked(winCtx, highlightedRowNumber)
+function TDLZ_TodoListZWindowController.onRowCheckDelayComplete(winCtx, highlightedRowNumber, actId)
     print("Checkrow")
     local listRows = winCtx.listbox:getItems()
-    winCtx.listbox.highlighted:remove(highlightedRowNumber)
     local highlightedRow = listRows[highlightedRowNumber]
+
+    --- Visual changes
+    winCtx.listbox.highlighted:remove(highlightedRowNumber)
+    highlightedRow:setJobDelta(0)
+
     local hashList = TDLZ_StringUtils.findAllHashTagName(highlightedRow.lineString)
     for k, hashname in pairs(hashList) do
         -- Checking row hashname
@@ -24,23 +28,51 @@ function TDLZ_TodoListZWindowController.onRowIsChecked(winCtx, highlightedRowNum
     end
 
     local getItems = winCtx.listbox:getItems()
+    table.remove(winCtx.actions, actId)
     TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, getItems)
     winCtx:refreshUIElements()
+end
+
+---@param winCtx TDLZ_TodoListZWindow
+function TDLZ_TodoListZWindowController.onStopAction(winCtx, row)
+    print("onStopAction " .. row)
+    local listRows = winCtx.listbox:getItems()
+    listRows[row].jobDelta = 0
+    for actionId, action in pairs(winCtx.actions) do
+        listRows[action.row].jobDelta = 0
+    end
+    winCtx.actions = {}
+end
+
+---Stop all TDLZ Actions
+---@param winCtx TDLZ_TodoListZWindow
+function TDLZ_TodoListZWindowController.stopAllActions(winCtx)
+    for actionId, action in pairs(winCtx.actions) do
+        action:stop()
+        if action.action then
+            action.action:forceStop()
+        end
+        
+    end
 end
 
 ---@param row number
 ---@param winCtx TDLZ_TodoListZWindow Window Context
 function TDLZ_TodoListZWindowController.auditAtRow(winCtx, row)
-    print("audit row: " .. row)
-    local action = TDLZ_CheckEquipmentAction:new(winCtx.player, row, 20, winCtx)
+    assert(winCtx.player ~= nil, "Player cannot be nil")
+    local playerObj = getSpecificPlayer(winCtx.player)
+
+
     local item = winCtx.listbox:getItem(row)
     if #TDLZ_StringUtils.findAllHashTagName(item.lineString) == 0 then
         winCtx.listbox.highlighted:remove(row)
         return
     end
-    action:setOnComplete(TDLZ_TodoListZWindowController.onRowIsChecked, winCtx, row)
-    action:setOnStopAction(TDLZ_TodoListZWindowController.onStopAction, winCtx, row)
-    ISTimedActionQueue.add(action)
+    local action = TDLZ_CheckEquipmentAction:new(playerObj, row, 120, winCtx)
+    local tdlz_actId = #winCtx.actions + 1
+    table.insert(winCtx.actions, action)
+    action:setOnComplete(TDLZ_TodoListZWindowController.onRowCheckDelayComplete, winCtx, row, tdlz_actId)
+    action:setOnStopAction(TDLZ_TodoListZWindowController.onStopAction, winCtx, row, tdlz_actId)
 end
 
 function TDLZ_TodoListZWindowController.uncheckAtRow(winCtx, row)
@@ -61,25 +93,32 @@ end
 
 ---On execute button click
 ---@param winCtx TDLZ_TodoListZWindow Window Context
-function TDLZ_TodoListZWindowController.onExecuteClick(target, _button, winCtx)
+function TDLZ_TodoListZWindowController.onExecuteClick(winCtx, executeMode)
+    assert(executeMode ~= 1 or #winCtx.actions == 0, "Error, previous actions still running!")
+
     local hlist = winCtx.listbox.highlighted:toList()
     table.sort(hlist, function(a, b)
         return a < b
     end)
     local listRows = winCtx.listbox:getItems()
-    print("TDLZ_TodoListZWindowController.onExecuteClick " .. target.viewModel.executeMode)
+    print("TDLZ_TodoListZWindowController.onExecuteClick " .. executeMode)
     for rowNumber, highlightedRowNumber in pairs(hlist) do
-        if target.viewModel.executeMode == 1 then
+        if executeMode == 1 then
             TDLZ_TodoListZWindowController.auditAtRow(winCtx, highlightedRowNumber)
-        elseif target.viewModel.executeMode == 3 then
+        elseif executeMode == 3 then
             TDLZ_TodoListZWindowController.uncheckAtRow(winCtx, highlightedRowNumber)
-        elseif target.viewModel.executeMode == 2 then
+        elseif executeMode == 2 then
             TDLZ_TodoListZWindowController.checkAtRow(winCtx, highlightedRowNumber)
         end
     end
-
-    TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, listRows)
-    winCtx:refreshUIElements();
+    if executeMode == 1 then
+        for index, action in pairs(winCtx.actions) do
+            ISTimedActionQueue.add(action)
+        end
+    else
+        TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, listRows)
+        winCtx:refreshUIElements();
+    end
 end
 
 ---@param winCtx TDLZ_TodoListZWindow
@@ -109,7 +148,7 @@ function TDLZ_TodoListZWindowController.createNewItem(_target, _button, winCtx)
         TDLZ_BookLineModel.builder()
         :lineNumber(-1) -- -1: new Item
         :lineString("")
-        :notebook(self.model.notebook):build())
+        :notebook(winCtx.model.notebook):build())
 end
 
 function TDLZ_TodoListZWindowController.selectAll(_target, _button, winCtx)
@@ -123,7 +162,8 @@ function TDLZ_TodoListZWindowController.selectAll(_target, _button, winCtx)
 end
 
 function TDLZ_TodoListZWindowController.onTodoListToolbarButtonBackClick(_target, _button, winCtx)
-    winCtx.listbox.highlighted = TDLZ_NumSet:new();
+    winCtx.listbox.highlighted = TDLZ_NumSet:new()
+    TDLZ_TodoListZWindowController.stopAllActions(winCtx)
     winCtx:refreshUIElements()
     winCtx:setJoypadButtons(joypadData)
 end
@@ -208,12 +248,6 @@ function TDLZ_TodoListZWindowController.saveAllJournalData(winCtx, bookLines)
     winCtx.model.notebook.currentNotebook:addPage(winCtx.model.notebook.currentPage, toWrite)
     TDLZ_TodoListZWindow.reloadViewModel(winCtx, winCtx.model.notebook.notebookID, winCtx.model.notebook.currentPage)
     return toWrite;
-end
-
----@param winCtx TDLZ_TodoListZWindow
-function TDLZ_TodoListZWindowController.onStopAction(winCtx, row)
-    local listRows = winCtx.listbox:getItems()
-    listRows[row].jobDelta = 0
 end
 
 ---@return TDLZ_Set

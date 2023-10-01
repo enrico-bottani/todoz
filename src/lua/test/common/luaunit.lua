@@ -1,3 +1,4 @@
+---@diagnostic disable: duplicate-set-field, cast-local-type
 --[[
         luaunit.lua
 

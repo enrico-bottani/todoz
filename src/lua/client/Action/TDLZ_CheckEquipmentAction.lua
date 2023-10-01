@@ -9,7 +9,6 @@ TDLZ_CheckEquipmentAction = ISBaseTimedAction:derive("TDLZ_CheckEquipmentAction"
 
 TDLZ_CheckEquipmentAction.IDMax = 1;
 
-
 function TDLZ_CheckEquipmentAction:isValidStart()
 	return true;
 end

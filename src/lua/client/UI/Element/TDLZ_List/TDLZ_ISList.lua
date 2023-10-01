@@ -12,6 +12,7 @@ require 'src.lua.client.UI.Element.TDLZ_ListItemOptionButton'
 --- @field editButton TDLZ_ListItemOptionButton
 --- @field moveMode boolean
 --- @field moveSelectedIndex number
+---@field onHighlight TDLZ_TargetAndCallback
 TDLZ_ISList = TDLZ_MultiSelectScrollList:derive("TDLZ_ISList")
 --- @type number
 local FONT_HGT_SMALL = getTextManager():getFontHeight(UIFont.Small)
@@ -32,6 +33,13 @@ function TDLZ_ISList.handleOnMove(ctx, lineData)
     ctx.moveSelectedIndex = -1
 end
 
+---@param x number
+---@param y number
+---@param width number
+---@param height number
+---@param previousState any
+---@param onHighlight TDLZ_TargetAndCallback
+---@return TDLZ_ISList
 function TDLZ_ISList:new(x, y, width, height, previousState, onHighlight)
     local o = {}
     o = TDLZ_MultiSelectScrollList:new(x, y, width, height, onHighlight)
@@ -159,7 +167,7 @@ end
 function TDLZ_ISList:onMouseUp(x, mouseY)
     TDLZ_MultiSelectScrollList:onMouseUp(x, mouseY)
     if #self.items == 0 then return end
-    local clickedRow = self:rowAt(x, mouseY, "[onmouseup] ")
+    local clickedRow = self:rowAt(x, mouseY)
     if clickedRow == nil then return end
     if clickedRow > #self.items or clickedRow < 1 then
         return
@@ -194,21 +202,21 @@ function TDLZ_ISList:onMouseUp(x, mouseY)
     if not self:moveMode() and isCtrlKeyDown() then
         if self.highlighted:contains(clickedRow) then
             self.highlighted:remove(clickedRow)
-            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
+            self.onHighlightCD.callback(self.onHighlightCD.target, self.highlighted:size())
         else
             self.highlighted:add(clickedRow)
-            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
+            self.onHighlightCD.callback(self.onHighlightCD.target, self.highlighted:size())
         end
     elseif not self:moveMode() then
         if self.highlighted:contains(clickedRow) and self.highlighted:size() == 1 then
             -- remove highlight from choosen element only if one is highlighted
             self.highlighted = TDLZ_NumSet:new();
-            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
+            self.onHighlightCD.callback(self.onHighlightCD.target, self.highlighted:size())
         else
             -- wipe all and add highlight choosen element
             self.highlighted = TDLZ_NumSet:new()
             self.highlighted:add(clickedRow)
-            self.onHighlightCD.f(self.onHighlightCD.o, self.highlighted:size())
+            self.onHighlightCD.callback(self.onHighlightCD.target, self.highlighted:size())
         end
     end
 

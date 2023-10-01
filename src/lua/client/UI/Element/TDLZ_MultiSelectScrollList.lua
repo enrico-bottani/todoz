@@ -6,7 +6,9 @@ require "TimedActions/ISEatFoodAction"
 
 require "src.lua.client.Utils.TDLZ_NumSet"
 
---- @class TDLZ_MultiSelectScrollList:ISPanelJoypad
+---@class TDLZ_MultiSelectScrollList:ISPanelJoypad
+---@field onHighlightCD TDLZ_TargetAndCallback
+---@field joypadParent ISUIElement
 TDLZ_MultiSelectScrollList = ISPanelJoypad:derive("TDLZ_MultiSelectScrollList");
 TDLZ_MultiSelectScrollList.joypadListIndex = 1;
 
@@ -57,16 +59,18 @@ function TDLZ_MultiSelectScrollList:setJoypadFocused(focused, joypadData)
 	self.joypadFocused = focused;
 end
 
+function TDLZ_MultiSelectScrollList:setJoypadParent(joypadParent)
+	self.joypadParent = joypadParent
+end
+
 function TDLZ_MultiSelectScrollList:onJoypadDirRight(joypadData)
-	if self.joypadParent then
-		self.joypadParent:onJoypadDirRight(joypadData);
-	end
+
 end
 
 function TDLZ_MultiSelectScrollList:onJoypadDirLeft(joypadData)
-	if self.joypadParent then
-		self.joypadParent:onJoypadDirLeft(joypadData);
-	end
+	--if self.joypadParent then
+--		self.joypadParent:onJoypadDirLeft(joypadData);
+	--end
 end
 
 --************************************************************************--
@@ -184,7 +188,7 @@ function TDLZ_MultiSelectScrollList:addItem(name, item)
 	return i;
 end
 ]]
-   --
+--
 function TDLZ_MultiSelectScrollList:insertItem(index, name, item)
 	local i = {}
 	i.text = name
@@ -612,10 +616,13 @@ function TDLZ_MultiSelectScrollList:addColumn(columnName, size)
 	table.insert(self.columns, { name = columnName, size = size });
 end
 
---************************************************************************--
---** ISInventoryPane:new
---**
---************************************************************************--
+---commented
+---@param x any
+---@param y any
+---@param width any
+---@param height any
+---@param onHighlightCD TDLZ_TargetAndCallback
+---@return table
 function TDLZ_MultiSelectScrollList:new(x, y, width, height, onHighlightCD)
 	local o = {}
 	--o.data = {}

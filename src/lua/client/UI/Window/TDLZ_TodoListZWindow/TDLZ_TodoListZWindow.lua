@@ -3,23 +3,17 @@ require 'Utils/TDLZ_Vars'
 require 'Utils/TDLZ_StringUtils'
 require 'Utils/TDLZ_CheckboxUtils'
 ---@class TDLZ_TodoListZWindow:ISCollapsableWindowJoypad
----@field listbox TDLZ_ISList
 ---@field model TDLZ_TodoListZWindowViewModel
----@field x number
----@field y number
----@field height number
----@field width number
 ---@field lockedOverlay TDLZ_ISNewItemModalMask
 ---@field pageNav TDLZ_PageNav
----@field onReviewOptCtxMenu TDLZ_GenericContextMenu
----@field editItemModal TDLZ_ISNewItemModal
----@field player any
----@field actions table<number,TDLZ_CheckEquipmentAction>
+---@field listbox TDLZ_ISList
 ---@field todoListToolbar TDLZ_TodoListToolbar
+---@field editItemModal TDLZ_ISNewItemModal
+---@field onClose function
+---@field actions table<number,TDLZ_CheckEquipmentAction>
+---@field player any
 TDLZ_TodoListZWindow = ISCollapsableWindowJoypad:derive("TDLZ_TodoListZWindow")
-
 TDLZ_TodoListZWindow.UI_MAP = TDLZ_Map:new()
-
 
 -- SETTERS AND GETTERS
 -- ================================
@@ -57,7 +51,7 @@ function TDLZ_TodoListZWindow:new(player)
     o.player = player
 
     TDLZ_TodoListZWindow.reloadViewModel(o, mD.todoListData.notebookID, mD.todoListData.pageNumber)
-    
+
     o.actions = {}
     o.listbox = nil
     o.pageNav = nil
@@ -71,8 +65,6 @@ function TDLZ_TodoListZWindow:new(player)
     o.editItemModal = TDLZ_ISNewItemModal:new(o.x + mx, o.y + o.height - modalHeight - 50,
         modalWidth, modalHeight,
         o)
-    --   o.onReviewOptCtxMenu = nil
-    o.onReviewOptCtxMenu = TDLZ_GenericContextMenu:new(0, 0 + 10, 200, 60)
     o.lockedOverlay = TDLZ_ISNewItemModalMask:new(0, 0, o.width, o.height)
     -- This will call the instantiate method
     o.debug_firstRun = true
@@ -81,13 +73,14 @@ function TDLZ_TodoListZWindow:new(player)
     o:addToUIManager()
 
     if o.pin then
+        ---@diagnostic disable-next-line: undefined-field
         ISCollapsableWindowJoypad.pin(o)
     else
+        ---@diagnostic disable-next-line: undefined-field
         ISCollapsableWindowJoypad.collapse(o)
     end
 
     TDLZ_TodoListZWindow.UI_MAP:add(o.ID, o)
-
     return o;
 end
 
@@ -115,7 +108,9 @@ function TDLZ_TodoListZWindow:refreshUIElements()
         self.model.notebook.notebookID, self.model.notebook.currentPage, self.listbox:getYScroll())
 
 
+    ---@diagnostic disable-next-line: undefined-field
     self.resizeWidget2:bringToTop()
+    ---@diagnostic disable-next-line: undefined-field
     self.resizeWidget:bringToTop()
 end
 
@@ -324,11 +319,15 @@ end
 ---@param height number list height
 ---@param previousState any
 function TDLZ_TodoListZWindow._createTodoList(windowUI, x, y, width, height, previousState)
-    windowUI.listbox = TDLZ_ISList:new(x, y, width, height, previousState, {
-        o = windowUI,
-        f = TDLZ_TodoListZWindow.onHighlightChange
-    })
+    --  windowUI.listbox = TDLZ_ISList:new(x, y, width, height, previousState, {
+    --      o = windowUI,
+    --     f = TDLZ_TodoListZWindow.onHighlightChange
+    -- })
+    windowUI.listbox = TDLZ_ISList:new(x, y, width, height, previousState,
+        TDLZ_TargetAndCallback:new(windowUI, TDLZ_TodoListZWindow.onHighlightChange))
     windowUI.listbox.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
+
+    windowUI.listbox:setJoypadParent(windowUI)
 
     windowUI.listbox:setOnMouseClick(windowUI, TDLZ_TodoListZWindowController.onOptionTicked)
     windowUI.listbox:setOnEraseItem(windowUI, TDLZ_TodoListZWindowController.onEraseItem)
@@ -375,7 +374,7 @@ function TDLZ_TodoListZWindow.reloadViewModel(winCtx, notebookID, pageNumber)
     local notebookData = nil
     if notebookID == nil then
         notebookData = TDLZ_TodoListZWindow._getNotebookData(-1, 1)
-        winCtx.model = TDLZ_TodoListZWindowViewModel:new(notebookData, {})
+        winCtx.model = TDLZ_TodoListZWindowViewModel:new(notebookData, TDLZ_Set:new())
     else
         notebookData = TDLZ_TodoListZWindow._getNotebookData(notebookID, pageNumber)
         local itemList = TDLZ_TodoListZWindowController.getHashnames(notebookData.currentNotebook)
@@ -401,10 +400,7 @@ end
 
 ---Update "indirect" child windows position
 function TDLZ_TodoListZWindow:updatePosition()
-    if self.buttonSelectOpt ~= nil then
-        self.onReviewOptCtxMenu:setX(self.buttonSelectOpt:getAbsoluteX())
-        self.onReviewOptCtxMenu:setY(self.buttonSelectOpt:getAbsoluteY() + self.buttonSelectOpt.height)
-    end
+
 end
 
 ---On Window resize

@@ -101,7 +101,6 @@ end
 ---@param y number
 ---@param width number
 ---@param height number
----@param allItems TDLZ_Map
 ---@return TDLZ_ISContextMenu
 function TDLZ_ISContextMenu:new(x, y, width, height)
     local o = {}

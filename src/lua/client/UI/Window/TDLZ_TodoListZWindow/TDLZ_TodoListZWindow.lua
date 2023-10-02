@@ -89,6 +89,7 @@ end
 local TDLZ_DEBUG_RNumber = 0
 function TDLZ_TodoListZWindow:refreshUIElements()
     TDLZ_DEBUG_RNumber = TDLZ_DEBUG_RNumber + 1
+    local updateCode = TDLZ_NumSet:new()
     if self.model.notebook.notebookID == -1 then
         TDLZ_TodoListZWindow._setFormattedTitle(self, self.model.notebook.notebookID)
     else
@@ -99,16 +100,13 @@ function TDLZ_TodoListZWindow:refreshUIElements()
         self.pageNav:_update(notebook.currentPage, notebook.numberOfPages, notebook.currentNotebook:getLockedBy() ~= nil)
         self.listbox:_update(notebook.notebookID, notebook.currentPage, _pageText, self.model.notebookItems,
             notebook.currentNotebook)
-        --self.todoListToolbar:_update(self.listbox.highlighted:size())
         self.todoListToolbar:_update(self.listbox.highlighted:size())
-        self.editItemModal:_update()
         self.lockedOverlay:_update(self.model.notebook.currentNotebook:getLockedBy() ~= nil)
     end
-
+    self:setJoypadButtons(self.joyfocus)
     -- Save Changes in Mod Data
     TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(),
         self.model.notebook.notebookID, self.model.notebook.currentPage, self.listbox:getYScroll())
-
 
     ---@diagnostic disable-next-line: undefined-field
     self.resizeWidget2:bringToTop()

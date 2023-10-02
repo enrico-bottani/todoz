@@ -156,14 +156,12 @@ function TDLZ_TodoListZWindowController.selectAll(_target, _button, winCtx)
         end
     end
     winCtx:refreshUIElements()
-    winCtx:setJoypadButtons(joypadData)
 end
 ---@param winCtx TDLZ_TodoListZWindow
 function TDLZ_TodoListZWindowController.onTodoListToolbarButtonBackClick(_target, _button, winCtx)
     winCtx.listbox.highlighted = TDLZ_NumSet:new()
     TDLZ_TodoListZWindowController.stopAllActions(winCtx.actions)
     winCtx:refreshUIElements()
-    winCtx:setJoypadButtons(joypadData)
 end
 
 local run = 0

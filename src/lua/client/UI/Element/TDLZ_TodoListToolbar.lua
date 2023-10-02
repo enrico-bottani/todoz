@@ -153,19 +153,21 @@ end
 function TDLZ_TodoListToolbar:onButtonExecuteClick(target, callback)
     self.btnExecuteCustomTC = TDLZ_TargetAndCallback:new(target, callback)
 end
+function TDLZ_TodoListToolbar:_setProperties(size)
 
----@param size number
+end
+
 function TDLZ_TodoListToolbar:_update(size)
-    if self.viewModel.size == size then
-        return
-    end
+    if self.viewModel.size == size then return false end
     self.viewModel.size = size
-
-    if size > 0 then
+    if self.viewModel.size > 0 then
+        self.buttonNewItem:setJoypadFocused(false)
         self.buttonNewItem:setVisible(false)
+        
+        self.btnSelectAll:setJoypadFocused(false)
         self.btnSelectAll:setVisible(false)
 
-        self.taskLabel:setName(size .. " Tasks")
+        self.taskLabel:setName(self.viewModel.size .. " Tasks")
         self.buttonBack:setVisible(true)
 
         self.buttonSelectOpt:setVisible(true)
@@ -175,9 +177,13 @@ function TDLZ_TodoListToolbar:_update(size)
         self.buttonNewItem:setVisible(true)
         self.btnSelectAll:setVisible(true)
 
+        self.buttonBack:setJoypadFocused(false)
         self.buttonBack:setVisible(false)
+        self.buttonSelectOpt:setJoypadFocused(false)
         self.buttonSelectOpt:setVisible(false)
+        self.btnExecute:setJoypadFocused(false)
         self.btnExecute:setVisible(false)
         self.taskLabel:setVisible(false)
     end
+    return true
 end

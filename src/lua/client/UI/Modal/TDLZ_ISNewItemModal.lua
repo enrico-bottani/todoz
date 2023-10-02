@@ -67,6 +67,7 @@ function TDLZ_ISNewItemModal:initialise()
     self.yes:initialise()
     self.yes:instantiate()
     self.yes.borderColor = { r = 1, g = 1, b = 1, a = 0.5 }
+    self.yes:setTitle("Save")
     self:addChild(self.yes)
 
     self.no:initialise()
@@ -77,13 +78,6 @@ function TDLZ_ISNewItemModal:initialise()
     return self
 end
 
-function TDLZ_ISNewItemModal:_update()
-    local addOrEdit = "Save"
-    if self.listItem.lineNumber == -1 then
-        addOrEdit = "Add"
-    end
-    self.yes:setTitle(addOrEdit)
-end
 
 function TDLZ_ISNewItemModal:setListItem(listItem)
     self.listItem = listItem

@@ -2,9 +2,10 @@
 -- Repository:  https://github.com/tarma-3/todoz
 
 require 'src.lua.client.Utils.TDLZ_Map'
-require 'Utils/TDLZ_Vars'
-require 'Utils/TDLZ_StringUtils'
-require 'Utils/TDLZ_CheckboxUtils'
+require 'src.lua.client.Utils.TDLZ_Vars'
+require 'src.lua.client.Utils.TDLZ_StringUtils'
+require 'src.lua.client.Utils.TDLZ_CheckboxUtils'
+
 ---@class TDLZ_TodoListZWindow:ISCollapsableWindowJoypad
 ---@field model TDLZ_TodoListZWindowViewModel
 ---@field lockedOverlay TDLZ_ISNewItemModalMask
@@ -60,8 +61,6 @@ function TDLZ_TodoListZWindow:new(player)
     o.pageNav = nil
     o.frameChildren = {}
 
-
-
     local modalHeight = 350;
     local modalWidth = 280;
     local mx = (o.width - modalWidth) / 2
@@ -69,7 +68,7 @@ function TDLZ_TodoListZWindow:new(player)
         modalWidth, modalHeight,
         o)
     o.lockedOverlay = TDLZ_ISNewItemModalMask:new(0, 0, o.width, o.height)
-    -- This will call the instantiate method
+
     o.debug_firstRun = true
 
     o:initialise()
@@ -322,10 +321,6 @@ end
 ---@param height number list height
 ---@param previousState any
 function TDLZ_TodoListZWindow._createTodoList(windowUI, x, y, width, height, previousState)
-    --  windowUI.listbox = TDLZ_ISList:new(x, y, width, height, previousState, {
-    --      o = windowUI,
-    --     f = TDLZ_TodoListZWindow.onHighlightChange
-    -- })
     windowUI.listbox = TDLZ_ISList:new(x, y, width, height, previousState,
         TDLZ_TargetAndCallback:new(windowUI, TDLZ_TodoListZWindow.onHighlightChange))
     windowUI.listbox.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }

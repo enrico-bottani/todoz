@@ -1,4 +1,4 @@
-require 'Utils/TDLZ_Map'
+require 'src.lua.client.Utils.TDLZ_Map'
 TDLZ_OwnedItemService = {}
 ---Find items by name (not display name)
 ---@param name string Name of the item to find
@@ -14,8 +14,7 @@ function TDLZ_OwnedItemService.findByName(name)
     return notebooksIDS;
 end
 
----comment
---- @private
+---@private
 ---@param itemMap TDLZ_Map
 ---@param it any ArrayList<InventoryItem>
 ---@param name string

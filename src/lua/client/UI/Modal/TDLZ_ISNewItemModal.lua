@@ -1,4 +1,4 @@
-require 'Utils/TDLZ_Vars'
+require 'src.lua.client.Utils.TDLZ_Vars'
 
 ---@class TDLZ_ISNewItemModal:ISPanelJoypad
 ---@field contextMenu TDLZ_ContextMenu Modal textbox contextual menu
@@ -205,7 +205,6 @@ end
 ---@param width number
 ---@param height number
 ---@param winCtx any
----@param allItems TDLZ_Map
 ---@return table
 function TDLZ_ISNewItemModal:new(x, y, width, height, winCtx)
     local o = {}

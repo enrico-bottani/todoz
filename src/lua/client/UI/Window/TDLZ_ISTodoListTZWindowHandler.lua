@@ -1,4 +1,4 @@
-require 'Utils/TDLZ_Map'
+require 'src.lua.client.Utils.TDLZ_Map'
 require 'UI/Window/TDLZ_TodoListZWindow'
 
 ---@class TDLZ_ISTodoListTZWindowHandler

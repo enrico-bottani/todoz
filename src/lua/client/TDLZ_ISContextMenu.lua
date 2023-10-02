@@ -1,7 +1,7 @@
 require 'luautils'
-require 'Utils/TDLZ_Map'
-require 'Utils/TDLZ_StringUtils'
-require 'Utils/TDLZ_NotebooksUtils'
+require 'src.lua.client.Utils.TDLZ_Map'
+require 'src.lua.client.Utils.TDLZ_StringUtils'
+require 'src.lua.client.Utils.TDLZ_NotebooksUtils'
 require 'UI/TDLZ_ISTodoListTZWindowHandler'
 require 'ISUI/ISUIWriteJournal'
 

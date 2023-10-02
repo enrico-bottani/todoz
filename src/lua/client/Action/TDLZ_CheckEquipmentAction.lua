@@ -71,7 +71,7 @@ function TDLZ_CheckEquipmentAction:perform()
 end
 
 function TDLZ_CheckEquipmentAction:create()
-	self.maxTime = self:adjustMaxTime(self.maxTime);
+	self.maxTime = self:adjustMaxTime(self.maxTime)
 	self.action = LuaTimedActionNew.new(self, self.character);
 end
 
@@ -87,7 +87,7 @@ function TDLZ_CheckEquipmentAction:setCurrentTime(time)
 end
 
 function TDLZ_CheckEquipmentAction:setTime(time)
-	self.maxTime = time;
+	self.maxTime = time
 end
 
 function TDLZ_CheckEquipmentAction:adjustMaxTime(maxTime)
@@ -99,7 +99,7 @@ function TDLZ_CheckEquipmentAction:adjustMaxTime(maxTime)
 		if not self.ignoreHandsWounds then
 			for i=BodyPartType.ToIndex(BodyPartType.Hand_L), BodyPartType.ToIndex(BodyPartType.ForeArm_R) do
 				local part = self.character:getBodyDamage():getBodyPart(BodyPartType.FromIndex(i));
-				maxTime = maxTime + part:getPain();
+				maxTime = maxTime + part:getPain()
 			end
 		end
 

@@ -59,6 +59,7 @@ function TDLZ_TodoListZWindow:new(player)
     o.actions = {}
     o.listbox = nil
     o.pageNav = nil
+    o.onCloseTargetAndCallback = nil
     o.frameChildren = {}
 
     local modalHeight = 350;
@@ -89,7 +90,7 @@ end
 local TDLZ_DEBUG_RNumber = 0
 function TDLZ_TodoListZWindow:refreshUIElements()
     TDLZ_DEBUG_RNumber = TDLZ_DEBUG_RNumber + 1
-    local updateCode = TDLZ_NumSet:new()
+    local updateJoypadButtons = false
     if self.model.notebook.notebookID == -1 then
         TDLZ_TodoListZWindow._setFormattedTitle(self, self.model.notebook.notebookID)
     else
@@ -100,10 +101,10 @@ function TDLZ_TodoListZWindow:refreshUIElements()
         self.pageNav:_update(notebook.currentPage, notebook.numberOfPages, notebook.currentNotebook:getLockedBy() ~= nil)
         self.listbox:_update(notebook.notebookID, notebook.currentPage, _pageText, self.model.notebookItems,
             notebook.currentNotebook)
-        self.todoListToolbar:_update(self.listbox.highlighted:size())
+        updateJoypadButtons = self.todoListToolbar:_update(self.listbox.highlighted:size()) or updateJoypadButtons
         self.lockedOverlay:_update(self.model.notebook.currentNotebook:getLockedBy() ~= nil)
     end
-    self:setJoypadButtons(self.joyfocus)
+    if updateJoypadButtons then self:setJoypadButtons(self.joyfocus) end
     -- Save Changes in Mod Data
     TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(),
         self.model.notebook.notebookID, self.model.notebook.currentPage, self.listbox:getYScroll())
@@ -129,7 +130,7 @@ function TDLZ_TodoListZWindow:setJoypadButtons(joypadData)
 
     if self.listbox.highlighted:size() > 0 then
         print("Joypad Buttons Set (n of highlighted: " .. self.listbox.highlighted:size() .. ")")
-        self.joypadIndex = 1
+        self.joypadIndex = 3
         self.joypadIndexY = 3
         self:insertNewLineOfButtons(self.pageNav.buttonDelete, self.pageNav.buttonLock,
             self.pageNav.previousPage, self.pageNav.nextPage)
@@ -155,13 +156,35 @@ end
 
 function TDLZ_TodoListZWindow:onGainJoypadFocus(joypadData)
     ISCollapsableWindowJoypad.onGainJoypadFocus(self, joypadData)
-    self.borderColor = TDLZ_Colors.GREEN
-    self:drawRectBorder(1, 1, self:getWidth() - 2, self:getHeight() - 2, 0.4, 0.2, 1.0, 1.0);
+    self.borderColor = TDLZ_Colors.HIGHLIGHT
+    --self:drawRectBorder(1, 1, self:getWidth() - 2, self:getHeight() - 2, 0.4, 0.2, 1.0, 1.0);
     -- self:setISButtonForA(self.yes)
     -- self:setISButtonForB(self.no)
     -- self.yes:setJoypadButton(Joypad.Texture.AButton)
     -- self.no:setJoypadButton(Joypad.Texture.BButton)
     self:setJoypadButtons(joypadData)
+end
+
+function TDLZ_TodoListZWindow:onJoypadDown(button)
+    ISCollapsableWindowJoypad.onJoypadDown(self, button)
+    ISContextMenu.globalPlayerContext = self.player;
+    local playerObj = getSpecificPlayer(self.player)
+    if button == Joypad.BButton then
+        --       if isPlayerDoingActionThatCanBeCancelled(playerObj) then
+        --         stopDoingActionThatCanBeCancelled(playerObj)
+        --       return
+        -- end
+        if (self.listbox.highlighted:size() > 0) then
+            TDLZ_TodoListZWindowController.onBack(self)
+            return
+        end
+        self:close()
+        --self.inventoryPane:doJoypadExpandCollapse()
+    end
+end
+
+function TDLZ_TodoListZWindow:setOnCloseCallback(target, callback)
+    self.onCloseTargetAndCallback = TDLZ_TargetAndCallback:new(target, callback)
 end
 
 function TDLZ_TodoListZWindow:close()
@@ -174,8 +197,8 @@ function TDLZ_TodoListZWindow:close()
     self:removeFromUIManager();
 
     -- Callback
-    if self.onClose then
-        self:onClose()
+    if self.onCloseTargetAndCallback ~= nil then
+        self.onCloseTargetAndCallback.callback(self.onCloseTargetAndCallback.target)
     end
 
     TDLZ_TodoListZWindow.UI_MAP:remove(self.ID)

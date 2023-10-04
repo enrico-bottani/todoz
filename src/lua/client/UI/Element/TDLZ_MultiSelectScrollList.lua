@@ -34,6 +34,7 @@ function TDLZ_MultiSelectScrollList:initialise()
 end
 
 function TDLZ_MultiSelectScrollList:setJoypadFocused(focused, joypadData)
+	-- ISPanelJoypad:setJoypadFocus(focused,joypadData)
 	if focused then
 		self.backgroundColor = TDLZ_Colors.GRAY_100
 		--[[
@@ -274,14 +275,6 @@ function TDLZ_MultiSelectScrollList:setOnMouseDoubleClick(target, onmousedblclic
 end
 
 function TDLZ_MultiSelectScrollList:doDrawItem(x, y, item, alt, k)
-	if not item.height then item.height = self.itemheight end -- compatibililty
-	if self.selected == item.index then
-		self:drawRect(0, (y), self:getWidth(), item.height - 1, 0.3, 0.7, 0.35, 0.15);
-	end
-	self:drawRectBorder(0, (y), self:getWidth(), item.height, 0.5, self.borderColor.r, self.borderColor.g,
-		self.borderColor.b);
-	local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
-	self:drawText(item.text, 15, (y) + itemPadY, 0.9, 0.9, 0.9, 0.9, self.font);
 	y = y + item.height;
 	return y;
 end
@@ -425,8 +418,7 @@ function TDLZ_MultiSelectScrollList:prerender()
 	self:drawRect(0, -self:getYScroll(), self.width, self.height, self.backgroundColor.a, self.backgroundColor.r,
 		self.backgroundColor.g, self.backgroundColor.b);
 	if self.drawBorder then
-		self:drawRectBorder(0, -self:getYScroll(), self.width, self.height, self.borderColor.a, self.borderColor.r,
-			self.borderColor.g, self.borderColor.b)
+		TDLZ_Draw.drawRectBorder(self,0,-self:getYScroll(),self.width,self.height,TDLZ_Colors.GRAY_300)
 		stencilX = 1
 		stencilY = 1
 		stencilX2 = self.width - 1
@@ -569,10 +561,7 @@ function TDLZ_MultiSelectScrollList:ensureVisible(index)
 end
 
 function TDLZ_MultiSelectScrollList:render()
-	if self.joypadFocused then
-		self:drawRectBorder(0, -self:getYScroll(), self:getWidth(), self:getHeight(), 0.4, 0.2, 1.0, 1.0);
-		self:drawRectBorder(1, 1 - self:getYScroll(), self:getWidth() - 2, self:getHeight() - 2, 0.4, 0.2, 1.0, 1.0);
-	end
+
 end
 
 function TDLZ_MultiSelectScrollList:onJoypadDown(button, joypadData)

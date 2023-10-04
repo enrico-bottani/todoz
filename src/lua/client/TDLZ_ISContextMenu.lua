@@ -35,15 +35,20 @@ function ISUIWriteJournal:onClick(button, player, p2)
 end
 
 ---@param items table
----@param player any
-function TDLZ_ISContextMenu.onOpenTodoZ(items, player)
-    local instance = TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(player, items[1]:getID(), 1)
+---@param playerNum number
+---@param context ISContextMenu
+function TDLZ_ISContextMenu.onOpenTodoZ(items, playerNum,context)
+    local instance = TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(playerNum, items[1]:getID(), 1)
     if instance ~= nil then
         instance:setVisible(true)
+        if JoypadState.players[playerNum+1] then
+            setJoypadFocus(playerNum, instance)
+            instance:setOnCloseCallback(context.parent, function (_ctx)
+                setJoypadFocus(playerNum,getPlayerInventory(playerNum))
+            end)
+        end
     end
-    if JoypadState.players[player+1] then
-        setJoypadFocus(player, instance)
-    end
+
 end
 
 ---@return table<number,any>
@@ -72,7 +77,6 @@ end
 ---@param items table
 function TDLZ_ISContextMenu.handleShowTodoListContextMenu(player, context, items)
     local notebooks = TDLZ_ISContextMenu.getNotebooks(items);
-
     if type(notebooks) == 'table' and #notebooks > 0 then
         local notebookID = notebooks[1]:getID();
         local instance = TDLZ_ISTodoListTZWindowHandler.getInstance(notebookID)
@@ -83,7 +87,7 @@ function TDLZ_ISContextMenu.handleShowTodoListContextMenu(player, context, items
             end
         end
         local opt = context:addOption(getText('IGUI_TDLZ_context_open_onclick'), notebooks, TDLZ_ISContextMenu.onOpenTodoZ,
-            player)
+            player, context)
         opt.iconTexture = getTexture('media/textures/TDLZ_ctx_icon.png')
     end
 end

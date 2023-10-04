@@ -34,15 +34,15 @@ function TDLZ_TodoListToolbar:new(x, y, width, height)
     o.buttonNewItem = ISButton:new(TDLZ_HALF_REM, y,
         100, TDLZ_BTN_DEFAULT_H,
         "+ Add...")
-    
+
     o.btnSelectAll = ISButton:new(
         o.buttonNewItem.x + o.buttonNewItem.width + TDLZ_QUARTER_REM, y, 120,
         TDLZ_BTN_DEFAULT_H, "Select all")
-    
+
     o.buttonBack = ISButton:new(TDLZ_HALF_REM, y,
         TDLZ_BTN_DEFAULT_H, TDLZ_BTN_DEFAULT_H,
         "")
-    
+
     o.buttonSelectOpt = ISComboBox:new(o.buttonBack.x + o.buttonBack.width + TDLZ_REM * 0.5, y, 100,
         TDLZ_BTN_DEFAULT_H, o, TDLZ_TodoListToolbar.onSelectItem)
     o.buttonSelectOpt:addOptionWithData("Review", { id = 1 })
@@ -153,23 +153,26 @@ end
 function TDLZ_TodoListToolbar:onButtonExecuteClick(target, callback)
     self.btnExecuteCustomTC = TDLZ_TargetAndCallback:new(target, callback)
 end
+
 function TDLZ_TodoListToolbar:_setProperties(size)
 
 end
 
 function TDLZ_TodoListToolbar:_update(size)
     if self.viewModel.size == size then return false end
+    if self.viewModel.size > 0 and size > 0 or self.viewModel.size == 0 and size == 0 then
+        self.taskLabel:setName(self.viewModel.size .. " Tasks")
+        return false
+    end
     self.viewModel.size = size
     if self.viewModel.size > 0 then
         self.buttonNewItem:setJoypadFocused(false)
         self.buttonNewItem:setVisible(false)
-        
+
         self.btnSelectAll:setJoypadFocused(false)
         self.btnSelectAll:setVisible(false)
 
-        self.taskLabel:setName(self.viewModel.size .. " Tasks")
         self.buttonBack:setVisible(true)
-
         self.buttonSelectOpt:setVisible(true)
         self.btnExecute:setVisible(true)
         self.taskLabel:setVisible(true)

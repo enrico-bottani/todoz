@@ -157,11 +157,14 @@ function TDLZ_TodoListZWindowController.selectAll(_target, _button, winCtx)
     end
     winCtx:refreshUIElements()
 end
----@param winCtx TDLZ_TodoListZWindow
-function TDLZ_TodoListZWindowController.onTodoListToolbarButtonBackClick(_target, _button, winCtx)
+function TDLZ_TodoListZWindowController.onBack(winCtx)
     winCtx.listbox.highlighted = TDLZ_NumSet:new()
     TDLZ_TodoListZWindowController.stopAllActions(winCtx.actions)
     winCtx:refreshUIElements()
+end
+---@param winCtx TDLZ_TodoListZWindow
+function TDLZ_TodoListZWindowController.onTodoListToolbarButtonBackClick(_target, _button, winCtx)
+    TDLZ_TodoListZWindowController.onBack(winCtx)
 end
 
 local run = 0

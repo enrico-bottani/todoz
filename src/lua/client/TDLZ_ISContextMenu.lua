@@ -95,15 +95,20 @@ function TDLZ_ISContextMenu.handleShowTodoListContextMenu(player, context, items
     local notebooks = TDLZ_ISContextMenu.getNotebooks(items);
     if type(notebooks) == 'table' and #notebooks > 0 then
         local notebookID = notebooks[1]:getID();
-        --local instance = TDLZ_ISTodoListTZWindowHandler.getInstance(notebookID)
-        --if instance ~= nil then
-        --    if instance:getIsVisible() then
+        local instance = TDLZ_ISTodoListTZWindowHandler.getInstance(notebookID)
+        local openTodoListText = getText('IGUI_TDLZ_context_open_onclick')
+        if instance ~= nil then
+            if instance:getIsVisible() then
                 -- TodoZ UI is open and visible, don't do anything.
-         --       return
-          --  end
-       -- end
+                if getSpecificPlayer(player):getJoypadBind() ~= -1 then
+                    openTodoListText = "Restore focus on TodoList"
+                else
+                    return
+                end
+            end
+        end
         if #items ~= 1 then return end
-        local opt = context:addOption(getText('IGUI_TDLZ_context_open_onclick'), notebookID,
+        local opt = context:addOption(openTodoListText, notebookID,
             TDLZ_ISContextMenu.onOpenTodoZ,
             player, context)
         opt.iconTexture = getTexture('media/textures/TDLZ_ctx_icon.png')

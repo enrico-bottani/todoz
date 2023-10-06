@@ -52,7 +52,6 @@ function TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(player, notebookID, 
     for key, window in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
         instanceIDs = " " .. window:getNotebookID()
         if window:getNotebookID() == notebookID then
-            print("Recovered instance of TDLZ_TodoListZWindow")
             window:setVisible(true)
             return window
         end
@@ -65,7 +64,3 @@ function TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(player, notebookID, 
     newWindow:addToUIManager()
     return newWindow
 end
-
---Events.OnCreateUI.Add(function(player, a1, a2)
---   TDLZ_ISTodoListTZWindowHandler.create(player)
---end)

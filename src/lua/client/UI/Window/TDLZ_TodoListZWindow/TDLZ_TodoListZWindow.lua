@@ -82,7 +82,7 @@ function TDLZ_TodoListZWindow:new(player, notebookID, pageNumber)
     end
     --]]
     o:instantiate()
-    o:setNotebookID(notebookID, pageNumber)
+    TDLZ_TodoListZWindow.setNotebookID(o, notebookID, pageNumber)
     return o;
 end
 
@@ -180,6 +180,14 @@ function TDLZ_TodoListZWindow:onJoypadDown(button)
 
         self:close()
         --self.inventoryPane:doJoypadExpandCollapse()
+    elseif button == Joypad.YButton then
+        getPlayer():setIgnoreAimingInput(false)
+        TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(),
+            self.model.notebook.notebookID, self.model.notebook.currentPage)
+
+        if self.onCloseTargetAndCallback and self.onCloseTargetAndCallback ~= nil then
+            self.onCloseTargetAndCallback.callback(self.onCloseTargetAndCallback.target)
+        end
     end
 end
 
@@ -193,12 +201,12 @@ end
 
 function TDLZ_TodoListZWindow:close()
     self.closingWindow = true
-    getPlayer():setIgnoreAimingInput(false);
+
     self:setVisible(false)
     TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(),
         self.model.notebook.notebookID, self.model.notebook.currentPage)
     ISCollapsableWindowJoypad.close(self)
-    self:removeFromUIManager();
+    self:removeFromUIManager()
 
     -- Callback
     if self.onCloseTargetAndCallback and self.onCloseTargetAndCallback ~= nil then

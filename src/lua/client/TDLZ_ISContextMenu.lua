@@ -34,21 +34,37 @@ function ISUIWriteJournal:onClick(button, player, p2)
     end
 end
 
----@param items table
+local original_onDisplayRight = ISDPadWheels.onDisplayRight
+---@diagnostic disable-next-line: duplicate-set-field
+function ISDPadWheels.onDisplayRight(joypadData)
+    original_onDisplayRight(joypadData)
+    local playerIndex = joypadData.player
+    local menu = getPlayerRadialMenu(playerIndex)
+    menu:addSlice(getText("IGUI_WorldMap_Toggle"), getTexture('media/textures/TDLZ_ctx_icon.png'),
+        TDLZ_ISContextMenu.onOpenTodoZ, -1, playerIndex)
+end
+
+---@param notebookID number
 ---@param playerNum number
 ---@param context ISContextMenu
-function TDLZ_ISContextMenu.onOpenTodoZ(items, playerNum,context)
-    local instance = TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(playerNum, items[1]:getID(), 1)
+function TDLZ_ISContextMenu.onOpenTodoZ(notebookID, playerNum, context)
+    local instance = TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(playerNum, notebookID, 1)
     if instance ~= nil then
         instance:setVisible(true)
-        if JoypadState.players[playerNum+1] then
+        if JoypadState.players[playerNum + 1] then
+            --- Move focus to TDLZ_TodoListZWindow instance
             setJoypadFocus(playerNum, instance)
-            instance:setOnCloseCallback(context.parent, function (_ctx)
-                setJoypadFocus(playerNum,getPlayerInventory(playerNum))
-            end)
+            if context then
+                instance:setOnCloseCallback(context.parent, function(_ctx)
+                    setJoypadFocus(playerNum, getPlayerInventory(playerNum))
+                end)
+            else
+                instance:setOnCloseCallback(nil, nil)
+            end
         end
+    else
+        error("TDLZ_TodoListZWindow instance is null")
     end
-
 end
 
 ---@return table<number,any>
@@ -86,7 +102,9 @@ function TDLZ_ISContextMenu.handleShowTodoListContextMenu(player, context, items
                 return
             end
         end
-        local opt = context:addOption(getText('IGUI_TDLZ_context_open_onclick'), notebooks, TDLZ_ISContextMenu.onOpenTodoZ,
+        if #items ~= 1 then return end
+        local opt = context:addOption(getText('IGUI_TDLZ_context_open_onclick'), notebookID,
+            TDLZ_ISContextMenu.onOpenTodoZ,
             player, context)
         opt.iconTexture = getTexture('media/textures/TDLZ_ctx_icon.png')
     end

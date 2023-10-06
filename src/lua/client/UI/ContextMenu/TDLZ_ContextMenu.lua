@@ -2,7 +2,7 @@
 -- Repository:  https://github.com/tarma-3/todoz
 
 require "src.lua.client.Service.TDLZ_ItemsFinderService"
-
+require "src.lua.client.UI.Window.TDLZ_TodoListZWindow.TDLZ_TodoListZWindow"
 ---@class TDLZ_ContextMenu:ISScrollingListBox
 ---@field viewModel {allItems:table<number,any>}
 TDLZ_ContextMenu = ISScrollingListBox:derive("TDLZ_ContextMenu");

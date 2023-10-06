@@ -19,7 +19,7 @@ TDLZ_ISNewItemModal.OPTION_TXT = 2
 
 local lineTypeWidth = 100
 
----@param o TDLZ_ISNewItemModal
+
 ---@return TDLZ_ISNewItemModal
 function TDLZ_ISNewItemModal:initialise()
     ISPanelJoypad.initialise(self)

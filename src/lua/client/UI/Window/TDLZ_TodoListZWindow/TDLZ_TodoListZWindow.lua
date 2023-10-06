@@ -31,12 +31,12 @@ function TDLZ_TodoListZWindow:getNotebookID() return self.model.notebook.noteboo
 
 ---Set notebook id, reload model and refresh UI Elements
 ---@param notebookID number
-function TDLZ_TodoListZWindow:setNotebookID(notebookID, pageNumber)
-    TDLZ_TodoListZWindow.reloadViewModel(self, notebookID, pageNumber)
-    self:refreshUIElements()
+function TDLZ_TodoListZWindow.setNotebookID(o, notebookID, pageNumber)
+    assert(notebookID ~= -1 and notebookID ~= nil, "Notebook == -1 or Notebook == nil not jet supported")
+    TDLZ_TodoListZWindow.reloadViewModel(o, notebookID, pageNumber)
 end
 
-function TDLZ_TodoListZWindow:new(player)
+function TDLZ_TodoListZWindow:new(player, notebookID, pageNumber)
     local o = {}
     local mD = TDLZ_ModData.loadModData();
     o = ISCollapsableWindowJoypad:new(mD.panelSettings.x, mD.panelSettings.y, mD.panelSettings.width,
@@ -72,9 +72,7 @@ function TDLZ_TodoListZWindow:new(player)
 
     o.debug_firstRun = true
 
-    o:initialise()
-    o:addToUIManager()
-
+    --[[
     if o.pin then
         ---@diagnostic disable-next-line: undefined-field
         ISCollapsableWindowJoypad.pin(o)
@@ -82,8 +80,9 @@ function TDLZ_TodoListZWindow:new(player)
         ---@diagnostic disable-next-line: undefined-field
         ISCollapsableWindowJoypad.collapse(o)
     end
-
-    TDLZ_TodoListZWindow.UI_MAP:add(o.ID, o)
+    --]]
+    o:instantiate()
+    o:setNotebookID(notebookID, pageNumber)
     return o;
 end
 
@@ -91,6 +90,7 @@ local TDLZ_DEBUG_RNumber = 0
 function TDLZ_TodoListZWindow:refreshUIElements()
     TDLZ_DEBUG_RNumber = TDLZ_DEBUG_RNumber + 1
     local updateJoypadButtons = false
+    local yScroll = 0
     if self.model.notebook.notebookID == -1 then
         TDLZ_TodoListZWindow._setFormattedTitle(self, self.model.notebook.notebookID)
     else
@@ -103,11 +103,12 @@ function TDLZ_TodoListZWindow:refreshUIElements()
             notebook.currentNotebook)
         updateJoypadButtons = self.todoListToolbar:_update(self.listbox.highlighted:size()) or updateJoypadButtons
         self.lockedOverlay:_update(self.model.notebook.currentNotebook:getLockedBy() ~= nil)
+        yScroll = self.listbox:getYScroll()
     end
     if updateJoypadButtons then self:setJoypadButtons(self.joyfocus) end
     -- Save Changes in Mod Data
     TDLZ_ModData.saveModData(self.x, self.y, self.width, self.height, self.pin, not self:getIsVisible(),
-        self.model.notebook.notebookID, self.model.notebook.currentPage, self.listbox:getYScroll())
+        self.model.notebook.notebookID, self.model.notebook.currentPage, yScroll)
 
     ---@diagnostic disable-next-line: undefined-field
     self.resizeWidget2:bringToTop()
@@ -121,37 +122,33 @@ function TDLZ_TodoListZWindow:onLoseJoypadFocus(joypadData)
 end
 
 function TDLZ_TodoListZWindow:setJoypadButtons(joypadData)
-    print("Joypad Buttons Start")
     if not joypadData then return end
-    self:clearJoypadFocus(joypadData)
-    self.joypadButtonsY = {}
 
     -- self.joypadButtonsY
-
-    if self.listbox.highlighted:size() > 0 then
-        print("Joypad Buttons Set (n of highlighted: " .. self.listbox.highlighted:size() .. ")")
-        self.joypadIndex = 3
-        self.joypadIndexY = 3
-        self:insertNewLineOfButtons(self.pageNav.buttonDelete, self.pageNav.buttonLock,
-            self.pageNav.previousPage, self.pageNav.nextPage)
-        self:insertNewLineOfButtons(self.listbox)
-        self:insertNewLineOfButtons(self.todoListToolbar.buttonBack, self.todoListToolbar.buttonSelectOpt,
-            self.todoListToolbar.btnExecute)
-    else
-        print("Joypad Buttons Set (n of highlighted: " .. self.listbox.highlighted:size() .. ")")
-        self.joypadIndex = 1
-        self.joypadIndexY = 3
-        self:insertNewLineOfButtons(self.pageNav.buttonDelete, self.pageNav.buttonLock,
-            self.pageNav.previousPage, self.pageNav.nextPage)
-        self:insertNewLineOfButtons(self.listbox)
-        self:insertNewLineOfButtons(self.todoListToolbar.buttonNewItem, self.todoListToolbar.btnSelectAll)
+    if self.model.notebook.notebookID ~= -1 then
+        self:clearJoypadFocus(joypadData)
+        self.joypadButtonsY = {}
+        if self.listbox.highlighted:size() > 0 then
+            self.joypadIndex = 3
+            self.joypadIndexY = 3
+            self:insertNewLineOfButtons(self.pageNav.buttonDelete, self.pageNav.buttonLock,
+                self.pageNav.previousPage, self.pageNav.nextPage)
+            self:insertNewLineOfButtons(self.listbox)
+            self:insertNewLineOfButtons(self.todoListToolbar.buttonBack, self.todoListToolbar.buttonSelectOpt,
+                self.todoListToolbar.btnExecute)
+        else
+            self.joypadIndex = 1
+            self.joypadIndexY = 3
+            self:insertNewLineOfButtons(self.pageNav.buttonDelete, self.pageNav.buttonLock,
+                self.pageNav.previousPage, self.pageNav.nextPage)
+            self:insertNewLineOfButtons(self.listbox)
+            self:insertNewLineOfButtons(self.todoListToolbar.buttonNewItem, self.todoListToolbar.btnSelectAll)
+        end
+        -- Set self.joypadButtons
+        self.joypadButtons = self.joypadButtonsY[self.joypadIndexY]
+        self.joypadIndex = math.min(math.max(self.joypadIndex, 1), #self.joypadButtons)
+        self:restoreJoypadFocus(joypadData)
     end
-
-
-    -- Set self.joypadButtons
-    self.joypadButtons = self.joypadButtonsY[self.joypadIndexY]
-    self.joypadIndex = math.min(math.max(self.joypadIndex, 1), #self.joypadButtons)
-    self:restoreJoypadFocus(joypadData)
 end
 
 function TDLZ_TodoListZWindow:onGainJoypadFocus(joypadData)
@@ -174,17 +171,24 @@ function TDLZ_TodoListZWindow:onJoypadDown(button)
         --         stopDoingActionThatCanBeCancelled(playerObj)
         --       return
         -- end
-        if (self.listbox.highlighted:size() > 0) then
-            TDLZ_TodoListZWindowController.onBack(self)
-            return
+        if self.model.notebook.notebookID ~= -1 then
+            if (self.listbox.highlighted:size() > 0) then
+                TDLZ_TodoListZWindowController.onBack(self)
+                return
+            end
         end
+
         self:close()
         --self.inventoryPane:doJoypadExpandCollapse()
     end
 end
 
 function TDLZ_TodoListZWindow:setOnCloseCallback(target, callback)
-    self.onCloseTargetAndCallback = TDLZ_TargetAndCallback:new(target, callback)
+    if callback == nil then
+        self.onCloseTargetAndCallback = nil
+    else
+        self.onCloseTargetAndCallback = TDLZ_TargetAndCallback:new(target, callback)
+    end
 end
 
 function TDLZ_TodoListZWindow:close()
@@ -197,11 +201,13 @@ function TDLZ_TodoListZWindow:close()
     self:removeFromUIManager();
 
     -- Callback
-    if self.onCloseTargetAndCallback ~= nil then
+    if self.onCloseTargetAndCallback and self.onCloseTargetAndCallback ~= nil then
         self.onCloseTargetAndCallback.callback(self.onCloseTargetAndCallback.target)
+    else
+        setJoypadFocus(self.player, nil)
     end
-
-    TDLZ_TodoListZWindow.UI_MAP:remove(self.ID)
+    print("Removing TDLZ_TodoListZWindow from UI_MAP")
+    TDLZ_TodoListZWindow.UI_MAP:remove(self.model.notebook.notebookID)
 end
 
 function TDLZ_TodoListZWindow.onHighlightChange(windowUI, int)
@@ -226,7 +232,6 @@ function TDLZ_TodoListZWindow:initialise()
     local resizeBarHeight = self.resizable and self:resizeWidgetHeight() or 0
     local titleBarHeight = self:titleBarHeight()
     local y = titleBarHeight
-
     -- Create Pge Navigation
     self.pageNav = TDLZ_PageNav:new(0, y, self.width, TDLZ_BTN_DEFAULT_H + 0.5 * TDLZ_REM)
     self.pageNav:initialise()
@@ -267,6 +272,7 @@ function TDLZ_TodoListZWindow:initialise()
 
 
     self.closingWindow = false
+    TDLZ_TodoListZWindow.UI_MAP:add(self.model.notebook.notebookID, self)
     self:refreshUIElements()
 end
 
@@ -323,9 +329,8 @@ function TDLZ_TodoListZWindow._getNotebookData(notebookID, pageNumber)
     end
     if notebookID == nil or notebookID == -1 then
         return TDLZ_NotebookModel:new({}, -1, "", -1, -1)
-    else
-        return TDLZ_NotebookModel:new(nb, notebookID, nb:seePage(pageNumber), pageNumber, nb:getPageToWrite())
     end
+    return TDLZ_NotebookModel:new(nb, notebookID, nb:seePage(pageNumber), pageNumber, nb:getPageToWrite())
 end
 
 ---@private
@@ -392,7 +397,7 @@ end
 ---@param pageNumber number
 function TDLZ_TodoListZWindow.reloadViewModel(winCtx, notebookID, pageNumber)
     local notebookData = nil
-    if notebookID == nil then
+    if notebookID == -1 then
         notebookData = TDLZ_TodoListZWindow._getNotebookData(-1, 1)
         winCtx.model = TDLZ_TodoListZWindowViewModel:new(notebookData, TDLZ_Set:new())
     else

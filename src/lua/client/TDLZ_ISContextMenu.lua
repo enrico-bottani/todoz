@@ -101,7 +101,7 @@ function TDLZ_ISContextMenu.handleShowTodoListContextMenu(player, context, items
             if instance:getIsVisible() then
                 -- TodoZ UI is open and visible, don't do anything.
                 if getSpecificPlayer(player):getJoypadBind() ~= -1 then
-                    openTodoListText = "Restore focus on TodoList"
+                    openTodoListText = getText('IGUI_TDLZ_context_restorefocus_onclick')
                 else
                     return
                 end

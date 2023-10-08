@@ -1,0 +1,5 @@
+IGUI_EN = {
+    IGUI_TDLZ_context_open_onclick = "Apri finestra TodoList",
+    IGUI_TDLZ_context_restorefocus_onclick = "Seleziona finestra della TodoList",
+    IGUI_TDLZ_window_title = "Todo List"
+}

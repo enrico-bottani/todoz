@@ -40,7 +40,7 @@ function TDLZ_Map:size()
     return self._size
 end
 
----@return table<number,TDLZ_TodoListZWindow>
+---@return table<number,any>
 function TDLZ_Map:toList()
     local rtn = {}
     for k, v in pairs(self._table) do

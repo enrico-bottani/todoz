@@ -1,4 +1,4 @@
-require('src.lua.client.Utils.TDLZ_StringUtils')
+require 'src.lua.client.Utils.TDLZ_StringUtils'
 local test = require('src.lua.test.common.luaunit')
 TEST_TDLZ_StringUtils = {}
 if test ~= nil then
@@ -58,7 +58,7 @@ if test ~= nil then
         test.assertEquals(str.startIndex, 1)
         test.assertEquals(str.endIndex, 4)
     end
-    
+
     function TEST_TDLZ_StringUtils.findHashTagNameOutOfBound()
         local s = "#123 2"
         local str = TDLZ_StringUtils.findHashTagName(s, 111)

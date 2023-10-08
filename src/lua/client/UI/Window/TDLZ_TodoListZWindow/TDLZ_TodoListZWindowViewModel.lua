@@ -1,25 +1,28 @@
+-- Author:      Enrico B.
+-- Repository:  https://github.com/tarma-3/todoz
+
 ---@class TDLZ_TodoListZWindowViewModel
 ---@field notebook TDLZ_NotebookModel
----@field allItems table<number,any>
+---@field notebookItems TDLZ_Set
 TDLZ_TodoListZWindowViewModel = {}
 
 ---comment
 ---@param notebook TDLZ_NotebookModel
----@param allItems table
+---@param notebookItems TDLZ_Set
 ---@return TDLZ_TodoListZWindowViewModel
-function TDLZ_TodoListZWindowViewModel:new(notebook, allItems)
+function TDLZ_TodoListZWindowViewModel:new(notebook, notebookItems)
     local o = {}
     setmetatable(o, self)
     self.__index = self
-    o.allItems = allItems
+    o.notebookItems = notebookItems
     o.notebook = notebook
     return o
 end
 
----@param allItems table<number,any>
+---@param notebookItems TDLZ_Set
 ---@return TDLZ_TodoListZWindowViewModel
-function TDLZ_TodoListZWindowViewModel:setHashnames(allItems)
-    self.allItems = allItems
+function TDLZ_TodoListZWindowViewModel:setHashnames(notebookItems)
+    self.notebookItems = notebookItems
     return self;
 end
 

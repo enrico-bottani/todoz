@@ -68,7 +68,7 @@ function TDLZ_StringUtils.findHashTagName(inputString, position)
 end
 
 ---@param inputString string
----@return table<number,string>
+---@return table<number,any>
 function TDLZ_StringUtils.findAllHashTagName(inputString)
     local rtn = {}
     if inputString == nil or #inputString == 0 then
@@ -103,7 +103,7 @@ end
 ---@param lineString string
 ---@return string
 function TDLZ_StringUtils.removeCheckboxSquareBrackets(lineString)
-   local s,l =  lineString:gsub(CK_BOX_FLEX_PATTERN, function(space)
+    local s, l = lineString:gsub(CK_BOX_FLEX_PATTERN, function(space)
         return space
     end, 1)
     return s

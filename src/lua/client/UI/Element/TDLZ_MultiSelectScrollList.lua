@@ -6,7 +6,9 @@ require "TimedActions/ISEatFoodAction"
 
 require "src.lua.client.Utils.TDLZ_NumSet"
 
---- @class TDLZ_MultiSelectScrollList
+---@class TDLZ_MultiSelectScrollList:ISPanelJoypad
+---@field onHighlightCD TDLZ_TargetAndCallback
+---@field joypadParent ISUIElement
 TDLZ_MultiSelectScrollList = ISPanelJoypad:derive("TDLZ_MultiSelectScrollList");
 TDLZ_MultiSelectScrollList.joypadListIndex = 1;
 
@@ -32,7 +34,10 @@ function TDLZ_MultiSelectScrollList:initialise()
 end
 
 function TDLZ_MultiSelectScrollList:setJoypadFocused(focused, joypadData)
+	-- ISPanelJoypad:setJoypadFocus(focused,joypadData)
 	if focused then
+		self.backgroundColor = TDLZ_Colors.GRAY_100
+		--[[
 		joypadData.focus = self;
 		updateJoypadFocus(joypadData);
 		if self.selected == -1 then
@@ -47,28 +52,29 @@ function TDLZ_MultiSelectScrollList:setJoypadFocused(focused, joypadData)
 				self.onmousedown(self.target, self.items[self.selected].item);
 			end
 		end
+		]]
+		--
+	else
+		self.backgroundColor = TDLZ_Colors.TRANSPARENT
 	end
 	self.joypadFocused = focused;
 end
 
+function TDLZ_MultiSelectScrollList:setJoypadParent(joypadParent)
+	self.joypadParent = joypadParent
+end
+
 function TDLZ_MultiSelectScrollList:onJoypadDirRight(joypadData)
-	if self.joypadParent then
-		self.joypadParent:onJoypadDirRight(joypadData);
-	end
+
 end
 
 function TDLZ_MultiSelectScrollList:onJoypadDirLeft(joypadData)
-	if self.joypadParent then
-		self.joypadParent:onJoypadDirLeft(joypadData);
-	end
+	--if self.joypadParent then
+--		self.joypadParent:onJoypadDirLeft(joypadData);
+	--end
 end
 
---************************************************************************--
---** ISPanel:instantiate
---**
---************************************************************************--
 function TDLZ_MultiSelectScrollList:instantiate()
-	--self:initialise();
 	self.javaObject = UIElement.new(self);
 	self.javaObject:setX(self.x);
 	self.javaObject:setY(self.y);
@@ -163,6 +169,7 @@ function TDLZ_MultiSelectScrollList:onMouseUp(x, y)
 		self.vscroll.scrolling = false;
 	end
 end
+
 --[[
 function TDLZ_MultiSelectScrollList:addItem(name, item)
 	local i = {}
@@ -176,7 +183,8 @@ function TDLZ_MultiSelectScrollList:addItem(name, item)
 	self:setScrollHeight(self:getScrollHeight() + i.height);
 	return i;
 end
-]]--
+]]
+--
 function TDLZ_MultiSelectScrollList:insertItem(index, name, item)
 	local i = {}
 	i.text = name
@@ -267,14 +275,6 @@ function TDLZ_MultiSelectScrollList:setOnMouseDoubleClick(target, onmousedblclic
 end
 
 function TDLZ_MultiSelectScrollList:doDrawItem(x, y, item, alt, k)
-	if not item.height then item.height = self.itemheight end -- compatibililty
-	if self.selected == item.index then
-		self:drawRect(0, (y), self:getWidth(), item.height - 1, 0.3, 0.7, 0.35, 0.15);
-	end
-	self:drawRectBorder(0, (y), self:getWidth(), item.height, 0.5, self.borderColor.r, self.borderColor.g,
-		self.borderColor.b);
-	local itemPadY = self.itemPadY or (item.height - self.fontHgt) / 2
-	self:drawText(item.text, 15, (y) + itemPadY, 0.9, 0.9, 0.9, 0.9, self.font);
 	y = y + item.height;
 	return y;
 end
@@ -283,6 +283,13 @@ function TDLZ_MultiSelectScrollList:clear()
 	self.items = {}
 	self.selected = 1;
 	self.highlighted = TDLZ_NumSet:new();
+	self.itemheightoverride = {}
+	self.count = 0;
+end
+
+function TDLZ_MultiSelectScrollList:clearItems()
+	self.items = {}
+	self.selected = 1;
 	self.itemheightoverride = {}
 	self.count = 0;
 end
@@ -411,8 +418,7 @@ function TDLZ_MultiSelectScrollList:prerender()
 	self:drawRect(0, -self:getYScroll(), self.width, self.height, self.backgroundColor.a, self.backgroundColor.r,
 		self.backgroundColor.g, self.backgroundColor.b);
 	if self.drawBorder then
-		self:drawRectBorder(0, -self:getYScroll(), self.width, self.height, self.borderColor.a, self.borderColor.r,
-			self.borderColor.g, self.borderColor.b)
+		TDLZ_Draw.drawRectBorder(self,0,-self:getYScroll(),self.width,self.height,TDLZ_Colors.GRAY_300)
 		stencilX = 1
 		stencilY = 1
 		stencilX2 = self.width - 1
@@ -555,10 +561,7 @@ function TDLZ_MultiSelectScrollList:ensureVisible(index)
 end
 
 function TDLZ_MultiSelectScrollList:render()
-	if self.joypadFocused then
-		self:drawRectBorder(0, -self:getYScroll(), self:getWidth(), self:getHeight(), 0.4, 0.2, 1.0, 1.0);
-		self:drawRectBorder(1, 1 - self:getYScroll(), self:getWidth() - 2, self:getHeight() - 2, 0.4, 0.2, 1.0, 1.0);
-	end
+
 end
 
 function TDLZ_MultiSelectScrollList:onJoypadDown(button, joypadData)
@@ -597,10 +600,13 @@ function TDLZ_MultiSelectScrollList:addColumn(columnName, size)
 	table.insert(self.columns, { name = columnName, size = size });
 end
 
---************************************************************************--
---** ISInventoryPane:new
---**
---************************************************************************--
+---commented
+---@param x any
+---@param y any
+---@param width any
+---@param height any
+---@param onHighlightCD TDLZ_TargetAndCallback
+---@return table
 function TDLZ_MultiSelectScrollList:new(x, y, width, height, onHighlightCD)
 	local o = {}
 	--o.data = {}

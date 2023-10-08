@@ -1,11 +1,11 @@
 require 'luautils'
-require 'Utils/TDLZ_Map'
-require 'Utils/TDLZ_StringUtils'
-require 'Utils/TDLZ_NotebooksUtils'
-require 'UI/TDLZ_ISTodoListTZWindowHandler'
+require 'src.lua.client.Utils.TDLZ_Map'
+require 'src.lua.client.Utils.TDLZ_StringUtils'
+require 'src.lua.client.Utils.TDLZ_NotebooksUtils'
+require 'src.lua.client.UI.Window.TDLZ_ISTodoListTZWindowHandler'
 require 'ISUI/ISUIWriteJournal'
 
-TDLZ_ContextMenu = {}
+TDLZ_ISContextMenu = {}
 
 -- ****************************************************************
 -- ***************   VANILLA FUNCTIONS OVERRIDE       *************
@@ -14,7 +14,7 @@ TDLZ_ContextMenu = {}
 local original_ISUIOnClick = ISUIWriteJournal.onClick;
 -- @original_ISUIOnClick override
 ---@diagnostic disable-next-line: duplicate-set-field
-function ISUIWriteJournal:onClick(button)
+function ISUIWriteJournal:onClick(button, player, p2)
     original_ISUIOnClick(self, button)
 
     if button.internal == "OK" then
@@ -34,19 +34,43 @@ function ISUIWriteJournal:onClick(button)
     end
 end
 
----@param items table
----@param player any
-function TDLZ_ContextMenu.onOpenTodoZ(items, player)
-    local instance = TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(items[1]:getID(), 1)
+local original_onDisplayRight = ISDPadWheels.onDisplayRight
+---@diagnostic disable-next-line: duplicate-set-field
+function ISDPadWheels.onDisplayRight(joypadData)
+    original_onDisplayRight(joypadData)
+    local playerIndex = joypadData.player
+    local menu = getPlayerRadialMenu(playerIndex)
+    menu:addSlice(getText("IGUI_WorldMap_Toggle"), getTexture('media/textures/TDLZ_ctx_icon.png'),
+        TDLZ_ISContextMenu.onOpenTodoZ, -1, playerIndex)
+end
+
+---@param notebookID number
+---@param playerNum number
+---@param context ISContextMenu
+function TDLZ_ISContextMenu.onOpenTodoZ(notebookID, playerNum, context)
+    local instance = TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(playerNum, notebookID, 1)
     if instance ~= nil then
         instance:setVisible(true)
+        if JoypadState.players[playerNum + 1] then
+            --- Move focus to TDLZ_TodoListZWindow instance
+            setJoypadFocus(playerNum, instance)
+            if context then
+                instance:setOnCloseCallback(context.parent, function(_ctx)
+                    setJoypadFocus(playerNum, getPlayerInventory(playerNum))
+                end)
+            else
+                instance:setOnCloseCallback(nil, nil)
+            end
+        end
+    else
+        error("TDLZ_TodoListZWindow instance is null")
     end
 end
 
 ---@return table<number,any>
-function TDLZ_ContextMenu.getNotebooks(items)
+function TDLZ_ISContextMenu.getNotebooks(items)
     local notebooks = {}
-    local item
+    local item = nil
     -- Go through the items selected (because multiple selections in inventory is possible)
     for i = 1, #items do
         if not instanceof(items[i], 'InventoryItem') then
@@ -67,32 +91,37 @@ end
 ---@param player any
 ---@param context ISContextMenu
 ---@param items table
-function TDLZ_ContextMenu.handleShowTodoListContextMenu(player, context, items)
-    local notebooks = TDLZ_ContextMenu.getNotebooks(items);
-
+function TDLZ_ISContextMenu.handleShowTodoListContextMenu(player, context, items)
+    local notebooks = TDLZ_ISContextMenu.getNotebooks(items);
     if type(notebooks) == 'table' and #notebooks > 0 then
         local notebookID = notebooks[1]:getID();
         local instance = TDLZ_ISTodoListTZWindowHandler.getInstance(notebookID)
+        local openTodoListText = getText('IGUI_TDLZ_context_open_onclick')
         if instance ~= nil then
             if instance:getIsVisible() then
                 -- TodoZ UI is open and visible, don't do anything.
-                return
+                if getSpecificPlayer(player):getJoypadBind() ~= -1 then
+                    openTodoListText = getText('IGUI_TDLZ_context_restorefocus_onclick')
+                else
+                    return
+                end
             end
         end
-        local opt = context:addOption(getText('IGUI_TDLZ_context_open_onclick'), notebooks, TDLZ_ContextMenu.onOpenTodoZ,
-            player)
+        if #items ~= 1 then return end
+        local opt = context:addOption(openTodoListText, notebookID,
+            TDLZ_ISContextMenu.onOpenTodoZ, player, context)
         opt.iconTexture = getTexture('media/textures/TDLZ_ctx_icon.png')
     end
 end
 
 ---@param ctx any
 ---@param state string
-function TDLZ_ContextMenu.onRefreshInventoryWindowContainers(ctx, state)
+function TDLZ_ISContextMenu.onRefreshInventoryWindowContainers(ctx, state)
     if state == "begin" then
         local ownedNotebooks = TDLZ_NotebooksUtils.getNotebooksInContainer()
         TDLZ_ISTodoListTZWindowHandler.closeExcept(ownedNotebooks)
     end
 end
 
-Events.OnFillInventoryObjectContextMenu.Add(TDLZ_ContextMenu.handleShowTodoListContextMenu)
-Events.OnRefreshInventoryWindowContainers.Add(TDLZ_ContextMenu.onRefreshInventoryWindowContainers)
+Events.OnFillInventoryObjectContextMenu.Add(TDLZ_ISContextMenu.handleShowTodoListContextMenu)
+Events.OnRefreshInventoryWindowContainers.Add(TDLZ_ISContextMenu.onRefreshInventoryWindowContainers)

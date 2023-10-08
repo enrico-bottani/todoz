@@ -1,28 +1,10 @@
-require 'Utils/TDLZ_Map'
-require 'UI/Window/TDLZ_TodoListZWindow'
+require 'src.lua.client.Utils.TDLZ_Map'
+require 'src.lua.client.UI.Window.TDLZ_TodoListZWindow.TDLZ_TodoListZWindow'
 
 ---@class TDLZ_ISTodoListTZWindowHandler
----@field instance TDLZ_TodoListZWindow
 TDLZ_ISTodoListTZWindowHandler = {}
--- ************************************************************************--
--- ** TodoListZManagerUI - toggle handler
--- ************************************************************************--
 
----@private
----@return TDLZ_TodoListZWindow
-function TDLZ_ISTodoListTZWindowHandler._createWindow()
-    return TDLZ_TodoListZWindow:new()
-end
-
----@return TDLZ_TodoListZWindow|nil
-function TDLZ_ISTodoListTZWindowHandler.create()
-    if TDLZ_TodoListZWindow.UI_MAP:size() == 0 then
-        return TDLZ_ISTodoListTZWindowHandler._createWindow()
-    end
-    return nil
-end
-
----Close **all** todo list windows
+---Close **all** TodoList Windows
 function TDLZ_ISTodoListTZWindowHandler.close()
     for key, window in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
         window:close()
@@ -32,23 +14,16 @@ end
 ---@param ownedNotebooks TDLZ_Map
 function TDLZ_ISTodoListTZWindowHandler.closeExcept(ownedNotebooks)
     for key, window in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
-        if not ownedNotebooks:containsKey(window:getBookID()) then
+        if not ownedNotebooks:containsKey(window:getNotebookID()) then
             window:close()
         end
     end
 end
 
-TDLZ_ISTodoListTZWindowHandler.getNotebookID = function()
-    if TDLZ_ISTodoListTZWindowHandler.instance == nil then
-        return -1
-    end
-    return TDLZ_ISTodoListTZWindowHandler.instance.model.notebook.notebookID;
-end
-
 ---@param notebookID number
 TDLZ_ISTodoListTZWindowHandler.isOpen = function(notebookID)
     for key, value in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
-        if value:getBookID() == notebookID then
+        if value:getNotebookID() == notebookID then
             return true
         end
     end
@@ -59,24 +34,33 @@ end
 ---@return TDLZ_TodoListZWindow|nil
 function TDLZ_ISTodoListTZWindowHandler.getInstance(notebookID)
     for key, value in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
-        if value:getBookID() == notebookID then
+        if value:getNotebookID() == notebookID then
             return value
         end
     end
     return nil
 end
 
+---Get or create TodoList Window instance by notebookID
+---@param player number
 ---@param notebookID number
+---@param pageNumber number
 ---@return TDLZ_TodoListZWindow
-function TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(notebookID, pageNumber)
+function TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(player, notebookID, pageNumber)
+    assert(notebookID, "notebookID not set")
+    local instanceIDs = ""
     for key, window in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
-        if window:getBookID() == notebookID then
+        instanceIDs = " " .. window:getNotebookID()
+        if window:getNotebookID() == notebookID then
+            window:setVisible(true)
             return window
         end
     end
-    local newWindow = TDLZ_ISTodoListTZWindowHandler._createWindow()
-    newWindow:setNotebookID(notebookID, pageNumber)
+    print("ID: " .. notebookID .. " not found between: " .. instanceIDs)
+    local newWindow = TDLZ_TodoListZWindow:new(player, notebookID, pageNumber)
+
+
+    newWindow:initialise()
+    newWindow:addToUIManager()
     return newWindow
 end
-
-Events.OnCreateUI.Add(TDLZ_ISTodoListTZWindowHandler.create)

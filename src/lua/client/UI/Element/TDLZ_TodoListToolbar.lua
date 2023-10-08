@@ -1,115 +1,192 @@
-TDLZ_TodoListToolbar = {}
+require 'Utils/TDLZ_Vars'
+---@class TDLZ_TodoListToolbar:ISPanelJoypad
+---@field buttonNewItem ISButton
+---@field btnSelectAll ISButton
+---@field buttonBack ISButton
+---@field buttonSelectOpt ISComboBox
+---@field btnExecute ISButton
+---@field taskLabel ISLabel
+---@field viewModel {size:number,executeMode:number}
+---@field toUpdate boolean
+---@field btnExecuteCustomTC TDLZ_TargetAndCallback
+TDLZ_TodoListToolbar = ISPanelJoypad:derive("TDLZ_TodoListToolbar");
+function TDLZ_TodoListToolbar:new(x, y, width, height)
+    local o = {}
+    o = ISPanelJoypad:new(x, y, width, height)
+    setmetatable(o, self)
+    self.__index = self
 
-local TDLZ_BTN_DEFAULT_BORDER_COLOR = { r = 0.5, g = 0.5, b = 0.5, a = 1 }
+    o.borderColor = TDLZ_Colors.TRANSPARENT
+
+    o.anchorTop = false
+    o.anchorBottom = true
+    o.anchorLeft = true
+    o.anchorRight = true
+
+    o.toUpdate = false
+
+    o.viewModel = {
+        size = 0,
+        executeMode = 1
+    }
+
+    y = 0
+    o.buttonNewItem = ISButton:new(TDLZ_HALF_REM, y,
+        100, TDLZ_BTN_DEFAULT_H,
+        "+ Add...")
+
+    o.btnSelectAll = ISButton:new(
+        o.buttonNewItem.x + o.buttonNewItem.width + TDLZ_QUARTER_REM, y, 120,
+        TDLZ_BTN_DEFAULT_H, "Select all")
+
+    o.buttonBack = ISButton:new(TDLZ_HALF_REM, y,
+        TDLZ_BTN_DEFAULT_H, TDLZ_BTN_DEFAULT_H,
+        "")
+
+    o.buttonSelectOpt = ISComboBox:new(o.buttonBack.x + o.buttonBack.width + TDLZ_REM * 0.5, y, 100,
+        TDLZ_BTN_DEFAULT_H, o, TDLZ_TodoListToolbar.onSelectItem)
+    o.buttonSelectOpt:addOptionWithData("Review", { id = 1 })
+    o.buttonSelectOpt:addOptionWithData("Check", { id = 2 })
+    o.buttonSelectOpt:addOptionWithData("Uncheck", { id = 3 })
+
+    o.btnExecute = ISButton:new(o.buttonSelectOpt.x + o.buttonSelectOpt.width, y,
+        TDLZ_BTN_DEFAULT_H, TDLZ_BTN_DEFAULT_H, "", o, TDLZ_TodoListToolbar._onExecuteClick)
+    o.taskLabel = ISLabel:new(o.btnExecute.x + o.btnExecute.width + 0.5 * TDLZ_REM, y,
+        TDLZ_BTN_DEFAULT_H, 0 .. " Tasks", 1, 1, 1, 1,
+        UIFont.Small, true)
+    o.btnExecuteCustomTC = nil
+    return o
+end
+
+function TDLZ_TodoListToolbar:onSelectItem(combobox)
+    local comboboxItem = combobox:getOptionData(combobox.selected)
+    if comboboxItem == nil then return end
+
+    self.viewModel.executeMode = comboboxItem.id
+end
+
+function TDLZ_TodoListToolbar:initialise()
+    ISPanelJoypad.initialise(self)
+    self.buttonNewItem:initialise()
+    self.buttonNewItem:instantiate()
+    self.buttonNewItem.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+    self.buttonNewItem.anchorBottom = false
+    self.buttonNewItem.anchorLeft = true
+    self.buttonNewItem.anchorRight = false
+    self.buttonNewItem.anchorTop = true
+    self.buttonNewItem:setVisible(true)
+    self:addChild(self.buttonNewItem)
+
+    self.btnSelectAll:initialise()
+    self.btnSelectAll:instantiate()
+    self.btnSelectAll.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+    self.btnSelectAll.anchorBottom = true
+    self.btnSelectAll.anchorLeft = false
+    self.btnSelectAll.anchorRight = true
+    self.btnSelectAll.anchorTop = false
+    self.btnSelectAll:setVisible(true)
+    self:addChild(self.btnSelectAll)
+
+    self.buttonBack:initialise()
+    self.buttonBack:instantiate()
+    self.buttonBack:setImage(getTexture("media/ui/arrow-small-left.png"));
+    self.buttonBack.borderColor = { r = 0.5, g = 0.5, b = 0.5, a = 0 }
+    self.buttonBack.anchorBottom = true
+    self.buttonBack.anchorLeft = true
+    self.buttonBack.anchorRight = false
+    self.buttonBack.anchorTop = false
+    self.buttonBack:setVisible(false)
+    self:addChild(self.buttonBack)
+
+    self.buttonSelectOpt:initialise()
+    self.buttonSelectOpt:instantiate()
+    self.buttonSelectOpt.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+    self.buttonSelectOpt.anchorBottom = true
+    self.buttonSelectOpt.anchorLeft = true
+    self.buttonSelectOpt.anchorRight = false
+    self.buttonSelectOpt.anchorTop = false
+    --  self.buttonSelectOpt:setOnClick(TDLZ_TodoListZWindowController.onClickReviewOptButton, self)
+    self.buttonSelectOpt:setVisible(false)
+    self:addChild(self.buttonSelectOpt);
+
+    self.btnExecute:initialise()
+    self.btnExecute:instantiate()
+    self.btnExecute:setImage(getTexture("media/ui/execute.png"));
+    self.btnExecute.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
+    self.btnExecute.anchorBottom = true
+    self.btnExecute.anchorLeft = true
+    self.btnExecute.anchorRight = false
+    self.btnExecute.anchorTop = false
+    self.btnExecute:setVisible(false)
+    self:addChild(self.btnExecute)
+
+    self.taskLabel:initialise()
+    self.taskLabel:instantiate()
+    self.taskLabel.anchorBottom = true
+    self.taskLabel.anchorRight = false
+    self.taskLabel.anchorLeft = true
+    self.taskLabel.anchorTop = false
+    self.taskLabel:setVisible(false)
+    self:addChild(self.taskLabel)
+end
+
+function TDLZ_TodoListToolbar:onButtonNewClick(btnNewClickTarget, btnNewClickCallback)
+    self.buttonNewItem:setOnClick(btnNewClickCallback, btnNewClickTarget)
+end
+
+function TDLZ_TodoListToolbar:onButtonSelectAll(btnNewClickTarget, btnNewClickCallback)
+    self.btnSelectAll:setOnClick(btnNewClickCallback, btnNewClickTarget)
+end
+
+function TDLZ_TodoListToolbar:onButtonBackClick(btnBackTarget, btnBackClickCallback)
+    self.buttonBack:setOnClick(btnBackClickCallback, btnBackTarget)
+end
 
 ---@private
----@param windowUI TDLZ_TodoListZWindow
----@param y number
-function TDLZ_TodoListToolbar._createTodoListToolbar(windowUI, y)
-    local buttonCheckOtherWidth = TDLZ_BTN_DEFAULT_H
-    local buttonNewMarginLR = TDLZ_REM * 0.5
-    local marginBetween = TDLZ_REM * 0.25
-    if windowUI.listbox.highlighted:size() > 0 then
-        local buttonCheckWidth = 140
-        local buttonBack = ISButton:new(buttonNewMarginLR, y, TDLZ_BTN_DEFAULT_H,
-            TDLZ_BTN_DEFAULT_H,
-            "")
-        buttonBack:setImage(getTexture("media/ui/arrow-small-left.png"));
-        buttonBack.borderColor = { r = 0.5, g = 0.5, b = 0.5, a = 0 }
-        buttonBack.anchorBottom = true
-        buttonBack.anchorLeft = true
-        buttonBack.anchorRight = false
-        buttonBack.anchorTop = false
-        buttonBack.onclick = function()
-            windowUI.listbox.highlighted = TDLZ_NumSet:new();
-            windowUI:refreshUIElements()
-        end
-        windowUI:addFrameChild(buttonBack);
+function TDLZ_TodoListToolbar:_onExecuteClick()
+    if self.btnExecuteCustomTC == nil then return end
+    self.btnExecuteCustomTC.callback(self.btnExecuteCustomTC.target, self.viewModel.executeMode)
+end
 
-        windowUI.buttonSelectOpt = ISComboBox:new(buttonBack.x + buttonBack.width + TDLZ_REM * 0.5, y, 100,
-            TDLZ_BTN_DEFAULT_H, windowUI, TDLZ_TodoListZWindowController.onSelectItem)
-        --windowUI.buttonSelectOpt:setImage(getTexture("media/ui/trashIcon.png"));
-        windowUI.buttonSelectOpt.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        windowUI.buttonSelectOpt.anchorBottom = true
-        windowUI.buttonSelectOpt.anchorLeft = true
-        windowUI.buttonSelectOpt.anchorRight = false
-        windowUI.buttonSelectOpt.anchorTop = false
-        windowUI.buttonSelectOpt.selected = windowUI.executeMode
-        windowUI.buttonSelectOpt:addOptionWithData("Review", { id = 0 })
-        windowUI.buttonSelectOpt:addOptionWithData("Check", { id = 2 })
-        windowUI.buttonSelectOpt:addOptionWithData("Uncheck", { id = 1 })
-        --  windowUI.buttonSelectOpt:setOnClick(TDLZ_TodoListZWindowController.onClickReviewOptButton, windowUI)
-        windowUI:addFrameChild(windowUI.buttonSelectOpt);
+---@param target any
+---@param callback fun(target: any, executeMode:number)
+function TDLZ_TodoListToolbar:onButtonExecuteClick(target, callback)
+    self.btnExecuteCustomTC = TDLZ_TargetAndCallback:new(target, callback)
+end
 
-        local btnExecute = ISButton:new(windowUI.buttonSelectOpt.x + windowUI.buttonSelectOpt.width, y,
-            TDLZ_BTN_DEFAULT_H,
-            TDLZ_BTN_DEFAULT_H, "", windowUI, TDLZ_TodoListZWindowController.onExecuteClick)
-        btnExecute:setImage(getTexture("media/ui/execute.png"));
-        btnExecute.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        btnExecute.anchorBottom = true
-        btnExecute.anchorLeft = true
-        btnExecute.anchorRight = false
-        btnExecute.anchorTop = false
-        windowUI:addFrameChild(btnExecute);
+function TDLZ_TodoListToolbar:_setProperties(size)
 
-        local taskLabel = ISLabel:new(btnExecute.x + btnExecute.width + 0.5 * TDLZ_REM, y,
-            TDLZ_BTN_DEFAULT_H, windowUI.listbox.highlighted:size() .. " Tasks", 1, 1, 1, 1,
-            UIFont.Small, true);
-        taskLabel.anchorBottom = true
-        taskLabel.anchorRight = false
-        taskLabel.anchorLeft = true
-        taskLabel.anchorTop = false
-        taskLabel:initialise();
-        taskLabel:instantiate();
+end
 
-        windowUI:addFrameChild(taskLabel);
-    else
-        local buttonCheckWidth = 140
-        local buttonNewItem = ISButton:new(buttonNewMarginLR, y,
-            windowUI.width - marginBetween - buttonCheckWidth - buttonCheckOtherWidth - buttonNewMarginLR * 2,
-            TDLZ_BTN_DEFAULT_H,
-            "+ New...")
-        buttonNewItem.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        buttonNewItem.anchorBottom = true
-        buttonNewItem.anchorLeft = true
-        buttonNewItem.anchorRight = true
-        buttonNewItem.anchorTop = false
-        buttonNewItem.onclick = function()
-            TDLZ_TodoListZWindowController.onEditItem(windowUI,
-                TDLZ_BookLineModel.builder()
-                :lineNumber(-1) -- -1: new Item
-                :lineString("")
-                :notebook(windowUI.model.notebook):build())
-        end
-        windowUI:addFrameChild(buttonNewItem);
-
-        local btnSelectAll = ISButton:new(buttonNewItem.x + buttonNewItem.width + TDLZ_REM * 0.25, y, buttonCheckWidth,
-            TDLZ_BTN_DEFAULT_H, "Select all")
-        --buttonCheck:setImage(getTexture("media/ui/trashIcon.png"));
-        btnSelectAll.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        btnSelectAll.anchorBottom = true
-        btnSelectAll.anchorLeft = false
-        btnSelectAll.anchorRight = true
-        btnSelectAll.anchorTop = false
-        btnSelectAll.onclick = function()
-            for key, lineData in pairs(windowUI.listbox:getItems()) do
-                if lineData.isCheckbox then
-                    windowUI.listbox.highlighted:add(key)
-                end
-            end
-            windowUI:refreshUIElements()
-        end
-        windowUI:addFrameChild(btnSelectAll);
-
-        local buttonCheckOthers = ISButton:new(btnSelectAll.x + btnSelectAll.width, y, buttonCheckOtherWidth,
-            TDLZ_BTN_DEFAULT_H,
-            "")
-        buttonCheckOthers:setImage(getTexture("media/ui/menu-dots-vertical.png"));
-        buttonCheckOthers.borderColor = TDLZ_BTN_DEFAULT_BORDER_COLOR;
-        buttonCheckOthers.anchorBottom = true
-        buttonCheckOthers.anchorLeft = false
-        buttonCheckOthers.anchorRight = true
-        buttonCheckOthers.anchorTop = false
-        windowUI:addFrameChild(buttonCheckOthers)
+function TDLZ_TodoListToolbar:_update(size)
+    if self.viewModel.size == size then return false end
+    if self.viewModel.size > 0 and size > 0 or self.viewModel.size == 0 and size == 0 then
+        self.taskLabel:setName(self.viewModel.size .. " Tasks")
+        return false
     end
+    self.viewModel.size = size
+    if self.viewModel.size > 0 then
+        self.buttonNewItem:setJoypadFocused(false)
+        self.buttonNewItem:setVisible(false)
+
+        self.btnSelectAll:setJoypadFocused(false)
+        self.btnSelectAll:setVisible(false)
+
+        self.buttonBack:setVisible(true)
+        self.buttonSelectOpt:setVisible(true)
+        self.btnExecute:setVisible(true)
+        self.taskLabel:setVisible(true)
+    else
+        self.buttonNewItem:setVisible(true)
+        self.btnSelectAll:setVisible(true)
+
+        self.buttonBack:setJoypadFocused(false)
+        self.buttonBack:setVisible(false)
+        self.buttonSelectOpt:setJoypadFocused(false)
+        self.buttonSelectOpt:setVisible(false)
+        self.btnExecute:setJoypadFocused(false)
+        self.btnExecute:setVisible(false)
+        self.taskLabel:setVisible(false)
+    end
+    return true
 end

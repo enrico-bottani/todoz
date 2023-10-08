@@ -2,17 +2,19 @@ require "ISBaseObject"
 ---@class TDLZ_CheckEquipmentAction:ISBaseTimedAction
 ---@field winCtx TDLZ_TodoListZWindow
 ---@field row number
+---@field tdlz_actId number
+---@field _isValid boolean
+---@field action? any
 TDLZ_CheckEquipmentAction = ISBaseTimedAction:derive("TDLZ_CheckEquipmentAction");
 
 TDLZ_CheckEquipmentAction.IDMax = 1;
-
 
 function TDLZ_CheckEquipmentAction:isValidStart()
 	return true;
 end
 
 function TDLZ_CheckEquipmentAction:isValid()
-	return true
+	return self._isValid
 end
 
 -- This runs on every tick
@@ -49,6 +51,8 @@ end
 
 function TDLZ_CheckEquipmentAction:stop()
     ISBaseTimedAction.stop(self)
+	self.javaAction = nil;
+
 	if self.onStopActionFunc and self.onStopActionArgs then
         local args = self.onStopActionArgs
         self.onStopActionFunc(args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8])
@@ -67,7 +71,7 @@ function TDLZ_CheckEquipmentAction:perform()
 end
 
 function TDLZ_CheckEquipmentAction:create()
-	self.maxTime = self:adjustMaxTime(self.maxTime);
+	self.maxTime = self:adjustMaxTime(self.maxTime)
 	self.action = LuaTimedActionNew.new(self, self.character);
 end
 
@@ -83,7 +87,7 @@ function TDLZ_CheckEquipmentAction:setCurrentTime(time)
 end
 
 function TDLZ_CheckEquipmentAction:setTime(time)
-	self.maxTime = time;
+	self.maxTime = time
 end
 
 function TDLZ_CheckEquipmentAction:adjustMaxTime(maxTime)
@@ -95,7 +99,7 @@ function TDLZ_CheckEquipmentAction:adjustMaxTime(maxTime)
 		if not self.ignoreHandsWounds then
 			for i=BodyPartType.ToIndex(BodyPartType.Hand_L), BodyPartType.ToIndex(BodyPartType.ForeArm_R) do
 				local part = self.character:getBodyDamage():getBodyPart(BodyPartType.FromIndex(i));
-				maxTime = maxTime + part:getPain();
+				maxTime = maxTime + part:getPain()
 			end
 		end
 
@@ -137,6 +141,7 @@ function TDLZ_CheckEquipmentAction:setOnStopAction(func, arg1, arg2, arg3, arg4,
 	self.onStopActionFunc = func
 	self.onStopActionArgs = { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 }
 end
+---@param character userdata
 ---@return TDLZ_CheckEquipmentAction
 function TDLZ_CheckEquipmentAction:new(character,row, time, winCtx)
 	local o = ISBaseTimedAction.new(self, character);
@@ -144,6 +149,7 @@ function TDLZ_CheckEquipmentAction:new(character,row, time, winCtx)
 	o.stopOnWalk = false;
 	o.stopOnRun = true;
 	o.stopOnAim = true;
+	o._isValid = true
     o.caloriesModifier = 1;
 	o.maxTime = time
 	o.winCtx = winCtx

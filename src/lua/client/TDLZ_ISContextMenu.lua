@@ -2,7 +2,7 @@ require 'luautils'
 require 'src.lua.client.Utils.TDLZ_Map'
 require 'src.lua.client.Utils.TDLZ_StringUtils'
 require 'src.lua.client.Utils.TDLZ_NotebooksUtils'
-require 'UI/TDLZ_ISTodoListTZWindowHandler'
+require 'src.lua.client.UI.Window.TDLZ_ISTodoListTZWindowHandler'
 require 'ISUI/ISUIWriteJournal'
 
 TDLZ_ISContextMenu = {}
@@ -109,8 +109,7 @@ function TDLZ_ISContextMenu.handleShowTodoListContextMenu(player, context, items
         end
         if #items ~= 1 then return end
         local opt = context:addOption(openTodoListText, notebookID,
-            TDLZ_ISContextMenu.onOpenTodoZ,
-            player, context)
+            TDLZ_ISContextMenu.onOpenTodoZ, player, context)
         opt.iconTexture = getTexture('media/textures/TDLZ_ctx_icon.png')
     end
 end

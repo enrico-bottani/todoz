@@ -106,10 +106,10 @@ end
 function TDLZ_ISNewItemModal:onGainJoypadFocus(joypadData)
     ISPanelJoypad.onGainJoypadFocus(self, joypadData)
     self.borderColor = TDLZ_Colors.HIGHLIGHT
-    -- self:setISButtonForA(self.yes)
-    -- self:setISButtonForB(self.no)
-    -- self.yes:setJoypadButton(Joypad.Texture.AButton)
-    -- self.no:setJoypadButton(Joypad.Texture.BButton)
+    self:setISButtonForA(self.yes)
+    self:setISButtonForB(self.no)
+    self.yes:setJoypadButton(Joypad.Texture.AButton)
+    self.no:setJoypadButton(Joypad.Texture.BButton)
     self:setJoypadButtons(joypadData)
 end
 

@@ -29,7 +29,7 @@ TDLZ_TodoListZWindow.UI_MAP = TDLZ_Map:new()
 ---@return number
 function TDLZ_TodoListZWindow:getNotebookID() return self.model.notebook.notebookID end
 
----Set notebook id, reload model and refresh UI Elements
+---Set notebook id and reload model
 ---@param notebookID number
 function TDLZ_TodoListZWindow.setNotebookID(o, notebookID, pageNumber)
     assert(notebookID ~= -1 and notebookID ~= nil, "Notebook == -1 or Notebook == nil not jet supported")

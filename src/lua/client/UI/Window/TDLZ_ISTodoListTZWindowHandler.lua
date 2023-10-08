@@ -1,13 +1,10 @@
 require 'src.lua.client.Utils.TDLZ_Map'
-require 'UI/Window/TDLZ_TodoListZWindow'
+require 'src.lua.client.UI.Window.TDLZ_TodoListZWindow.TDLZ_TodoListZWindow'
 
 ---@class TDLZ_ISTodoListTZWindowHandler
 TDLZ_ISTodoListTZWindowHandler = {}
--- ************************************************************************--
--- ** TodoListZManagerUI - toggle handler
--- ************************************************************************--
 
----Close **all** todo list windows
+---Close **all** TodoList Windows
 function TDLZ_ISTodoListTZWindowHandler.close()
     for key, window in pairs(TDLZ_TodoListZWindow.UI_MAP:toList()) do
         window:close()
@@ -44,7 +41,10 @@ function TDLZ_ISTodoListTZWindowHandler.getInstance(notebookID)
     return nil
 end
 
+---Get or create TodoList Window instance by notebookID
+---@param player number
 ---@param notebookID number
+---@param pageNumber number
 ---@return TDLZ_TodoListZWindow
 function TDLZ_ISTodoListTZWindowHandler.getOrCreateInstance(player, notebookID, pageNumber)
     assert(notebookID, "notebookID not set")

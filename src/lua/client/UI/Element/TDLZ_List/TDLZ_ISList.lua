@@ -75,7 +75,7 @@ function TDLZ_ISList:new(x, y, width, height, previousState, onHighlight)
     self.__index = self
 
     o.width = width
-    
+
     o.itemheight = FONT_HGT_SMALL + MARGIN_TOP_BOTTOM * 2
     o:setAnchorLeft(true)
     o:setAnchorRight(true)
@@ -112,7 +112,7 @@ function TDLZ_ISList:new(x, y, width, height, previousState, onHighlight)
 end
 
 function TDLZ_ISList:initialise()
-    if self.javaObject==nil then
+    if self.javaObject == nil then
         print("Warning: initialising not instantiated component")
     end
     TDLZ_MultiSelectScrollList.initialise(self)
@@ -158,6 +158,7 @@ function TDLZ_ISList:addItem(label, item)
     table.insert(self.items, listItemViewModel)
     self.count = self.count + 1
     self:setScrollHeight(self:getScrollHeight() + listItemViewModel.height)
+    return item
 end
 
 ---@param winCtx TDLZ_TodoListZWindow
@@ -363,6 +364,9 @@ function TDLZ_ISList:doDrawItem(y, item, alt, k)
             TDLZ_Colors.GRAY_700, UIFont.Small)
     end
 
+    if self.selected == item.index then
+        TDLZ_Draw.drawRectBorder(self, 1, y + 1, self:getWidth() - 2, self.itemheight - 2, TDLZ_Colors.RED)
+    end
 
     return y + self.itemheight;
 end

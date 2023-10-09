@@ -162,7 +162,7 @@ function TDLZ_TodoListZWindow:onGainJoypadFocus(joypadData)
     self:setJoypadButtons(joypadData)
 end
 
-function TDLZ_TodoListZWindow:onJoypadDown(button)
+function TDLZ_TodoListZWindow:onJoypadDown(button, joypadData)
     ISCollapsableWindowJoypad.onJoypadDown(self, button)
     ISContextMenu.globalPlayerContext = self.player;
     local playerObj = getSpecificPlayer(self.player)
@@ -187,6 +187,10 @@ function TDLZ_TodoListZWindow:onJoypadDown(button)
 
         if self.onCloseTargetAndCallback and self.onCloseTargetAndCallback ~= nil then
             self.onCloseTargetAndCallback.callback(self.onCloseTargetAndCallback.target)
+        end
+    elseif button == Joypad.AButton then
+        if (self.listbox.listFocus) then
+            self.listbox:setJoypadFocusedChildren(joypadData)
         end
     end
 end

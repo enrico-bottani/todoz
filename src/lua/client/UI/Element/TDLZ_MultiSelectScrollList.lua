@@ -165,11 +165,11 @@ end
 
 function TDLZ_MultiSelectScrollList:onMouseMove(dx, dy)
 	if self:isMouseOverScrollBar() then return end
-	self.mouseoverselected = self:rowAt(self:getMouseX(), self:getMouseY())
+	self.mouseOverRow = self:rowAt(self:getMouseX(), self:getMouseY())
 end
 
 function TDLZ_MultiSelectScrollList:onMouseMoveOutside(x, y)
-	self.mouseoverselected = -1;
+	self.mouseOverRow = -1;
 end
 
 function TDLZ_MultiSelectScrollList:onMouseUpOutside(x, y)

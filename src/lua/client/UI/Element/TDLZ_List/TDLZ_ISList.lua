@@ -245,17 +245,9 @@ function TDLZ_ISList:onMouseUp(x, mouseY)
 end
 
 ---@private
-function TDLZ_ISList._drawCheckboxBackground(uiSelf, y, item, alt)
-    if alt then
-        uiSelf:drawRect(0, y, uiSelf:getWidth(), uiSelf.itemheight, 0.08, uiSelf.borderColor.r, uiSelf.borderColor.g,
-            uiSelf.borderColor.b)
-    else
-        uiSelf:drawRect(0, y, uiSelf:getWidth(), uiSelf.itemheight, 0.0, uiSelf.borderColor.r, uiSelf.borderColor.g,
-            uiSelf.borderColor.b);
-    end
-end
-
----@private
+---@param y number
+---@param item TDLZ_ListItemViewModel
+---@param k any
 function TDLZ_ISList:_handleNotMoveMode(y, item, k)
     local mouseX = self:getMouseX()
     local checkBoxY = y + (self.itemheight / 2 - BOX_SIZE / 2)
@@ -270,9 +262,8 @@ function TDLZ_ISList:_handleNotMoveMode(y, item, k)
     if self.highlighted:contains(k) and item.lineData.isCheckbox then
         --- Item is highlighted
         TDLZ_Draw.drawRect(self, 3, y - 1, self.width - 5, self.itemheight + 2, TDLZ_Colors.GRAY_130)
-        TDLZ_Draw.drawRect(self, 0, y - 1, self.width * item.lineData.jobDelta, self.itemheight + 2,
-            TDLZ_Colors.YELLOW_A1)
-        TDLZ_Draw.drawRectBorder(self, 1, y - 1, 2, self.itemheight + 2, TDLZ_Colors.YELLOW);
+        TDLZ_ISListDrawing.drawJobDelta(self, y, item.lineData.jobDelta)
+        TDLZ_ISListDrawing.drawLineLeftHighlight(self, y)
     end
 
     if isMouseOver then
@@ -301,73 +292,60 @@ function TDLZ_ISList:_handleNotMoveMode(y, item, k)
     end
 end
 
-function TDLZ_ISList:doDrawItem(y, item, alt, k)
-    local isMoveSelected = false
-    if k == self.moveSelectedIndex then
-        isMoveSelected = true
+---@param o TDLZ_ISList
+---@param item TDLZ_ListItemViewModel
+---@return boolean true if over item checkbox
+local isJoypadFocusedOnTickbox = function(o, item)
+    return joypadData.focus == o and o.selected == item.index
+end
+
+---@param y number
+---@param item TDLZ_ListItemViewModel
+---@param alt any
+---@param itemIndex number
+function TDLZ_ISList:doDrawItem(y, item, alt, itemIndex)
+    local isCurrentItemSelectedToBeMoved = false
+    if itemIndex == self.moveSelectedIndex then
+        isCurrentItemSelectedToBeMoved = true
     end
 
     if y + self:getYScroll() + self.itemheight < 0 or y + self:getYScroll() >= self.height then
         return y + self.itemheight
     end
 
-    TDLZ_ISList._drawCheckboxBackground(self, y, item, alt)
+    TDLZ_ISList.drawLineBackground(self, y, alt)
 
     local mouseY = self:getMouseY()
 
     local isMouseOver = self.mouseoverselected == item.index and not self:isMouseOverScrollBar()
     local isMovingAndMouseHoverItem = self:moveMode() and isMouseOver
     local checkBoxY = y + (self.itemheight / 2 - BOX_SIZE / 2)
-    -- Move mode
-
-    if isMoveSelected then
-        TDLZ_Draw.drawRect(self,
-            0,
-            y, self:getWidth(),
-            self.itemheight, TDLZ_Colors.GRAY_130)
-    end
 
     if isMovingAndMouseHoverItem and mouseY < y + self.itemheight / 2
-        and not (k - 1 == self.moveSelectedIndex or k == self.moveSelectedIndex) then
+        and not (itemIndex - 1 == self.moveSelectedIndex or itemIndex == self.moveSelectedIndex) then
         TDLZ_Draw.drawRect(self, 0, y - 1, self:getWidth(), 3, TDLZ_Colors.YELLOW)
     elseif isMovingAndMouseHoverItem and mouseY > y + self.itemheight / 2
-        and not (k + 1 == self.moveSelectedIndex or k == self.moveSelectedIndex) then
+        and not (itemIndex + 1 == self.moveSelectedIndex or itemIndex == self.moveSelectedIndex) then
         TDLZ_Draw.drawRect(self, 0, y + self.itemheight - 1, self:getWidth(), 3, TDLZ_Colors.YELLOW)
         -- Not move mode - mouse hover and highlight handling
     elseif not self:moveMode() then
-        self:_handleNotMoveMode(y, item, k)
+        self:_handleNotMoveMode(y, item, itemIndex)
     end
 
     -- In any case, move or not move mode
     if item.lineData.isCheckbox then
         if item.lineData.isChecked then
-            --- Draw tick texture
-            TDLZ_Draw.drawTexture(self, self.tickTexture, self.marginLeft + 3,
-                checkBoxY + 2, TDLZ_Colors.WHITE)
+            TDLZ_ISListDrawing.drawTickboxTick(self, checkBoxY)
         end
-        TDLZ_Draw.drawRectBorder(self, self.marginLeft, checkBoxY, BOX_SIZE, BOX_SIZE, TDLZ_Colors.GRAY_300)
+        TDLZ_ISListDrawing.drawTickboxBorders(self, checkBoxY, isJoypadFocusedOnTickbox(self, item))
     end
-
-    local dy = (self.itemheight - FONT_HGT_SMALL) / 2
-
-    local x = self.marginLeft + BOX_SIZE + MARGIN_BETWEEN
-    if not self:moveMode() or self:moveMode() and not isMoveSelected then
-        TDLZ_Draw.drawText(self, item.text,
-            self.marginLeft + BOX_SIZE + MARGIN_BETWEEN, y + dy,
-            TDLZ_Colors.GRAY_800, UIFont.Small)
+    
+    if isCurrentItemSelectedToBeMoved or not self:moveMode() then
+        TDLZ_ISListDrawing.drawText(self, y, item.text)
     else
-        TDLZ_Draw.drawTexture(self, getTexture("media/ui/move.png"),
-            self:getWidth() - self.marginLeft - BOX_SIZE,
-            y + self.itemheight / 2 - 9, TDLZ_Colors.YELLOW)
-        TDLZ_Draw.drawText(self, item.text,
-            x, y + dy,
-            TDLZ_Colors.GRAY_700, UIFont.Small)
+        TDLZ_ISListDrawing.drawMoveTexture(self, y, TDLZ_Colors.YELLOW)
+        TDLZ_ISListDrawing.drawText(self, y, item.text)
     end
-
-    if self.selected == item.index then
-        TDLZ_Draw.drawRectBorder(self, 1, y + 1, self:getWidth() - 2, self.itemheight - 2, TDLZ_Colors.RED)
-    end
-
     return y + self.itemheight;
 end
 

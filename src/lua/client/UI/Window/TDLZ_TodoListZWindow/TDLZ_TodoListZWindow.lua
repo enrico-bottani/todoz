@@ -189,7 +189,7 @@ function TDLZ_TodoListZWindow:onJoypadDown(button, joypadData)
             self.onCloseTargetAndCallback.callback(self.onCloseTargetAndCallback.target)
         end
     elseif button == Joypad.AButton then
-        if (self.listbox.listFocus) then
+        if (self.listbox.paneFocus) then
             self.listbox:setJoypadFocusedChildren(joypadData)
         end
     end

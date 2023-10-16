@@ -19,7 +19,12 @@ end
 function TDLZ_Draw.drawTexture(canvas, texture, x, y, color)
     canvas:drawTexture(texture, x, y, color.a, color.r, color.g, color.b)
 end
-
+---@param canvas ISUIElement
+---@param x number
+---@param y number
+---@param width number
+---@param height number
+---@param color TDLZ_Color
 function TDLZ_Draw.drawRectBorder(canvas, x, y, width, height, color)
     canvas:drawRectBorder(x, y, width, height, color.a, color.r, color.g, color.b)
 end

@@ -9,7 +9,7 @@ require "src.lua.client.Utils.TDLZ_NumSet"
 ---@class TDLZ_MultiSelectScrollList:ISPanelJoypad
 ---@field onHighlightCD TDLZ_TargetAndCallback
 ---@field joypadParent ISUIElement
----@field listFocus boolean
+---@field paneFocus boolean
 TDLZ_MultiSelectScrollList = ISPanelJoypad:derive("TDLZ_MultiSelectScrollList");
 TDLZ_MultiSelectScrollList.joypadListIndex = 1;
 
@@ -37,7 +37,7 @@ end
 function TDLZ_MultiSelectScrollList:setJoypadFocused(focused, joypadData)
 	--ISPanelJoypad:setJoypadFocus(focused,joypadData)
 	print("Focused TDLZ_MultiSelectScrollList: " .. tostring(focused))
-	self.listFocus = focused
+	self.paneFocus = focused
 	if focused then
 		self.backgroundColor = TDLZ_Colors.GRAY_100
 		--joypadData.focus = self;
@@ -69,7 +69,7 @@ end
 function TDLZ_MultiSelectScrollList:setJoypadFocusedChildren(joypadData)
 	--ISPanelJoypad:setJoypadFocus(focused,joypadData)
 
-	self.listFocus = false
+	self.paneFocus = false
 	joypadData.focus = self
 	updateJoypadFocus(joypadData)
 end

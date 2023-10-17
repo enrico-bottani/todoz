@@ -270,47 +270,17 @@ function TDLZ_ISList:handleMouseOverButtons(item, y)
     end
 end
 
----@private
----@param y number
----@param item TDLZ_ListItemViewModel
----@param itemIndex number
-function TDLZ_ISList:handeMultiSelectMode(y, item, itemIndex)
-    local isMouseOver = self.mouseOverRow == item.index and not self:isMouseOverScrollBar()
-
-    -- Mouse hover effect
-    if not self.highlighted:contains(itemIndex) and isMouseOver then
-        TDLZ_Draw.drawRect(self, 0, y, self:getWidth(), self.itemheight, TDLZ_Colors.GRAY_130)
-    end
-
-    -- Highlight effect
-    if self.highlighted:contains(itemIndex) and item.lineData.isCheckbox then
-        --- Item is highlighted
-        TDLZ_Draw.drawRect(self, 3, y - 1, self.width - 5, self.itemheight + 2, TDLZ_Colors.GRAY_130)
-        TDLZ_ISListDrawing.drawJobDelta(self, y, item.lineData.jobDelta)
-        TDLZ_ISListDrawing.drawLineLeftHighlight(self, y)
-    end
-
-    if isMouseOver then
-        self:handleMouseOverButtons(item, y)
-    end
-end
 
 ---@param o TDLZ_ISList
 ---@param item TDLZ_ListItemViewModel
 ---@return boolean true if over item checkbox
 local isJoypadFocusedOnTickbox = function(o, item)
+    if joypadData==nil then return false end
     return joypadData.focus == o and o.selected == item.index
 end
 
----@private
----@param mouseY any
----@param itemIndex any
-function TDLZ_ISList:handleMoveMode(y, mouseY, itemIndex)
-    if mouseY < y + self.itemheight / 2 and not (itemIndex - 1 == self.itemToMoveIndex) then
-        TDLZ_Draw.drawRect(self, 0, y - 1, self:getWidth(), 3, TDLZ_Colors.YELLOW)
-    elseif mouseY > y + self.itemheight / 2 and not (itemIndex + 1 == self.itemToMoveIndex) then
-        TDLZ_Draw.drawRect(self, 0, y + self.itemheight - 1, self:getWidth(), 3, TDLZ_Colors.YELLOW)
-    end
+function TDLZ_ISList:isItemAtIndexSelectedToBeMoved(itemIndex)
+    return itemIndex == self.itemToMoveIndex
 end
 
 ---@param y number
@@ -329,9 +299,30 @@ function TDLZ_ISList:doDrawItem(y, item, alt, itemIndex)
     local checkBoxY = y + (self.itemheight / 2 - BOX_SIZE / 2)
 
     if self:moveMode() and isItemOvered and itemIndex ~= self.itemToMoveIndex then
-        self:handleMoveMode(y, mouseY, itemIndex)
+        if mouseY < y + self.itemheight / 2 and not (itemIndex - 1 == self.itemToMoveIndex) then
+            TDLZ_Draw.drawRect(self, 0, y - 1, self:getWidth(), 3, TDLZ_Colors.YELLOW)
+        elseif mouseY > y + self.itemheight / 2 and not (itemIndex + 1 == self.itemToMoveIndex) then
+            TDLZ_Draw.drawRect(self, 0, y + self.itemheight - 1, self:getWidth(), 3, TDLZ_Colors.YELLOW)
+        end
+        if self:isItemAtIndexSelectedToBeMoved(itemIndex) then
+            TDLZ_ISListDrawing.drawMoveTexture(self, y, TDLZ_Colors.YELLOW)
+        end
     elseif not self:moveMode() then
-        self:handeMultiSelectMode(y, item, itemIndex)
+        if isItemOvered then
+            if not self.highlighted:contains(itemIndex) then
+                -- Mouse hover effect
+                TDLZ_Draw.drawRect(self, 0, y, self:getWidth(), self.itemheight, TDLZ_Colors.GRAY_130)
+            end
+            self:handleMouseOverButtons(item, y)
+        end
+    
+        -- Highlight effect
+        if self.highlighted:contains(itemIndex) and item.lineData.isCheckbox then
+            --- Item is highlighted
+            TDLZ_Draw.drawRect(self, 3, y - 1, self.width - 5, self.itemheight + 2, TDLZ_Colors.GRAY_130)
+            TDLZ_ISListDrawing.drawJobDelta(self, y, item.lineData.jobDelta)
+            TDLZ_ISListDrawing.drawLineLeftHighlight(self, y)
+        end
     end
 
     -- In any case, move or not move mode
@@ -342,14 +333,6 @@ function TDLZ_ISList:doDrawItem(y, item, alt, itemIndex)
         TDLZ_ISListDrawing.drawTickboxBorders(self, checkBoxY, isJoypadFocusedOnTickbox(self, item))
     end
 
-    local isCurrentItemSelectedToBeMoved = false
-    if itemIndex == self.itemToMoveIndex then
-        isCurrentItemSelectedToBeMoved = true
-    end
-
-    if isCurrentItemSelectedToBeMoved and self:moveMode() then
-        TDLZ_ISListDrawing.drawMoveTexture(self, y, TDLZ_Colors.YELLOW)
-    end
     TDLZ_ISListDrawing.drawText(self, y, item.text)
     return y + self.itemheight;
 end

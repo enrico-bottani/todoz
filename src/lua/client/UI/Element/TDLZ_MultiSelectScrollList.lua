@@ -563,14 +563,7 @@ function TDLZ_MultiSelectScrollList:render()
 end
 
 function TDLZ_MultiSelectScrollList:onJoypadDown(button, joypadData)
-	if button == Joypad.AButton then
-		print("You pressed A Button ")
-		if (#self.items > 0) and (self.selected ~= -1) then
-			local previousSelected = self.selected;
-			--self.onmousedblclick(self.target, self.items[self.selected].item);
-			self.selected = 1;
-		end
-	elseif button == Joypad.BButton and self.joypadParent then
+	if button == Joypad.BButton and self.joypadParent then
 		self.joypadFocused = false;
 		joypadData.focus = self.joypadParent;
 		updateJoypadFocus(joypadData);

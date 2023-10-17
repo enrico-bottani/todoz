@@ -244,45 +244,6 @@ function TDLZ_ISList:onMouseUp(x, mouseY)
     end
 end
 
-function TDLZ_ISList:handleMouseOverButtons(item, y)
-    local mouseX = self:getMouseX()
-    --- Mouse hover checkbox effect
-    if item.lineData.isCheckbox
-        and self.marginLeft < mouseX and mouseX < self.marginLeft + BOX_SIZE then
-        TDLZ_Draw.drawRect(self, self.marginLeft, y+ (self.itemheight / 2 - BOX_SIZE / 2), BOX_SIZE, BOX_SIZE, TDLZ_Colors.GRAY_300)
-    end
-
-    --- Delete, edit and move buttons
-    local btnX = self:getWidth() - self.marginLeft
-    for key, btn in pairs(self.buttons) do
-        btn.bounds.width = BOX_SIZE
-        btnX = btnX - btn.bounds.width
-        btn.bounds.x = btnX
-        btn.bounds.y = y + self.itemheight / 2 - 9
-        btn.bounds.height = 18
-        if btn.bounds.x < self:getMouseX() and self:getMouseX() < btn.bounds.x + btn.bounds.width then
-            TDLZ_Draw.drawTexture(self, btn.texture,
-                btn.bounds.x, btn.bounds.y, TDLZ_Colors.WHITE)
-        else
-            TDLZ_Draw.drawTexture(self, btn.texture,
-                btn.bounds.x, btn.bounds.y, TDLZ_Colors.GRAY_700)
-        end
-    end
-end
-
-
----@param o TDLZ_ISList
----@param item TDLZ_ListItemViewModel
----@return boolean true if over item checkbox
-local isJoypadFocusedOnTickbox = function(o, item)
-    if joypadData==nil then return false end
-    return joypadData.focus == o and o.selected == item.index
-end
-
-function TDLZ_ISList:isItemAtIndexSelectedToBeMoved(itemIndex)
-    return itemIndex == self.itemToMoveIndex
-end
-
 ---@param y number
 ---@param item TDLZ_ListItemViewModel
 ---@param alt any
@@ -298,14 +259,15 @@ function TDLZ_ISList:doDrawItem(y, item, alt, itemIndex)
     local isItemOvered = self.mouseOverRow == item.index and not self:isMouseOverScrollBar()
     local checkBoxY = y + (self.itemheight / 2 - BOX_SIZE / 2)
 
-    if self:moveMode() and isItemOvered and itemIndex ~= self.itemToMoveIndex then
+    if self:moveMode() and isItemOvered then
+        if self:isItemAtIndexSelectedToBeMoved(itemIndex) then
+            TDLZ_ISListDrawing.drawMoveTexture(self, y, TDLZ_Colors.YELLOW)
+        else
         if mouseY < y + self.itemheight / 2 and not (itemIndex - 1 == self.itemToMoveIndex) then
             TDLZ_Draw.drawRect(self, 0, y - 1, self:getWidth(), 3, TDLZ_Colors.YELLOW)
         elseif mouseY > y + self.itemheight / 2 and not (itemIndex + 1 == self.itemToMoveIndex) then
             TDLZ_Draw.drawRect(self, 0, y + self.itemheight - 1, self:getWidth(), 3, TDLZ_Colors.YELLOW)
         end
-        if self:isItemAtIndexSelectedToBeMoved(itemIndex) then
-            TDLZ_ISListDrawing.drawMoveTexture(self, y, TDLZ_Colors.YELLOW)
         end
     elseif not self:moveMode() then
         if isItemOvered then
@@ -330,11 +292,36 @@ function TDLZ_ISList:doDrawItem(y, item, alt, itemIndex)
         if item.lineData.isChecked then
             TDLZ_ISListDrawing.drawTickboxTick(self, checkBoxY)
         end
-        TDLZ_ISListDrawing.drawTickboxBorders(self, checkBoxY, isJoypadFocusedOnTickbox(self, item))
+        TDLZ_ISListDrawing.drawTickboxBorders(self, checkBoxY, TDLZ_ISList.isJoypadFocusedOnTickbox(self, item))
     end
 
     TDLZ_ISListDrawing.drawText(self, y, item.text)
     return y + self.itemheight;
+end
+
+function TDLZ_ISList:handleMouseOverButtons(item, y)
+    local mouseX = self:getMouseX()
+    --- Mouse hover checkbox effect
+    if item.lineData.isCheckbox
+        and self.marginLeft < mouseX and mouseX < self.marginLeft + BOX_SIZE then
+        TDLZ_Draw.drawRect(self, self.marginLeft, y+ (self.itemheight / 2 - BOX_SIZE / 2), BOX_SIZE, BOX_SIZE, TDLZ_Colors.GRAY_300)
+    end
+
+    --- Delete, edit and move buttons
+    local btnX = self:getWidth() - self.marginLeft
+    for key, btn in pairs(self.buttons) do
+        btn.bounds.width = BOX_SIZE
+        btnX = btnX - btn.bounds.width
+        btn.bounds.x = btnX
+        btn.bounds.y = y + self.itemheight / 2 - 9
+        btn.bounds.height = 18
+        if btn.bounds.x < self:getMouseX() and self:getMouseX() < btn.bounds.x + btn.bounds.width then
+            TDLZ_Draw.drawTexture(self, btn.texture,
+                btn.bounds.x, btn.bounds.y, TDLZ_Colors.WHITE)
+        else
+            TDLZ_Draw.drawTexture(self, btn.texture,btn.bounds.x, btn.bounds.y, TDLZ_Colors.GRAY_700)
+        end
+    end
 end
 
 ---Get item from list
@@ -352,4 +339,27 @@ function TDLZ_ISList:getItems()
         table.insert(rtnTable, value.lineData)
     end
     return rtnTable
+end
+
+---@param o TDLZ_ISList
+---@param item TDLZ_ListItemViewModel
+---@return boolean true if over item checkbox
+TDLZ_ISList.isJoypadFocusedOnTickbox = function(o, item)
+    if joypadData==nil then return false end
+    return joypadData.focus == o and o.selected == item.index
+end
+function TDLZ_ISList:isItemAtIndexSelectedToBeMoved(itemIndex)
+    return itemIndex == self.itemToMoveIndex
+end
+
+function TDLZ_ISList:onJoypadDown(button, joypadData)
+	if button == Joypad.AButton then
+        if (#self.items > 0) and (self.selected ~= -1) then
+            -- local previousSelected = self.selected;
+            --self.onmousedblclick(self.target, self.items[self.selected].item);
+            self.highlighted:add(self.selected)
+        end
+    else
+        TDLZ_MultiSelectScrollList.onJoypadDown(self, button, joypadData);
+    end
 end

@@ -5,6 +5,8 @@ require 'src.lua.client.Utils.TDLZ_Map'
 require 'src.lua.client.Utils.TDLZ_Vars'
 require 'src.lua.client.Utils.TDLZ_StringUtils'
 require 'src.lua.client.Utils.TDLZ_CheckboxUtils'
+require 'src.lua.client.UI.Window.TDLZ_TodoDebugWindow'
+
 
 ---@class TDLZ_TodoListZWindow:ISCollapsableWindowJoypad
 ---@field model TDLZ_TodoListZWindowViewModel
@@ -16,8 +18,11 @@ require 'src.lua.client.Utils.TDLZ_CheckboxUtils'
 ---@field onClose function
 ---@field actions table<number,TDLZ_CheckEquipmentAction>
 ---@field player any
+---@field DEBUG_WIN TDLZ_TodoDebugWindow
 TDLZ_TodoListZWindow = ISCollapsableWindowJoypad:derive("TDLZ_TodoListZWindow")
 TDLZ_TodoListZWindow.UI_MAP = TDLZ_Map:new()
+
+TDLZ_TodoListZWindow.DEBUG_WIN = TDLZ_TodoDebugWindow:new(0,0,600,200)
 
 -- SETTERS AND GETTERS
 -- ================================
@@ -72,15 +77,6 @@ function TDLZ_TodoListZWindow:new(player, notebookID, pageNumber)
 
     o.debug_firstRun = true
 
-    --[[
-    if o.pin then
-        ---@diagnostic disable-next-line: undefined-field
-        ISCollapsableWindowJoypad.pin(o)
-    else
-        ---@diagnostic disable-next-line: undefined-field
-        ISCollapsableWindowJoypad.collapse(o)
-    end
-    --]]
     o:instantiate()
     TDLZ_TodoListZWindow.setNotebookID(o, notebookID, pageNumber)
     return o;
@@ -285,6 +281,10 @@ function TDLZ_TodoListZWindow:initialise()
 
     self.closingWindow = false
     TDLZ_TodoListZWindow.UI_MAP:add(self.model.notebook.notebookID, self)
+    
+    TDLZ_TodoListZWindow.DEBUG_WIN:addToUIManager();
+    TDLZ_TodoDebugWindow.initialise(TDLZ_TodoListZWindow.DEBUG_WIN);
+
     self:refreshUIElements()
 end
 
@@ -442,6 +442,7 @@ end
 
 ---On Window resize
 function TDLZ_TodoListZWindow:onResize()
+    TDLZ_TodoDebugWindow.newLine(TDLZ_TodoListZWindow.DEBUG_WIN,"onResize")
     ISCollapsableWindowJoypad.onResize(self)
     self:updatePosition()
 end

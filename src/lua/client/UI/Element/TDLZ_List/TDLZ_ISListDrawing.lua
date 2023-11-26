@@ -53,13 +53,3 @@ function TDLZ_ISListDrawing.drawJobDelta(o, y, jobDelta)
     TDLZ_Draw.drawRect(o, 0, y - 1, o.width * jobDelta, o.itemheight + 2,
         TDLZ_Colors.YELLOW_A1)
 end
-
-function TDLZ_ISList.drawLineBackground(o, y, alt)
-    if alt then
-        TDLZ_Draw.drawRect(o, 0, y, o:getWidth(), o.itemheight, TDLZ_Color:new(o.borderColor.r, o.borderColor.g,
-            o.borderColor.b, 0.18))
-    else
-        TDLZ_Draw.drawRect(o, 0, y, o:getWidth(), o.itemheight, TDLZ_Color:new(o.borderColor.r, o.borderColor.g,
-            o.borderColor.b, 0))
-    end
-end

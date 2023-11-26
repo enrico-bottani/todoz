@@ -52,12 +52,14 @@ end
 ---On move item inside the list
 ---@param ctx any
 ---@param lineData TDLZ_BookLineModel
-function TDLZ_ISList.handleOnMove(ctx, lineData)
+function TDLZ_ISList.toggleMoveMode(ctx, lineData)
     if ctx.itemToMoveIndex == -1 then
+        TDLZ_TodoListZWindow.DEBUG_WIN:newLine("TDLZ_ISList.handleOnMove | from: [not move] to: [move]")
         ctx.itemToMoveIndex = lineData.lineNumber
         ctx.highlighted = TDLZ_NumSet:new()
         return
     end
+    TDLZ_TodoListZWindow.DEBUG_WIN:newLine("TDLZ_ISList.handleOnMove | from: [move] to: [not move]")
     ctx.itemToMoveIndex = -1
 end
 
@@ -116,7 +118,7 @@ function TDLZ_ISList:initialise()
         print("Warning: initialising not instantiated component")
     end
     TDLZ_MultiSelectScrollList.initialise(self)
-    self.buttons[1]:setOnMouseUpCallback(self, TDLZ_ISList.handleOnMove)
+    self.buttons[1]:setOnMouseUpCallback(self, TDLZ_ISList.toggleMoveMode)
 end
 
 ---@param notebookID number
@@ -166,6 +168,7 @@ end
 ---@param from any
 ---@param to any
 function TDLZ_ISList:moveAtRow(winCtx, t, from, to)
+    TDLZ_TodoListZWindow.DEBUG_WIN:newLine("TDLZ_ISList:moveAtRow(winCtx, t, from: "..from..", to:"..to..")")
     local value = t[from]
     table.insert(t, to, value)
     if from > to then
@@ -184,15 +187,19 @@ end
 
 function TDLZ_ISList:onMouseUp(x, mouseY)
     TDLZ_MultiSelectScrollList:onMouseUp(x, mouseY)
+    --TDLZ_TodoListZWindow.DEBUG_WIN:newLine("TDLZ_ISList:onMouseUp("..x.."," ..mouseY..")")
     if #self.items == 0 then return end
     local clickedRow = self:rowAt(x, mouseY)
     if clickedRow == nil then return end
     if clickedRow > #self.items or clickedRow < 1 then
+        TDLZ_TodoListZWindow.DEBUG_WIN:newLine("TDLZ_ISList.clickedRow: [outofbound]")
         return
     end
+    TDLZ_TodoListZWindow.DEBUG_WIN:newLine("TDLZ_ISList.clickedRow: " .. clickedRow)
     -- Dispatch mouse up event
     for key, btn in pairs(self.buttons) do
         if btn:contains(x, mouseY) then
+            TDLZ_TodoListZWindow.DEBUG_WIN:newLine("TDLZ_ISList.clickedRow: button ["..key.."] -> TDLZ_ISList:onMouseUp [return]")
             btn:triggerMouseUp(self.items[clickedRow].lineData)
             return
         end
@@ -204,17 +211,23 @@ function TDLZ_ISList:onMouseUp(x, mouseY)
     local y = self:yAtRow(x, mouseY)
     if isMovingAndMouseHoverItem and mouseY < y + self.itemheight / 2
         and not (clickedRow - 1 == self.itemToMoveIndex or clickedRow == self.itemToMoveIndex) then
+        -- ^ the first half
+        TDLZ_TodoListZWindow.DEBUG_WIN:newLine("Movemode, itemToMoveIndex: ".. self.itemToMoveIndex)
         self:moveAtRow(self.target, self:getItems(), self.itemToMoveIndex, clickedRow)
     elseif isMovingAndMouseHoverItem and mouseY > y + self.itemheight / 2
         and not (clickedRow + 1 == self.itemToMoveIndex or clickedRow == self.itemToMoveIndex) then
+        -- v the first half
+        TDLZ_TodoListZWindow.DEBUG_WIN:newLine("Movemode, itemToMoveIndex: ".. self.itemToMoveIndex)
         self:moveAtRow(self.target, self:getItems(), self.itemToMoveIndex, clickedRow + 1)
     end
 
     if not self:moveMode() and self.marginLeft < x and x < self.marginLeft + BOX_SIZE and self.items[clickedRow].lineData.isCheckbox then
+        TDLZ_TodoListZWindow.DEBUG_WIN:newLine("CheckboxClicked")
         getSoundManager():playUISound("UISelectListItem")
         if self.onCheckboxClick then
             self.onCheckboxClick(self.target, self.items[clickedRow].lineData);
         end
+        return
     end
 
     if not self:moveMode() and isCtrlKeyDown() then
@@ -252,9 +265,16 @@ function TDLZ_ISList:doDrawItem(y, item, alt, itemIndex)
     if y + self:getYScroll() + self.itemheight < 0 or y + self:getYScroll() >= self.height then
         return y + self.itemheight
     end
-
+    if not self or not self.getMouseY then
+        TDLZ_TodoListZWindow.DEBUG_WIN:newLine("self.getMouseY undefined")
+        return 0
+    end
+    if not self or not self.drawLineBackground then
+        TDLZ_TodoListZWindow.DEBUG_WIN:newLine("self.drawLineBackground undefined")
+        return 0
+    end
     TDLZ_ISList.drawLineBackground(self, y, alt)
-
+   
     local mouseY = self:getMouseY()
     local isItemOvered = self.mouseOverRow == item.index and not self:isMouseOverScrollBar()
     local checkBoxY = y + (self.itemheight / 2 - BOX_SIZE / 2)
@@ -361,5 +381,15 @@ function TDLZ_ISList:onJoypadDown(button, joypadData)
         end
     else
         TDLZ_MultiSelectScrollList.onJoypadDown(self, button, joypadData);
+    end
+end
+
+function TDLZ_ISList.drawLineBackground(o, y, alt)
+    if alt then
+        TDLZ_Draw.drawRect(o, 0, y, o:getWidth(), o.itemheight, TDLZ_Color:new(o.borderColor.r, o.borderColor.g,
+            o.borderColor.b, 0.18))
+    else
+        TDLZ_Draw.drawRect(o, 0, y, o:getWidth(), o.itemheight, TDLZ_Color:new(o.borderColor.r, o.borderColor.g,
+            o.borderColor.b, 0))
     end
 end
